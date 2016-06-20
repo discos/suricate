@@ -18,4 +18,4 @@ via `Redis <http://redis.io/>`_. You can use Suricate for
 different purposes: to save the properties and methods values on a
 data base, to integrate an alarm system on your control software, to
 show the values on a GUI, and so forth. For more information, take a
-look at the `documentation <https://suricate.readthedocs.org>`.
+look at the `documentation <https://suricate.readthedocs.org>`_.
