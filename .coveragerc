@@ -1,0 +1,7 @@
+[run]
+include=*suricate/*
+
+[report]
+omit=*suricate/services.py
+exclude_lines =
+    if __name__ == '__main__':

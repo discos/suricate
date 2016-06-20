@@ -1,0 +1,22 @@
+strictness: veryhigh
+
+test-warnings: true
+
+autodetect: yes
+
+ignore-paths:
+    - doc
+    - tests/acsenv
+
+pylint:
+    disable:
+        - invalid-name
+        - bare-except
+        - R0914
+        - R0903
+        - W0212
+        - W0704
+        - W0603
+
+python-targets:
+    - 2
