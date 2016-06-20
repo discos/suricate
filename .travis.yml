@@ -9,7 +9,7 @@ install:
   - pip install pytest
   - pip install coveralls
 
-script: coverage run --source suricate
+script: coverage run --source suricate -m py.test
 
 after_success: coveralls
 
