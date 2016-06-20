@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+from __future__ import with_statement
+import datetime
+import os
+
+now = datetime.datetime.now()
+
+config = """# Suricate configuration file, created by suricate-config
+# on %s.
+#
+# This is an example of configuration file that you can edit in order to
+# configure Suricate on your machine. In this file, we want to monitor the
+# properties position and current of the components mynamespace/Positioner00,
+# and the property current of the component mynamespace/Positioner01.
+
+COMPONENTS = { 
+    "mynamespace/Positioner00": [
+        {"name": "position", "timer": 0.1},
+        {"name": "current", "timer": 0.1}],
+    "mynamespace/Positioner01": [
+        {"name": "current", "timer": 0.1}],
+}""" % now.strftime('%Y-%m-%d %H:%M:%S')
+
+
+home = os.getenv('HOME')
+confdir = os.path.join(home, '.suricate')
+try:
+    os.mkdir(confdir)
+except OSError:
+    pass
+
+initfile = os.path.join(confdir, '__init__.py')
+open(initfile, 'w').close()  # Create the __init__.py file
+
+filename = os.path.join(confdir, 'config.py')
+with open(filename, 'w') as f:
+    f.write(config)
+
+print '%s created!' % filename

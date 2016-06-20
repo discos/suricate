@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+import os
+import sys
+import json
+from suricate import server
+from argparse import ArgumentParser
+
+parser = ArgumentParser(description='http://suricate.readthedocs.org/')
+parser.add_argument('--no_components', action='store_true')
+args = parser.parse_args()
+
+try:
+    confdir = os.path.join(os.getenv('HOME'), '.suricate')
+    sys.path.insert(0, confdir)
+    from config import COMPONENTS
+except ImportError, ex:
+    print 'ERROR: %s.' % ex
+    print 'Please run the suricate-config command in order to'
+    print 'create the %s/config.py file.' % confdir
+    sys.exit(1)
+finally:
+    sys.path.remove(confdir)
+server.start() if args.no_components else server.start(COMPONENTS)
