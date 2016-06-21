@@ -8,8 +8,17 @@ python:
 install:
   - pip install pytz
   - pip install pytest
+  - pip install pytest-cov
+  - pip install coveralls
+  - pip install redis>=2.10.3
+  - pip install apsheduler>=3.10.3
+  - pip install flask
+
+before_script: redis-server
 
 script: py.test
+
+after_success: coveralls
 
 notifications:
   email: true
