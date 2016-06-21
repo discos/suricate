@@ -1,4 +1,3 @@
-import omniORB
 from suricate.errors import CannotGetComponentError
 
 
@@ -14,7 +13,7 @@ class Proxy(object):
     def __call__(self, *args, **kwargs):
         try:
             return self._attr(*args, **kwargs)
-        except omniORB.CORBA.OBJECT_NOT_EXIST:
+        except Exception:
             raise CannotGetComponentError(
                 'broken reference to %s' % self._comp_name)
 

@@ -19,8 +19,8 @@ setup(
     scripts=['scripts/suricate-server', 'scripts/suricate-config'],
     platforms='all',
     install_requires=[
-        'redis>=2.10.3',
-        'apscheduler>=3.0.3',
+        'redis==2.10.3',
+        'apscheduler==3.0.3',
         'Flask',
     ],
     classifiers=[
