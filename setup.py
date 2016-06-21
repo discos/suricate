@@ -21,7 +21,7 @@ setup(
     install_requires=[
         'redis==2.10.3',
         'apscheduler==3.0.3',
-        'Flask',
+        'flask',
     ],
     classifiers=[
         'Intended Audience :: Alma Common Software users',

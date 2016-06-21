@@ -15,7 +15,8 @@ install:
 services:
   - redis-server
 
-script: py.test
+script:
+    - coverage run --source suricate -m py.test
 
 after_success: coveralls
 
