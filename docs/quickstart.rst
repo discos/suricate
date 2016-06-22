@@ -358,3 +358,10 @@ sort of wildcard, called *pattern*::
     'channel': 'mynamespace/Positioner01/current',
     'data': '{"error": false, "timestamp": "2016-06-14 12:59:17.987102",
     "message": "", "value": 0.0}'}
+
+Summary
+=======
+To summarize, once the ACS containers are ready and Suricate configured, you
+only have to execute ``redis-server`` and ``suricate-server``. At this point
+you will be able to read the properties values either from the Redis DB or from
+the associated Redis channel.
