@@ -15,7 +15,7 @@ Quickstart
 How to install Suricate
 =======================
 
-Dependencies
+Prerequisite
 ------------
 To use Suricate, you need to have `ACS <https://github.com/ACS-Community/ACS>`_
 and `Redis <http://redis.io/>`_ installed on your machine.
@@ -24,24 +24,39 @@ The ACS version must have Python >= 2.6.
 
 Installation
 ------------
-To install Suricate, execute:
+You can install Suricate by means of 
+`pip <https://en.wikipedia.org/wiki/Pip_(package_manager)>`_,
+the official Python package manager:
 
 .. code-block:: shell
 
-    $ pip install git+https://github.com/discos/suricate.git
+    $ pip install git+https://github.com/marco-buttu/suricate.git
 
-This command will install Suricate, 
+This command will install Suricate and its dependencies:
 `APScheduler <https://apscheduler.readthedocs.org>`_, a `Python interface to
 Redis <https://pypi.python.org/pypi/redis>`_, and
 `Flask <http://flask.pocoo.org/>`_.
+In case pip is not installed on your machine, you can manually install
+Suricate in the following way:
+
+.. code-block:: shell
+
+   $ git clone https://github.com/marco-buttu/suricate.git
+   $ cd suricate/
+   $ python setup.py install
 
 
 How to use Suricate
 ===================
-In this chapter we will see how to use Suricate in a real scenario. Let's
-suppose we want to monitor the properties of some ``Positioner`` components.
-We need to have an ACS introot, a CDB, the ``Positioner`` interface and its
-related implementation class. All but the introot are contained in the
+In this chapter we will see how to use Suricate in a real scenario.
+Before starting, we need to set up the ACS environment, and then we will
+run the Redis server and evantually Suricate.
+
+ACS environment
+---------------
+Let's suppose we want to monitor the properties of some ``Positioner`` components.
+We need to have an ACS introot, an ACS CDB, the ``Positioner`` IDL interface
+and its related implementation class. All but the introot are contained in the
 :file:`suricate/tests/acsenv` directory:
 
 .. code-block:: bash
@@ -102,32 +117,6 @@ the :file:`setenv.sh` script in that shell too, without any argument:
     $ source setenv.sh  # New shell
     ACS introot and CDB properly configured.
 
-At this point we are ready to start the whole system (Redis, ACS,
-and Suricate).
-
-
-Run Redis server
-----------------
-To run Redis server, open a new shell and execute the ``redis-server`` command:
-
-.. code-block:: bash
-
-    $ redis-server
-    ......
-    The server is now ready to accept connections on port 6379
-
-
-Run ACS and the containers
---------------------------
-Before running ACS, open a new shell and execute the :file:`setenv.sh` script:
-
-.. code-block:: bash
-
-    $ source setenv.sh
-    ACS introot and CDB properly configured.
-
-.. todo:: Run everything (ACS, Redis and Suricate), using ansible?
-
 In the same shell you executed :file:`setenv.sh`, run the ``acsStart`` command:
 
 .. code-block:: bash
@@ -146,14 +135,37 @@ command:
     ......
     ContainerStatusMsg: Ready
 
+The ACS environment is now configured and ready to load the ``Positioner``
+components.
 
-Configure Suricate
+
+Run Redis server
+----------------
+To run the Redis server, open a new shell and execute the
+``redis-server`` command:
+
+.. code-block:: bash
+
+    $ redis-server
+    ......
+    The server is now ready to accept connections on port 6379
+
+
+Suricate execution
 ------------------
-We are ready to start Suricate in order to monitor the ``position`` and
-``current`` properties of the ``Positioner`` component.
-To do that, we need to create a configuration file that indicates the
-properties to monitor. We can create this file automatically, executing
-the :file:`suricate-config` command:
+As we said in the section :ref:`introduction`, Suricate 
+is an application that reads the properties of some ACS components
+in order to publish and save them via `Redis <http://redis.io/>`_. 
+This means we need to tell Suricate which properties we want it to
+read. We can do this in real time, by using the Suricate HTTP API,
+or statically, by using a configuration file. In this quick start
+we only see the latter method. If you want to use the Suricate HTTP
+API, take a look at the :ref:`user-guide` section.
+
+Configuration
+~~~~~~~~~~~~~
+The command  ``suricate-config`` creates a Suricate configuration
+file:
 
 .. code-block:: bash
 
@@ -171,36 +183,29 @@ properties you want to monitor. Let's have a look at it::
             {"name": "current", "timer": 0.1}],
     }
 
-
 There is a Python dictionary, called ``COMPONENTS``. Its keys are the components
-names, and the values are a list of properties, rapresented as a dictionary.
+names, and the values are a list of properties, represented as a dictionary.
 The file showed above, created by ``suricate-config``,  is the configuration
 file we will use during the tests. Using this file, Suricate will monitor two
 properties of the
-component ``mynamespace/Positioner00``, ``position`` and ``current``, and one
-property of ``mynamespace/Positioner01``, ``current``. The frequency sampling
-is the same for all properties: 0.1 seconds. 
+component ``mynamespace/Positioner00``, named ``position`` and ``current``, and
+one property of ``mynamespace/Positioner01``, named ``current``. The frequency
+sampling is the same for all properties: 0.1 seconds. 
 
 Run Suricate
-------------
-To start Suricate, you have to execute the ``suricate-server`` command.
-This command looks for the dictionary ``COMPONENTS`` we saw in the previous
-section, and starts monitoring the components and their related properties. 
-To monitor a property, Suricate starts a job over that property, so we have
-one job per property. In the section XXX, we will see in detail what a job is.
+~~~~~~~~~~~~
+If we execute the ``suricate-server`` command, then Suricate starts reading the
+properties, saving their values in the Redis DB, and also publishing the
+values in a Redis channel.
 
-If we run ``suricate-server``, than Suricate monitors the properties, saves
-their values in the Redis DB, and also publishes the values in a channel. At
-this point, we can:
+.. note:: To read a property, Suricate starts a job over that property, so we
+   have one job per property. In :ref:`dev-guide` we will see in detail what a
+   job is.
 
-* get (using its REST API) the list of active jobs
+At this point, we can:
+
+* get (using the Suricate HTTP API) the list of active jobs
 * get the properties values using a redis client
-
-.. note:: Sometimes it is useful to run Suricate without loading the components
-   from the configuration file, maybe because you want to choice at runtime the
-   components to monitor. In this case, give the command
-   ``suricate-server --no_components``. We will see some examples in the next
-   sections. 
 
 
 How to get the list of active jobs
@@ -230,9 +235,9 @@ Here is an example using curl:
     }
 
 
-You can obviously do programmatically the same thing, using whatever
-programming language.  Here is another example using Python and the third-party
-`requests <http://docs.python-requests.org/>`__ library:
+You can also do it programmatically, using the
+programming language of your choice.  Here is an example using Python and
+the third-party `requests <http://docs.python-requests.org/>`__ library:
 
 .. doctest::
 
