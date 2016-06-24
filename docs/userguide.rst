@@ -8,6 +8,8 @@ User Guide
 
    How to use the clients?
 
+The Suricate API
+================
 
 No static components
 ====================

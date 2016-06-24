@@ -6,10 +6,13 @@ Quickstart
 
 .. topic:: Preface
 
-   A brief summary of what is required, from the component installation
-   to the Suricate usage, in order to read the properties values and
-   how to read the properties. The first subsections has to be titled
-   "ACS environment", and the rest has to be more or less as currently is.
+   This section is intended to be used as a quick introcution to Suricate.
+   You will see how to install Suricate and configure the system (ACS and
+   Suricate itself), and eventually how to read the property values.
+   At the end of the section you will be able to use Suricate for most
+   of its use cases. For more details about the configuration and the
+   Suricate architecture, look respectively at the :ref:`user-guide` and
+   :ref:`dev-guide` sections.
 
 
 How to install Suricate
@@ -153,7 +156,7 @@ To run the Redis server, open a new shell and execute the
 
 Suricate execution
 ------------------
-As we said in the section :ref:`introduction`, Suricate 
+As we said in the section :ref:`motivations`, Suricate 
 is an application that reads the properties of some ACS components
 in order to publish and save them via `Redis <http://redis.io/>`_. 
 This means we need to tell Suricate which properties we want it to
