@@ -50,8 +50,6 @@ def create_job():
 
 
 # TODO: delete or stop one or all the jobs
-
-
 # @app.route('/publisher/api/v0.1/shutdown', methods=['POST'])
 # def shutdown():
 #     try:

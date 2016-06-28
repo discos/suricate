@@ -20,4 +20,5 @@ except ImportError, ex:
     sys.exit(1)
 finally:
     sys.path.remove(confdir)
+
 server.start() if args.no_components else server.start(COMPONENTS)

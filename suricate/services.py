@@ -30,12 +30,17 @@ class Component(object):
         try:
             self._component = self._client.getComponent(self.name)
         except Exception:
+            self._component = None
             raise CannotGetComponentError('%s not available' % self.name)
 
     def __del__(self):
-        self._client.disconnect()
+        if hasattr(self, '_client'):
+            self._client.disconnect()
 
     def __getattr__(self, name):
+        # TODO: In case __init__ does not get the component,
+        # self._component is None and getattr(self._component, name)
+        # will rase an exception. To be fixed.
         attr = self.__dict__.get(name) or getattr(self._component, name)
         return Proxy(attr, self.name)
 
