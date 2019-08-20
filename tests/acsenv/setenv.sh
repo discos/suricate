@@ -36,7 +36,7 @@ then
     # Install the ACS components
     cd $ENVPATH/components/src/
     make clean
-    make 
+    make
     make install
     cd $ENVPATH
     echo -e "\nOK, you are ready to run ACS :)"

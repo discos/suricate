@@ -153,6 +153,8 @@ To run the Redis server, open a new shell and execute the
     ......
     The server is now ready to accept connections on port 6379
 
+.. todo:: Use http://redislite.readthedocs.io/
+
 
 Suricate execution
 ------------------
@@ -164,6 +166,8 @@ read. We can do this in real time, by using the Suricate HTTP API,
 or statically, by using a configuration file. In this quick start
 we only see the latter method. If you want to use the Suricate HTTP
 API, take a look at the :ref:`user-guide` section.
+
+.. _quickstart-conf:
 
 Configuration
 ~~~~~~~~~~~~~
@@ -210,6 +214,7 @@ At this point, we can:
 * get (using the Suricate HTTP API) the list of active jobs
 * get the properties values using a redis client
 
+.. _quickstart-jobs:
 
 How to get the list of active jobs
 ==================================
@@ -254,6 +259,7 @@ the third-party `requests <http://docs.python-requests.org/>`__ library:
     (u'mynamespace/Positioner00/current', 0.10000000000000001)
     (u'mynamespace/Positioner01/current', 0.10000000000000001)
 
+.. _quickstart-clients:
 
 Get the properties values using a Redis client
 ==============================================

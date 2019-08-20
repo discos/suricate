@@ -19,9 +19,9 @@ setup(
     scripts=['scripts/suricate-server', 'scripts/suricate-config'],
     platforms='all',
     install_requires=[
-        'redis==2.10.3',
-        'apscheduler==3.0.3',
-        'flask',
+        'redis==3.3.8',
+        'apscheduler==3.6.1',
+        'flask==1.1.1',
     ],
     classifiers=[
         'Intended Audience :: Alma Common Software users',

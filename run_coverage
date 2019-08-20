@@ -4,7 +4,7 @@ rm -f .coverage
 # coverage run --source suricate -m py.test --capture=no $1
 coverage run --source suricate -m py.test $1
 
-if [ "$1" == "--acs" ] 
+if [ "$1" == "--acs" ]
 then
     coverage report --include "./suricate/*"
 else

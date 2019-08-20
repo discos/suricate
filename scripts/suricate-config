@@ -13,7 +13,7 @@ config = """# Suricate configuration file, created by suricate-config
 # properties position and current of the components mynamespace/Positioner00,
 # and the property current of the component mynamespace/Positioner01.
 
-COMPONENTS = { 
+COMPONENTS = {
     "mynamespace/Positioner00": [
         {"name": "position", "timer": 0.1},
         {"name": "current", "timer": 0.1}],

@@ -108,6 +108,9 @@ pygments_style = 'sphinx'
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 
+# :numfig:`myfigure` will create a reference to the figure
+numfig = True
+
 
 # -- Options for HTML output ----------------------------------------------
 
