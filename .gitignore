@@ -1,0 +1,13 @@
+*.pyc
+.cache/
+.coverage
+Suricate.egg-info/
+build/
+dist/
+docs/_build/
+dump.rdb
+tests/acsenv/components/idl/ComponentErrors.idl
+tests/acsenv/components/lib/
+tests/acsenv/components/object/
+tests/acsenv/components/src/tmp24036-ComponentErrors/
+tests/acsenv/introot/
