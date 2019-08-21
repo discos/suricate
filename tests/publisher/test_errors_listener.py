@@ -7,7 +7,7 @@ import pytest
 def test_reload_component(Publisher, Component, pubsub):
     """Docstring"""
     Publisher.add_errors_listener()
-    component = Component('mynamespace/Positioner')
+    component = Component('TestNamespace/Positioner')
     Publisher.s.add_attribute_job(component, 'position', seconds=0.1)
     component.release()
     Publisher.start()
@@ -21,7 +21,7 @@ def test_reload_component(Publisher, Component, pubsub):
 
 def test_cannot_reload_component(Publisher, Component, pubsub):
     Publisher.add_errors_listener()
-    component = Component('mynamespace/Positioner')
+    component = Component('TestNamespace/Positioner')
     component.name = 'foo'
     Publisher.s.add_attribute_job(component, 'wrong_property', seconds=0.1)
     Publisher.start()

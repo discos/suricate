@@ -6,7 +6,7 @@ import pytest
 BASE_URL = '/publisher/api/v0.1'
 
 DATA = {
-    'component': 'mynamespace/Positioner',
+    'component': 'TestNamespace/Positioner',
     'attribute': 'position',
     'timer': 0.1
 }

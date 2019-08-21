@@ -120,7 +120,7 @@ class MockComponent(object):
                 {name: super(MockComponent, cls).__new__(cls)})
         return cls.components[name]
 
-    def __init__(self, name='mynamespace/MyComponent'):
+    def __init__(self, name='TestNamespace/MyComponent'):
         self.name = name
         self.device_attribute_prefix = '_get_'
         for property_ in MockComponent.properties.items():
@@ -176,10 +176,10 @@ def component(request, component_id=0):
     """Return a Positioner instance.
 
     The parameter component_id is the component identifier. That means
-    to default it gets and returns the mynamespace/Positioner00 component.
+    to default it gets and returns the TestNamespace/Positioner00 component.
     """
     ComponentClass = Component()
-    comp = ComponentClass('mynamespace/Positioner%02d' % component_id)
+    comp = ComponentClass('TestNamespace/Positioner%02d' % component_id)
 
     def release():
         comp.release()
@@ -194,7 +194,7 @@ def components(request):
     comps = []
     ComponentClass = Component()
     for i in range(4):  # Get 4 components
-        comp = ComponentClass('mynamespace/Positioner%02d' % i)
+        comp = ComponentClass('TestNamespace/Positioner%02d' % i)
         comps.append(comp)
 
     def release():
