@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+
 import os
 import sys
 import json
@@ -7,6 +9,8 @@ from argparse import ArgumentParser
 
 parser = ArgumentParser(description='http://suricate.readthedocs.org/')
 parser.add_argument('--no_components', action='store_true')
+parser.add_argument('action', choices=['start', 'stop', 'restart'])
+
 args = parser.parse_args()
 
 try:
@@ -14,11 +18,24 @@ try:
     sys.path.insert(0, confdir)
     from config import COMPONENTS
 except ImportError, ex:
-    print 'ERROR: %s.' % ex
-    print 'Please run the suricate-config command in order to'
-    print 'create the %s/config.py file.' % confdir
+    print('ERROR: %s.' % ex)
+    print('Please run the suricate-config command in order to')
+    print('create the %s/config.py file.' % confdir)
     sys.exit(1)
 finally:
     sys.path.remove(confdir)
 
-server.start() if args.no_components else server.start(COMPONENTS)
+PORT = 5000
+BASEURL = 'http://127.0.0.1:%d' % PORT
+if args.action == 'start':
+    if args.no_components:
+        server.start()
+    else:
+        server.start(COMPONENTS)
+elif args.action == 'stop':
+    import requests
+    url = BASEURL + '/publisher/api/v0.1/stop'
+    requests.post(url)
+elif args.action == 'restart':
+    server.stop()
+    server.start()

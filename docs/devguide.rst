@@ -45,25 +45,25 @@ To better understand, take a look at the file :file:`config.py` we say
 in the :ref:`quickstart` chapter::
 
     COMPONENTS = { 
-        "mynamespace/Positioner00": [
+        "TestNamespace/Positioner00": [
             {"name": "position", "timer": 0.1},
             {"name": "current", "timer": 0.1}],
-        "mynamespace/Positioner01": [
+        "TestNamespace/Positioner01": [
             {"name": "current", "timer": 0.1}],
     }
 
 From this configuration, Suricate create tree jobs, one for each
 property:
 
-* ``mynamespace/Positioner00/position``: executed every ``0.1`` seconds
+* ``TestNamespace/Positioner00/position``: executed every ``0.1`` seconds
   (``timer`` parameter), it reads the property ``position`` from the
   component ``Positioner00``, publishes the property
   value to a Redis channel and sets it to the in-memory database;
-* ``mynamespace/Positioner00/current``: executed every ``0.1`` seconds,
+* ``TestNamespace/Positioner00/current``: executed every ``0.1`` seconds,
   it reads the property ``current`` from the component ``Positioner00``,
   publishes the property value to a Redis channel and sets it to the
   in-memory database;
-* ``mynamespace/Positioner00/current``: executed every ``0.1`` seconds,
+* ``TestNamespace/Positioner00/current``: executed every ``0.1`` seconds,
   it reads the property ``current`` from the component ``Positioner01``,
   publishes the property value to a Redis channel and sets it to the
   in-memory database.
@@ -77,15 +77,15 @@ section :ref:`quickstart-jobs`:
     {
       "jobs": [
         {
-          "id": "mynamespace/Positioner00/position", 
+          "id": "TestNamespace/Positioner00/position", 
           "timer": 0.10000000000000001
         }, 
         {
-          "id": "mynamespace/Positioner00/current", 
+          "id": "TestNamespace/Positioner00/current", 
           "timer": 0.10000000000000001
         }, 
         {
-          "id": "mynamespace/Positioner01/current", 
+          "id": "TestNamespace/Positioner01/current", 
           "timer": 0.10000000000000001
         }
       ]

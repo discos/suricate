@@ -21,12 +21,12 @@ class Publisher(object):
         example::
 
             config = {
-                "mynamespace/Positioner00":
+                "TestNamespace/Positioner00":
                     [
                         {"name": "position", "timer": 0.1},
                         {"name": "current", "timer": 0.1},
                     ],
-                "mynamespace/Positioner01":
+                "TestNamespace/Positioner01":
                     [
                         {"name": "current", "timer": 0.1},
                     ]
@@ -38,7 +38,7 @@ class Publisher(object):
         -------------------------------------------------
         For instance::
 
-            publisher = Publisher('mynamespace/Positioner', 'position', 0.1)
+            publisher = Publisher('TestNamespace/Positioner', 'position', 0.1)
         """
         if len(args) == 0:
             pass
@@ -53,7 +53,7 @@ class Publisher(object):
     def add_jobs(self, config):
         """
         {
-            "mynamespace/Positioner":
+            "TestNamespace/Positioner":
             [
                 {
                     "name": "position",
@@ -124,5 +124,5 @@ class Publisher(object):
     def shutdown(cls):
         for job in cls.s.get_jobs():
             job.remove()
-        cls.s.shutdown()
+        cls.s.shutdown(wait=False)
         cls.s = Scheduler()

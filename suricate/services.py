@@ -31,7 +31,7 @@ class Component(object):
             self._component = self._client.getComponent(self.name)
         except Exception:
             self._component = None
-            raise CannotGetComponentError('%s not available' % self.name)
+            raise CannotGetComponentError('component %s not available' % self.name)
 
     def __del__(self):
         if hasattr(self, '_client'):

@@ -76,11 +76,11 @@ directory. Its implementation is located in :file:`components/src`:
     Makefile  Positioner
 
 The CDB defines 5 different configurations of the ``Positioner`` class, which
-live in the ``mynamespace`` namespace:
+live in the ``TestNamespace`` namespace:
 
 .. code-block:: bash
 
-    $ ls CDB/alma/mynamespace/
+    $ ls CDB/alma/TestNamespace/
     Positioner  Positioner00  Positioner01  Positioner02  Positioner03
 
 This means we can instantiate 5 ``Positioner`` components at the same time,
@@ -183,10 +183,10 @@ This is a template file, that you can modify in order to indicate the
 properties you want to monitor. Let's have a look at it::
 
     COMPONENTS = { 
-        "mynamespace/Positioner00": [
+        "TestNamespace/Positioner00": [
             {"name": "position", "timer": 0.1},
             {"name": "current", "timer": 0.1}],
-        "mynamespace/Positioner01": [
+        "TestNamespace/Positioner01": [
             {"name": "current", "timer": 0.1}],
     }
 
@@ -195,8 +195,8 @@ names, and the values are a list of properties, represented as a dictionary.
 The file showed above, created by ``suricate-config``,  is the configuration
 file we will use during the tests. Using this file, Suricate will monitor two
 properties of the
-component ``mynamespace/Positioner00``, named ``position`` and ``current``, and
-one property of ``mynamespace/Positioner01``, named ``current``. The frequency
+component ``TestNamespace/Positioner00``, named ``position`` and ``current``, and
+one property of ``TestNamespace/Positioner01``, named ``current``. The frequency
 sampling is the same for all properties: 0.1 seconds. 
 
 Run Suricate
@@ -228,15 +228,15 @@ Here is an example using curl:
     {
       "jobs": [
         {
-          "id": "mynamespace/Positioner00/position", 
+          "id": "TestNamespace/Positioner00/position", 
           "timer": 0.10000000000000001
         }, 
         {
-          "id": "mynamespace/Positioner00/current", 
+          "id": "TestNamespace/Positioner00/current", 
           "timer": 0.10000000000000001
         }, 
         {
-          "id": "mynamespace/Positioner01/current", 
+          "id": "TestNamespace/Positioner01/current", 
           "timer": 0.10000000000000001
         }
       ]
@@ -255,9 +255,9 @@ the third-party `requests <http://docs.python-requests.org/>`__ library:
     >>> for job in jobs:
     ...     print(job['id'], job['timer'])
     ... 
-    (u'mynamespace/Positioner00/position', 0.10000000000000001)
-    (u'mynamespace/Positioner00/current', 0.10000000000000001)
-    (u'mynamespace/Positioner01/current', 0.10000000000000001)
+    (u'TestNamespace/Positioner00/position', 0.10000000000000001)
+    (u'TestNamespace/Positioner00/current', 0.10000000000000001)
+    (u'TestNamespace/Positioner01/current', 0.10000000000000001)
 
 .. _quickstart-clients:
 
@@ -275,11 +275,11 @@ Redis' ``get`` command::
 
     >>> from redis import StrictRedis
     >>> r = StrictRedis()
-    >>> r.get('mynamespace/Positioner00/position')
+    >>> r.get('TestNamespace/Positioner00/position')
     '0.0 @ 2016-06-14 10:36:58.393272'
-    >>> r.get('mynamespace/Positioner00/current')
+    >>> r.get('TestNamespace/Positioner00/current')
     '0.0 @ 2016-06-14 10:37:05.495497'
-    >>> r.get('mynamespace/Positioner01/current')
+    >>> r.get('TestNamespace/Positioner01/current')
     '0.0 @ 2016-06-14 10:37:35.238080'
 
 The Redis key is the job identifier, and the value is the last value of the property.
@@ -287,7 +287,7 @@ In this example, the values are all ``0.0``. The value and the timestamp are
 separated by a ``@``. If the key refers to a not monitored property,
 you get ``None``::
 
-    >>> r.get('mynamespace/Positioner01/foo')
+    >>> r.get('TestNamespace/Positioner01/foo')
     >>>
 
 Using the publish/subscribe paradigm, you can get all the values published
@@ -297,18 +297,18 @@ Here is an example::
     >>> import redis
     >>> client = redis.StrictRedis()
     >>> pubsub = client.pubsub()
-    >>> pubsub.subscribe('mynamespace/Positioner01/current')
+    >>> pubsub.subscribe('TestNamespace/Positioner01/current')
     >>> pubsub.get_message()
     {'pattern': None, 'type': 'subscribe',
-    'channel': 'mynamespace/Positioner01/current', 'data': 1L}
+    'channel': 'TestNamespace/Positioner01/current', 'data': 1L}
     >>> pubsub.get_message()
     {'pattern': None, 'type': 'message',
-    'channel': 'mynamespace/Positioner01/current',
+    'channel': 'TestNamespace/Positioner01/current',
     'data': '{"error": false, "timestamp": "2016-06-14 11:21:40.394367",
     "message": "", "value": 0.0}'}
     >>> pubsub.get_message()
     {'pattern': None, 'type': 'message',
-    'channel': 'mynamespace/Positioner01/current',
+    'channel': 'TestNamespace/Positioner01/current',
     'data': '{"error": false, "timestamp": "2016-06-14 11:21:40.441427",
     "message": "", "value": 0.0}'}
     >>> pubsub.get_message()
@@ -324,22 +324,22 @@ You can also subscribe to more than one channel::
     >>> client = redis.StrictRedis()
     >>> pubsub = client.pubsub()
     >>> pubsub.subscribe(
-    ...     'mynamespace/Positioner00/position',
-    ...     'mynamespace/Positioner00/current')
+    ...     'TestNamespace/Positioner00/position',
+    ...     'TestNamespace/Positioner00/current')
     >>> pubsub.get_message()
     {'pattern': None, 'type': 'subscribe',
-    'channel': 'mynamespace/Positioner00/position', 'data': 1L}
+    'channel': 'TestNamespace/Positioner00/position', 'data': 1L}
     >>> pubsub.get_message()
     {'pattern': None, 'type': 'subscribe',
-    'channel': 'mynamespace/Positioner00/current', 'data': 2L}
+    'channel': 'TestNamespace/Positioner00/current', 'data': 2L}
     >>> pubsub.get_message()
     {'pattern': None, 'type': 'message',
-    'channel': 'mynamespace/Positioner00/current',
+    'channel': 'TestNamespace/Positioner00/current',
     'data': '{"error": false, "timestamp": "2016-06-14 12:54:54.098538",
     "message": "", "value": 0.0}'}
     >>> pubsub.get_message()
     {'pattern': None, 'type': 'message',
-    'channel': 'mynamespace/Positioner00/position',
+    'channel': 'TestNamespace/Positioner00/position',
     'data': '{"error": false, "timestamp": "2016-06-14 12:54:54.098063",
     "message": "", "value": 0.0}'}
 
@@ -348,23 +348,23 @@ sort of wildcard, called *pattern*::
 
     >>> client = redis.StrictRedis()
     >>> pubsub = client.pubsub()
-    >>> pubsub.psubscribe('mynamespace/Positioner*')
+    >>> pubsub.psubscribe('TestNamespace/Positioner*')
     >>> pubsub.get_message()
     {'pattern': None, 'type': 'psubscribe',
-    'channel': 'mynamespace/Positioner*', 'data': 1L}
+    'channel': 'TestNamespace/Positioner*', 'data': 1L}
     >>> pubsub.get_message()
-    {'pattern': 'mynamespace/Positioner*', 'type': 'pmessage',
-    'channel': 'mynamespace/Positioner00/position',
+    {'pattern': 'TestNamespace/Positioner*', 'type': 'pmessage',
+    'channel': 'TestNamespace/Positioner00/position',
     'data': '{"error": false, "timestamp": "2016-06-14 12:59:17.986962",
     "message": "", "value": 0.0}'}
     >>> pubsub.get_message()
-    {'pattern': 'mynamespace/Positioner*', 'type': 'pmessage',
-    'channel': 'mynamespace/Positioner00/current',
+    {'pattern': 'TestNamespace/Positioner*', 'type': 'pmessage',
+    'channel': 'TestNamespace/Positioner00/current',
     'data': '{"error": false, "timestamp": "2016-06-14 12:59:17.987194",
     "message": "", "value": 0.0}'}
     >>> pubsub.get_message()
-    {'pattern': 'mynamespace/Positioner*', 'type': 'pmessage',
-    'channel': 'mynamespace/Positioner01/current',
+    {'pattern': 'TestNamespace/Positioner*', 'type': 'pmessage',
+    'channel': 'TestNamespace/Positioner01/current',
     'data': '{"error": false, "timestamp": "2016-06-14 12:59:17.987102",
     "message": "", "value": 0.0}'}
 

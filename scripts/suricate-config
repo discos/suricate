@@ -10,14 +10,14 @@ config = """# Suricate configuration file, created by suricate-config
 #
 # This is an example of configuration file that you can edit in order to
 # configure Suricate on your machine. In this file, we want to monitor the
-# properties position and current of the components mynamespace/Positioner00,
-# and the property current of the component mynamespace/Positioner01.
+# properties position and current of the components TestNamespace/Positioner00,
+# and the property current of the component TestNamespace/Positioner01.
 
 COMPONENTS = {
-    "mynamespace/Positioner00": [
+    "TestNamespace/Positioner00": [
         {"name": "position", "timer": 0.1},
         {"name": "current", "timer": 0.1}],
-    "mynamespace/Positioner01": [
+    "TestNamespace/Positioner01": [
         {"name": "current", "timer": 0.1}],
 }""" % now.strftime('%Y-%m-%d %H:%M:%S')
 
