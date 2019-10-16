@@ -26,7 +26,6 @@ setup(
     classifiers=[
         'Intended Audience :: Alma Common Software users',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
    ],
 )
