@@ -4,10 +4,9 @@ import json
 import pytest
 
 
-def test_reload_component(Publisher, Component, pubsub):
+def test_reload_component(Publisher, component, pubsub):
     """Docstring"""
     Publisher.add_errors_listener()
-    component = Component('TestNamespace/Positioner')
     Publisher.s.add_attribute_job(component, 'position', seconds=0.1)
     component.release()
     Publisher.start()
@@ -19,9 +18,8 @@ def test_reload_component(Publisher, Component, pubsub):
     assert not property_['error']  # Component available
 
 
-def test_cannot_reload_component(Publisher, Component, pubsub):
+def test_cannot_reload_component(Publisher, component, pubsub):
     Publisher.add_errors_listener()
-    component = Component('TestNamespace/Positioner')
     component.name = 'foo'
     Publisher.s.add_attribute_job(component, 'wrong_property', seconds=0.1)
     Publisher.start()

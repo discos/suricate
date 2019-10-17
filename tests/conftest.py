@@ -58,13 +58,6 @@ def client():
 
 
 @pytest.fixture()
-def Component():
-    """Return an ACS component class or a MockComponent"""
-    from suricate.services import Component as ComponentClass
-    return ComponentClass
-
-
-@pytest.fixture()
 def Publisher(request):
     from suricate.core import Publisher as Pub
 
@@ -169,6 +162,12 @@ class Completion(object):
     def __init__(self, code=0, timestamp=0):
         self.code = code
         self.timeStamp = timestamp
+
+
+def Component():
+    """Return an ACS component class or a MockComponent"""
+    from suricate.services import Component as ComponentClass
+    return ComponentClass
 
 
 @pytest.fixture()
