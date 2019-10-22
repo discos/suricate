@@ -3,13 +3,16 @@ from __future__ import print_function
 
 import os
 import sys
-import json
+import fcntl
+from subprocess import check_output, STDOUT
+import requests
 from suricate import server
 from argparse import ArgumentParser
 
+
 parser = ArgumentParser(description='http://suricate.readthedocs.org/')
 parser.add_argument('--no_components', action='store_true')
-parser.add_argument('action', choices=['start', 'stop', 'restart'])
+parser.add_argument('action', choices=['start', 'stop'])
 
 args = parser.parse_args()
 
@@ -28,14 +31,20 @@ finally:
 PORT = 5000
 BASEURL = 'http://127.0.0.1:%d' % PORT
 if args.action == 'start':
+    # Check if ACS is ready
+    output = check_output(['acsStatus'], stderr=STDOUT)
+    if 'Unable to determine manager' in output:
+        print('ERROR: ACS is not running')
+        sys.exit(1)
     if args.no_components:
         server.start()
     else:
         server.start(COMPONENTS)
 elif args.action == 'stop':
-    import requests
     url = BASEURL + '/publisher/api/v0.1/stop'
-    requests.post(url)
-elif args.action == 'restart':
-    server.stop()
-    server.start()
+    msg = ''
+    try:
+        requests.post(url)
+        print('A "stop" request has been sent to the server')
+    except requests.exceptions.ConnectionError:
+        print('The server was already stopped...')

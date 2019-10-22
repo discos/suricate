@@ -6,15 +6,21 @@ import pytest
 import redis
 from flask.testing import FlaskClient
 
+from suricate.core import Publisher as Publisher_
 from suricate.schedulers import Scheduler
 from suricate.errors import CannotGetComponentError
+from suricate.server import app, start_publisher, stop_publisher
 
 from apscheduler.executors.pool import ProcessPoolExecutor, ThreadPoolExecutor
 from apscheduler.schedulers import SchedulerNotRunningError
 
 
 def pytest_addoption(parser):
-    parser.addoption("--acs", action="store_true", help="ACS required")
+    parser.addoption(
+        "--acs",
+        action="store_true",
+        help="Execute the tests on real ACS components"
+)
 
 
 def pytest_cmdline_main(config):
@@ -33,7 +39,7 @@ def mock_services(request, monkeypatch):
 
 @pytest.fixture
 def client():
-    from suricate.server import app, start
+    """Flask client used to test the REST API"""
 
     class AppClient(FlaskClient):
 
@@ -41,14 +47,12 @@ def client():
             super(self.__class__, self).__init__(*args, **kwargs)
 
         def __enter__(self):
-            start(run_app=False)
+            start_publisher()
             super(self.__class__, self).__enter__()
             return self
 
         def __exit__(self, exc_type, exc_value, tb):
-            # After executing start(), I can import publisher
-            from suricate.server import publisher
-            publisher.shutdown()
+            stop_publisher()
             super(self.__class__, self).__exit__(exc_type, exc_value, tb)
 
     app.test_client_class = AppClient
@@ -59,16 +63,15 @@ def client():
 
 @pytest.fixture()
 def Publisher(request):
-    from suricate.core import Publisher as Pub
 
     def shutdown():
         try:
-            Pub.shutdown()
+            Publisher_.shutdown()
         except SchedulerNotRunningError:
             pass
 
     request.addfinalizer(shutdown)
-    return Pub
+    return Publisher_
 
 
 class RedisPubSub(object):

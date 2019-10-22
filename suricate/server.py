@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 from __future__ import with_statement, print_function
 
+import time
 import socket
 from flask import Flask, jsonify, abort, request
 from suricate.core import Publisher
@@ -50,39 +51,52 @@ def create_job():
         'timer': timer}), 201
 
 
-# TODO: delete or stop one or all the jobs
 @app.route('/publisher/api/v0.1/stop', methods=['POST'])
-def stop():
+def stop():  # pragma: no cover
+    msg = '\n'
     try:
         app_shutdown = request.environ.get('werkzeug.server.shutdown')
         if app_shutdown is None:
             raise RuntimeError('Not running with the Werkzeug Server')
         app_shutdown()
+        msg += 'The server has been stopped\n'
     except:
-        print('Can not shutdown the Werkzeug server')
+        msg += 'Can not shutdown the Werkzeug server\n'
     finally:
         if publisher:
-            open('/tmp/flask', 'a').write('!!Calling publisher.shutdown()')
             publisher.shutdown()
+            msg += 'All scheduled jobs have been closed\n'
         else:
-            open('/tmp/flask', 'a').write('Publisher is %s' % publisher)
-    return 'Server shutting down...'
+            msg += 'ERROR: there is no reference to the publisher\n'
+        time.sleep(5)
+        print(msg)
+    return 'Server stopped :-)'
 
 
-def start(components=None, run_app=True):
+def start_publisher(components=None):
     try:
         global publisher
         publisher = Publisher(components) if components else Publisher()
         publisher.start()
-        if run_app:
-            app.run(debug=False)
-    except socket.error, ex:
-        print(ex)
     except CannotGetComponentError, ex:
         print('\nERROR: %s.' % ex)
         print('Is the component listed in the configuration file?\n')
+        sys.exit(1)
 
 
-#
-# if __name__ == '__main__':
-#     main()
+def stop_publisher():
+    if publisher is not None:
+        publisher.shutdown()
+
+
+def start_webserver():
+    try:
+        app.run(debug=False)
+    except socket.error, ex:
+        print(ex)
+        sys.exit(1)
+
+
+def start(components=None):
+    start_publisher(components)
+    start_webserver()

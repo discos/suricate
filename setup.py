@@ -4,7 +4,7 @@ except ImportError:
     from distutils.core import setup
 
 setup(
-    name='Suricate',
+    name='suricate',
     version='0.1',
     description='ACS property publisher',
     packages=[
@@ -12,7 +12,7 @@ setup(
     ],
     py_modules=[],
     author='Marco Buttu',
-    author_email="mbuttu@oa-cagliari.inaf.it",
+    author_email="marco.buttu@inaf.it",
     license='GPL',
     url='https://github.com/marco-buttu/suricate/',
     keywords='Alma Common Software property publisher',

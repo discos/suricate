@@ -23,6 +23,9 @@ jobs_from_data = {
 }
 
 
+HEADERS = {'content-type':'application/json'}
+
+
 def test_get_empty_jobs(client):
     """Upon start up, get an empty list of jobs"""
     response = client.get('%s/jobs' % BASE_URL)
@@ -32,25 +35,33 @@ def test_get_empty_jobs(client):
 
 def test_create_jobs_returns_the_job(client):
     """Return the created job"""
-    headers = {'content-type':'application/json'}
     response = client.post(
-        '%s/jobs' %BASE_URL, data=json.dumps(DATA), headers=headers)
+        '%s/jobs' %BASE_URL, data=json.dumps(DATA), headers=HEADERS)
     assert json.loads(response.get_data()) == DATA
 
 
 def test_create_and_get_jobs(client):
     """GET jobs returns the content of POST jobs."""
-    headers = {'content-type':'application/json'}
-    client.post('%s/jobs' %BASE_URL, data=json.dumps(DATA), headers=headers)
+    client.post('%s/jobs' %BASE_URL, data=json.dumps(DATA), headers=HEADERS)
     response = client.get('%s/jobs' % BASE_URL)
     assert json.loads(response.get_data()) == jobs_from_data
 
 
 def test_create_jobs_invalid_json(client):
     # Do not json.dumps(DATA)
-    headers = {'content-type':'application/json'}
-    response = client.post('%s/jobs' %BASE_URL, data=DATA, headers=headers)
+    response = client.post('%s/jobs' %BASE_URL, data=DATA, headers=HEADERS)
     assert response.status_code == 400
+
+
+def test_create_jobs_empty_json(client):
+    response = client.post('%s/jobs' %BASE_URL, data={})
+    assert response.status_code == 400
+
+
+def test_stop(client, monkeypatch):
+    monkeypatch.setattr('suricate.server.publisher.shutdown', lambda: None)
+    response = client.post('%s/stop' %BASE_URL)
+    assert response.get_data() == 'Server stopped :-)'
 
 
 if __name__ == '__main__':
