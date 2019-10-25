@@ -30,6 +30,11 @@ class Component(object):
         try:
             self._component = self._client.getComponent(self.name)
         except Exception:
+            # This except clause catches a omniORB.CORBA.OBJECT_NOT_EXISTS in case
+            # the client has been disconnected.  It caches a CORBA.COMM_FAILURE
+            # when the container is down and after that you call getComponent()
+            # for the first time. If the container is still down and you call
+            # getComponent() another time, than it catches omniORB.CORBA.TRANSIENT
             self._component = None
             raise CannotGetComponentError('component %s not available' % self.name)
 

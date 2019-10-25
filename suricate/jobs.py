@@ -24,14 +24,6 @@ def acs_property_publisher(channel, component, property_name):
     except CannotGetComponentError, ex:
         data_dict.update({'error': True, 'message': str(ex)})
         raise
-    except (COMM_FAILURE, TRANSIENT), ex:
-        message = 'CORBA problem: the container can be crashed'
-        data_dict.update({'error': True, 'message': str(ex)})
-        raise CannotGetComponentError(message)
-    except OBJECT_NOT_EXIST, ex:
-        message = 'component not available: maybe it has been released'
-        data_dict.update({'error': True, 'message': str(ex)})
-        raise CannotGetComponentError(message)
     except AttributeError, ex:
         message = str(ex)
         data_dict.update({'error': True, 'message': message})
