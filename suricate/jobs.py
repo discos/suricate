@@ -1,9 +1,6 @@
 import json
 import datetime
 
-from omniORB.CORBA import TRANSIENT, OBJECT_NOT_EXIST
-from CORBA import COMM_FAILURE
-
 import redis
 from suricate.errors import CannotGetComponentError, ComponentAttributeError
 
