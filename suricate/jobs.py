@@ -31,3 +31,5 @@ def acs_property_publisher(channel, component, property_name):
         timestamp = value_dict['timestamp']
         r.set(channel, '%s @ %s' % (value, timestamp))
         r.publish(channel, json.dumps(data_dict))
+        healthy_job_key = 'healthy_job:%s' % channel
+        r.set(healthy_job_key, 1)

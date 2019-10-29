@@ -2,6 +2,7 @@
 from __future__ import with_statement, print_function
 
 import time
+import sys
 import socket
 from flask import Flask, jsonify, abort, request
 from suricate.core import Publisher

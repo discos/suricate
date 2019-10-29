@@ -38,10 +38,6 @@ class Component(object):
             self._component = None
             raise CannotGetComponentError('component %s not available' % self.name)
 
-    def __del__(self):
-        if hasattr(self, '_client'):
-            self._client.disconnect()
-
     def __getattr__(self, name):
         # TODO: In case __init__ does not get the component,
         # self._component is None and getattr(self._component, name)
@@ -53,6 +49,5 @@ class Component(object):
         try:
             self._client.forceReleaseComponent(self.name)
         except:
+            # TODO: log
             pass
-        finally:
-            self.__del__()
