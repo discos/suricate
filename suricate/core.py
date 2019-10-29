@@ -30,12 +30,12 @@ class Publisher(object):
             config = {
                 "TestNamespace/Positioner00":
                     [
-                        {"name": "position", "timer": 0.1},
-                        {"name": "current", "timer": 0.1},
+                        {"attribute": "position", "timer": 0.1},
+                        {"attribute": "current", "timer": 0.1},
                     ],
                 "TestNamespace/Positioner01":
                     [
-                        {"name": "current", "timer": 0.1},
+                        {"attribute": "current", "timer": 0.1},
                     ]
             }
             publisher = Publisher(config)
@@ -53,7 +53,7 @@ class Publisher(object):
             self.add_jobs(*args)
         else:  # Expected arguments: component name, attribute name, timer
             comp, attr, timer = args
-            self.add_jobs({comp: [{'name': attr, 'timer': timer}]})
+            self.add_jobs({comp: [{'attribute': attr, 'timer': timer}]})
 
         Publisher.add_errors_listener()
         self.s.add_job(
@@ -69,7 +69,7 @@ class Publisher(object):
             "TestNamespace/Positioner":
             [
                 {
-                    "name": "position",
+                    "attribute": "position",
                     "description": "actual position",
                     "timer": 0.1
                 }
@@ -82,11 +82,11 @@ class Publisher(object):
             c = Component(component_name)
             prefix = c.device_attribute_prefix
             for a in attributes:
-                if hasattr(c, prefix + a['name']):
-                    args.append((c, a['name'], a['timer']))
+                if hasattr(c, prefix + a['attribute']):
+                    args.append((c, a['attribute'], a['timer']))
                 else:
                     raise ValueError(
-                        '%s has not attribute %s' % (c.name, a['name']))
+                        '%s has not attribute %s' % (c.name, a['attribute']))
 
         for arg in args:
             self.s.add_attribute_job(*arg)
