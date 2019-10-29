@@ -42,7 +42,7 @@ def create_job():
 
     job = {
         component: [
-            {'name': attribute, 'description': description, 'timer': timer}
+            {'attribute': attribute, 'description': description, 'timer': timer}
         ]
     }
     publisher.add_jobs(job)  # TODO: catch the exception in case of invalid job

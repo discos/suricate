@@ -17,10 +17,10 @@ description = """# Suricate configuration file, created by suricate-config
 parameters = """
 COMPONENTS = {
     "TestNamespace/Positioner00": [
-        {"name": "position", "timer": 0.1},
-        {"name": "current", "timer": 0.1}],
+        {"attribute": "position", "timer": 0.1},
+        {"attribute": "current", "timer": 0.1}],
     "TestNamespace/Positioner01": [
-        {"name": "current", "timer": 0.1}],
+        {"attribute": "current", "timer": 0.1}],
 }
 
 

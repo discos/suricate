@@ -14,12 +14,12 @@ def test_one_argument_init(Publisher):
     config = {
         "TestNamespace/Positioner00":
             [
-                {"name": "position", "timer": 0.1},
-                {"name": "current", "timer": 0.1},
+                {"attribute": "position", "timer": 0.1},
+                {"attribute": "current", "timer": 0.1},
             ],
         "TestNamespace/Positioner01":
             [
-                {"name": "current", "timer": 0.1},
+                {"attribute": "current", "timer": 0.1},
             ]
     }
     publisher = Publisher(config)
