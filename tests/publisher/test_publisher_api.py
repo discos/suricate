@@ -5,7 +5,8 @@ import pytest
 
 def test_zero_argument_init(Publisher):
     publisher = Publisher()
-    assert publisher.get_jobs() == []
+    jobs_id = [job.id for job in publisher.get_jobs()]
+    assert jobs_id == ['rescheduler']
 
 
 def test_one_argument_init(Publisher):
@@ -22,11 +23,12 @@ def test_one_argument_init(Publisher):
             ]
     }
     publisher = Publisher(config)
-    jobs_id = [job.id for job in publisher.get_jobs()]
+    jobs_id = sorted([job.id for job in publisher.get_jobs()])
     assert jobs_id == [
-        'TestNamespace/Positioner00/position',
         'TestNamespace/Positioner00/current',
+        'TestNamespace/Positioner00/position',
         'TestNamespace/Positioner01/current',
+        'rescheduler',
     ]
 
 
@@ -34,8 +36,7 @@ def test_three_arguments_init(Publisher):
     """In case of three arguments, they must be: component, attr, timer"""
     publisher = Publisher('TestNamespace/Positioner', 'position', 0.1)
     jobs_id = [job.id for job in publisher.get_jobs()]
-    assert jobs_id == ['TestNamespace/Positioner/position']
-
+    assert jobs_id == ['TestNamespace/Positioner/position', 'rescheduler']
 
 
 def test_wrong_component_name(Publisher):

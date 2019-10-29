@@ -2,7 +2,14 @@ import redis
 from apscheduler import events
 
 from suricate.schedulers import Scheduler
+from suricate.configuration import (
+        RESCHEDULE_ERROR_INTERVAL,
+        RESCHEDULE_INTERVAL,
+)
 from suricate.errors import CannotGetComponentError, ComponentAttributeError
+
+
+r = redis.StrictRedis()
 
 
 class Publisher(object):
@@ -49,6 +56,12 @@ class Publisher(object):
             self.add_jobs({comp: [{'name': attr, 'timer': timer}]})
 
         Publisher.add_errors_listener()
+        self.s.add_job(
+            func=self.rescheduler,
+            args=(),
+            id='rescheduler',
+            trigger='interval',
+            seconds=RESCHEDULE_INTERVAL)
 
     def add_jobs(self, config):
         """
@@ -78,6 +91,20 @@ class Publisher(object):
         for arg in args:
             self.s.add_attribute_job(*arg)
 
+
+    def rescheduler(self):
+        for job in self.get_jobs():
+            error_job_key = 'error_job:%s' % job.id
+            healthy_job_key = 'healthy_job:%s' % job.id
+            interval_time = r.get(error_job_key)
+            if interval_time and r.get(healthy_job_key):
+                r.delete(error_job_key)
+                self.s.reschedule_job(
+                    job.id,
+                    trigger='interval',
+                    seconds=float(interval_time)
+                )
+        
     def get_jobs(self):
         return self.s.get_jobs()
 
@@ -88,18 +115,24 @@ class Publisher(object):
     @staticmethod
     def errors_listener(event):
         job_id = event.job_id
+        healthy_job_key = 'healthy_job:%s' % job_id
+        r.delete(healthy_job_key)
         if isinstance(
                 event.exception,
                 (CannotGetComponentError, ComponentAttributeError)):
             job = Publisher.s.get_job(job_id)
-            r = redis.StrictRedis()
-            job_key = 'job:%s' % job_id
-            if not r.get(job_key):
+            error_job_key = 'error_job:%s' % job_id
+            if not r.get(error_job_key):
                 # Save job.seconds, because we will temporarily change it
-                r.set(job_key, job.trigger.interval.seconds)
+                sec, mic = job.trigger.interval.seconds, job.trigger.interval.microseconds
+                interval = sec + mic / (1.0 * 10 ** 6)
+                r.set(error_job_key, interval)
                 # Slowdown the job, until the component comes available
                 Publisher.s.reschedule_job(
-                    job_id, trigger='interval', seconds=1)
+                    job_id,
+                    trigger='interval',
+                    seconds=RESCHEDULE_ERROR_INTERVAL
+                )
 
             channel, old_component_ref, attribute = job.args
             from suricate.services import Component
@@ -109,12 +142,13 @@ class Publisher(object):
                 component_ref = Component(old_component_ref.name)
                 args = channel, component_ref, attribute
                 Publisher.s.modify_job(job_id, args=args)
-                sec = float(r.get(job_key))
-                Publisher.s.reschedule_job(
-                    job_id, trigger='interval', seconds=sec)
-                r.delete(job_key)
             except CannotGetComponentError:
                 pass  # Do nothing
+
+
+        else:
+            # TODO: manage the unexpected exception
+            pass
 
     @classmethod
     def start(cls):

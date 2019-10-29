@@ -5,22 +5,32 @@ import os
 
 now = datetime.datetime.now()
 
-config = """# Suricate configuration file, created by suricate-config
+description = """# Suricate configuration file, created by suricate-config
 # on %s.
 #
 # This is an example of configuration file that you can edit in order to
 # configure Suricate on your machine. In this file, we want to monitor the
 # properties position and current of the components TestNamespace/Positioner00,
 # and the property current of the component TestNamespace/Positioner01.
+""" % now.strftime('%Y-%m-%d %H:%M:%S')
 
+parameters = """
 COMPONENTS = {
     "TestNamespace/Positioner00": [
         {"name": "position", "timer": 0.1},
         {"name": "current", "timer": 0.1}],
     "TestNamespace/Positioner01": [
         {"name": "current", "timer": 0.1}],
-}""" % now.strftime('%Y-%m-%d %H:%M:%S')
+}
 
+
+RESCHEDULE_INTERVAL = 5  # Seconds
+RESCHEDULE_ERROR_INTERVAL = 10  # Seconds
+PORT = 5000  # Web app port
+BASEURL = 'http://127.0.0.1:%d' % PORT  # Web app URL
+"""
+
+config = description + parameters
 
 home = os.getenv('HOME')
 confdir = os.path.join(home, '.suricate')

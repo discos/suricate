@@ -1,4 +1,5 @@
 import logging
+import redis
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from suricate import jobs
@@ -20,6 +21,9 @@ class ACSScheduler(BackgroundScheduler):
         # Job identifier: namespace/component/attribute
         job_id = '/'.join([component_ref.name, attr])
         channel = channel if channel else job_id
+        r = redis.StrictRedis()
+        error_job_key = 'error_job:%s' % channel
+        r.delete(error_job_key)
         return super(ACSScheduler, self).add_job(
             func=publisher,
             args=(channel, component_ref, attr),
