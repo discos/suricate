@@ -22,6 +22,7 @@ setup(
         'redis==3.3.8',
         'apscheduler==3.6.1',
         'flask==1.1.1',
+        'yaml',
     ],
     classifiers=[
         'Intended Audience :: Alma Common Software users',
