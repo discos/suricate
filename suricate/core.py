@@ -2,10 +2,7 @@ import redis
 from apscheduler import events
 
 from suricate.schedulers import Scheduler
-from suricate.configuration import (
-        RESCHEDULE_ERROR_INTERVAL,
-        RESCHEDULE_INTERVAL,
-)
+from suricate.configuration import config
 from suricate.errors import CannotGetComponentError, ComponentAttributeError
 
 
@@ -61,7 +58,8 @@ class Publisher(object):
             args=(),
             id='rescheduler',
             trigger='interval',
-            seconds=RESCHEDULE_INTERVAL)
+            seconds=config['SCHEDULER']['RESCHEDULE_INTERVAL']
+        )
 
     def add_jobs(self, config):
         """
@@ -131,7 +129,7 @@ class Publisher(object):
                 Publisher.s.reschedule_job(
                     job_id,
                     trigger='interval',
-                    seconds=RESCHEDULE_ERROR_INTERVAL
+                    seconds=config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']
                 )
 
             channel, old_component_ref, attribute = job.args

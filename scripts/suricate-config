@@ -1,49 +1,21 @@
 #!/usr/bin/env python
 from __future__ import with_statement
-import datetime
 import os
-
-now = datetime.datetime.now()
-
-description = """# Suricate configuration file, created by suricate-config
-# on %s.
-#
-# This is an example of configuration file that you can edit in order to
-# configure Suricate on your machine. In this file, we want to monitor the
-# properties position and current of the components TestNamespace/Positioner00,
-# and the property current of the component TestNamespace/Positioner01.
-""" % now.strftime('%Y-%m-%d %H:%M:%S')
-
-parameters = """
-COMPONENTS = {
-    "TestNamespace/Positioner00": [
-        {"attribute": "position", "timer": 0.1},
-        {"attribute": "current", "timer": 0.1}],
-    "TestNamespace/Positioner01": [
-        {"attribute": "current", "timer": 0.1}],
-}
+import io
+import yaml
+from suricate.configuration import (
+    default_config,
+    config_dir,
+    config_file,
+)
 
 
-RESCHEDULE_INTERVAL = 5  # Seconds
-RESCHEDULE_ERROR_INTERVAL = 10  # Seconds
-PORT = 5000  # Web app port
-BASEURL = 'http://127.0.0.1:%d' % PORT  # Web app URL
-"""
-
-config = description + parameters
-
-home = os.getenv('HOME')
-confdir = os.path.join(home, '.suricate')
-try:
-    os.mkdir(confdir)
+try:  
+    os.mkdir(config_dir)
 except OSError:
-    pass
+    pass  # The directory already exists
 
-initfile = os.path.join(confdir, '__init__.py')
-open(initfile, 'w').close()  # Create the __init__.py file
+with io.open(config_file, 'w') as outfile:
+    yaml.dump(default_config, outfile)
 
-filename = os.path.join(confdir, 'config.py')
-with open(filename, 'w') as f:
-    f.write(config)
-
-print '%s created!' % filename
+print '%s created!' % config_file

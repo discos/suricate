@@ -16,7 +16,11 @@ parser.add_argument('action', choices=['start', 'stop'])
 
 args = parser.parse_args()
 
-from suricate.configuration import COMPONENTS, PORT, BASEURL
+from suricate.configuration import config
+
+COMPONENTS = config['COMPONENTS']
+PORT = config['HTTP']['PORT']
+BASEURL = config['HTTP']['BASEURL']
 
 if args.action == 'start':
     # Check if ACS is ready
@@ -29,7 +33,7 @@ if args.action == 'start':
     else:
         server.start(COMPONENTS)
 elif args.action == 'stop':
-    url = BASEURL + '/publisher/api/v0.1/stop'
+    url = '%s:%d/publisher/api/v0.1/stop' % (BASEURL, PORT)
     msg = ''
     try:
         requests.post(url)
