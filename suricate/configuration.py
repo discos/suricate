@@ -1,16 +1,34 @@
-import sys
+from __future__ import with_statement
 import os
+import yaml
 
-confdir = os.path.join(os.getenv('HOME'), '.suricate')
+
+default_config = { 
+    'COMPONENTS': {
+        "TestNamespace/Positioner00": [
+            {"attribute": "position", "timer": 0.1},
+            {"attribute": "current", "timer": 0.1}],
+        "TestNamespace/Positioner01": [
+            {"attribute": "current", "timer": 0.1}],
+    },  
+
+    'SCHEDULER': {
+        'RESCHEDULE_INTERVAL': 5,  # Seconds
+        'RESCHEDULE_ERROR_INTERVAL': 10,  # Seconds
+    },
+
+    'HTTP': {
+        'port': 5000,  # Web app port
+        'baseurl': 'http://127.0.0.1',  # Web app URL
+    }
+}
+
+
+config_dir = os.path.join(os.getenv('HOME'), '.suricate')
+config_file  = os.path.join(config_dir, 'config.yaml')
 try:
-    sys.path.insert(0, confdir)
-    # Import all attributes from the config files:
-    # COMPONENTS, RESCHEDULE_ERROR_TIME 
-    from config import *
-except ImportError, ex:
-    print('ERROR: %s.' % ex)
-    print('Please run the suricate-config command in order to')
-    print('create the %s/config.py file.' % confdir)
-    sys.exit(1)
-finally:
-    sys.path.remove(confdir)
+    with open(config_file) as stream:
+        config = yaml.safe_load(stream)
+except IOError:
+        print 'INFO: Using the default configuration'
+        config = default_config

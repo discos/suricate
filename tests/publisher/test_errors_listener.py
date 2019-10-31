@@ -1,7 +1,8 @@
 """Errors notified to the listener"""
+import time
 import json
 import pytest
-from suricate.configuration import RESCHEDULE_ERROR_INTERVAL
+from suricate.configuration import config
 
 
 def test_reload_component(Publisher, component, pubsub):
@@ -13,8 +14,7 @@ def test_reload_component(Publisher, component, pubsub):
     message = pubsub.get_data_message(channel='*position')
     property_ = json.loads(message['data'])
     assert property_['error']  # Component not available
-    import time
-    time.sleep(RESCHEDULE_ERROR_INTERVAL * 1.1)
+    time.sleep(config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL'] * 1.1)
     message = pubsub.get_data_message(channel='*position')
     property_ = json.loads(message['data'])
     assert not property_['error']  # Component available
