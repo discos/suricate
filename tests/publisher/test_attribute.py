@@ -37,8 +37,8 @@ def test_wrong_attribute_name(component, scheduler, pubsub):
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='*wrong')
     attribute = json.loads(message['data'])
-    assert attribute['error']
-    assert attribute['value'] is None
+    assert attribute['error'] != ''
+    assert attribute['value'] == ''
 
 
 def test_broken_reference(component, scheduler, pubsub):
@@ -48,7 +48,7 @@ def test_broken_reference(component, scheduler, pubsub):
     message = pubsub.get_data_message(channel='*position')
     attribute = json.loads(message['data'])
     assert attribute['error']
-    assert attribute['value'] is None
+    assert attribute['value'] == ''
 
 
 def test_attribute_proxy(component):
@@ -64,9 +64,10 @@ def test_set_attribute_value(component, scheduler, pubsub):
     job = scheduler.add_attribute_job(component, 'position', seconds=0.01)
     scheduler.wait_until_executed(job)
     pubsub.get_data_message(channel='*position')  # Wait the data to be ready
-    msg = pubsub._redis.get(job.id)  # The value is currently set
-    v, _ = msg.split('@')  # Value, timestamp
-    assert float(v) == value
+    msg = pubsub._redis.hgetall(job.id)  # The value is currently set
+    assert float(msg['value']) == value
+    assert msg['error'] == ''
+    assert msg['timestamp']
 
 
 if __name__ == '__main__':
