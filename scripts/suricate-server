@@ -19,8 +19,8 @@ args = parser.parse_args()
 from suricate.configuration import config
 
 COMPONENTS = config['COMPONENTS']
-PORT = config['HTTP']['PORT']
-BASEURL = config['HTTP']['BASEURL']
+PORT = config['HTTP']['port']
+BASEURL = config['HTTP']['baseurl']
 
 if args.action == 'start':
     # Check if ACS is ready
