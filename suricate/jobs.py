@@ -7,8 +7,8 @@ from suricate.errors import CannotGetComponentError, ComponentAttributeError
 
 def acs_property_publisher(channel, component, property_name):
     """Get the component reference and a property as a dict object."""
-    value_dict = {'value': None, 'timestamp': str(datetime.datetime.now())}
-    data_dict = dict(error=False, message='', **value_dict)
+    value_dict = {'value': '', 'timestamp': str(datetime.datetime.now())}
+    data_dict = dict(error='', **value_dict)
     try:
         prefix = component.device_attribute_prefix
         get_property_obj = getattr(component, prefix + property_name)
@@ -19,17 +19,16 @@ def acs_property_publisher(channel, component, property_name):
         value_dict = {'value': value, 'timestamp': str(t)}
         data_dict.update(value_dict)
     except CannotGetComponentError, ex:
-        data_dict.update({'error': True, 'message': str(ex)})
-        raise
+        message = 'can not get %s ' % component.name
+        data_dict.update({'error': message})
+        raise CannotGetComponentError(message)
     except AttributeError, ex:
         message = str(ex)
-        data_dict.update({'error': True, 'message': message})
+        data_dict.update({'error': message})
         raise ComponentAttributeError(message)
     finally:
         r = redis.StrictRedis()
-        value = value_dict['value']
-        timestamp = value_dict['timestamp']
-        r.set(channel, '%s @ %s' % (value, timestamp))
+        r.hmset(channel, data_dict)
         r.publish(channel, json.dumps(data_dict))
         healthy_job_key = 'healthy_job:%s' % channel
         r.set(healthy_job_key, 1)
