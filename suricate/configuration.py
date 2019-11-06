@@ -10,6 +10,13 @@ config_dir = os.path.join(suricate_dir, 'config')
 config_file  = os.path.join(config_dir, 'config.yaml')
 log_dir = os.path.join(suricate_dir, 'logs')
 
+# --- CREATE FILES AND DIRECTORIES
+try:  
+    os.mkdir(log_dir)
+except OSError:
+    pass  # The directory already exists
+
+
 default_config = { 
     'COMPONENTS': {
         "TestNamespace/Positioner00": [
@@ -52,16 +59,9 @@ logging.getLogger('suricate').addHandler(sur_stream_handler)
 logging.getLogger('suricate').setLevel(logging.INFO)
 
 
-# --- CREATE FILES AND DIRECTORIES
 try:
     with open(config_file) as stream:
         config = yaml.safe_load(stream)
 except IOError:
         print 'INFO: Using the default configuration'
         config = default_config
-
-try:  
-    os.mkdir(log_dir)
-except OSError:
-    pass  # The directory already exists
-
