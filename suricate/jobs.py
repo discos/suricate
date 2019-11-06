@@ -1,8 +1,12 @@
 import json
 import datetime
+import logging
 
 import redis
 from suricate.errors import CannotGetComponentError, ComponentAttributeError
+
+
+logger = logging.getLogger('suricate')
 
 
 def acs_property_publisher(channel, component, property_name):
@@ -18,12 +22,15 @@ def acs_property_publisher(channel, component, property_name):
         t = datetime.datetime.fromtimestamp(epoch)
         value_dict = {'value': value, 'timestamp': str(t)}
         data_dict.update(value_dict)
-    except CannotGetComponentError, ex:
-        data_dict.update({'error': True, 'message': str(ex)})
-        raise
-    except AttributeError, ex:
-        message = str(ex)
+    except CannotGetComponentError:
+        message = 'cannot get component %s' % component.name
         data_dict.update({'error': True, 'message': message})
+        logger.error(message)
+        raise CannotGetComponentError(message)
+    except AttributeError:
+        message = 'cannot get %s from %s' % (property_name, component.name)
+        data_dict.update({'error': True, 'message': message})
+        logger.error(message)
         raise ComponentAttributeError(message)
     finally:
         r = redis.StrictRedis()

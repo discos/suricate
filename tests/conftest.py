@@ -1,4 +1,6 @@
 import time
+import logging
+from tempfile import NamedTemporaryFile
 from datetime import datetime, timedelta
 from pytz import utc
 
@@ -10,6 +12,7 @@ from suricate.core import Publisher as Publisher_
 from suricate.schedulers import Scheduler
 from suricate.errors import CannotGetComponentError
 from suricate.server import app, start_publisher, stop_publisher
+from suricate.configuration import formatter
 
 from apscheduler.executors.pool import ProcessPoolExecutor, ThreadPoolExecutor
 from apscheduler.schedulers import SchedulerNotRunningError
@@ -35,6 +38,22 @@ def mock_services(request, monkeypatch):
     """Mock suricate.services when --acs is not given"""
     if not request.config.getoption('--acs'):
         monkeypatch.setattr('suricate.services.Component', MockComponent)
+
+
+@pytest.fixture(autouse=True)
+def logger(request):
+    f = NamedTemporaryFile()
+    file_handler = logging.FileHandler(f.name, 'w')
+    file_handler.setFormatter(formatter)
+    logger = logging.getLogger('suricate')
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+    logger.addHandler(file_handler)
+    def close_tmpfile():
+        f.close()
+    request.addfinalizer(close_tmpfile)
+    logger.file_name = f.name
+    return logger
 
 
 @pytest.fixture

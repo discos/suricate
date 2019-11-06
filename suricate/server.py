@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 from __future__ import with_statement, print_function
 
+import logging
 import time
 import sys
 import socket
@@ -11,7 +12,7 @@ from suricate.errors import CannotGetComponentError
 
 app = Flask(__name__)
 publisher = None
-
+logger = logging.getLogger('suricate')
 
 @app.route('/publisher/api/v0.1/jobs', methods=['GET'])
 def get_jobs():
@@ -54,35 +55,29 @@ def create_job():
 
 @app.route('/publisher/api/v0.1/stop', methods=['POST'])
 def stop():  # pragma: no cover
-    msg = '\n'
     try:
         app_shutdown = request.environ.get('werkzeug.server.shutdown')
         if app_shutdown is None:
             raise RuntimeError('Not running with the Werkzeug Server')
         app_shutdown()
-        msg += 'The server has been stopped\n'
+        logger.info('the server has been stopped')
     except:
-        msg += 'Can not shutdown the Werkzeug server\n'
+        logger.error('can not shutdown the Werkzeug server')
     finally:
         if publisher:
             publisher.shutdown()
-            msg += 'All scheduled jobs have been closed\n'
+            logger.info('all scheduled jobs have been closed')
         else:
-            msg += 'ERROR: there is no reference to the publisher\n'
-        time.sleep(5)
-        print(msg)
+            logger.error('there is no reference to the publisher')
     return 'Server stopped :-)'
 
 
 def start_publisher(components=None):
-    try:
-        global publisher
-        publisher = Publisher(components) if components else Publisher()
-        publisher.start()
-    except CannotGetComponentError, ex:
-        print('\nERROR: %s.' % ex)
-        print('Is the component listed in the configuration file?\n')
-        sys.exit(1)
+    global publisher
+    # In case a component is not available, Publisher.add_jobs()
+    # writes a log an error message
+    publisher = Publisher(components) if components else Publisher()
+    publisher.start()
 
 
 def stop_publisher():
@@ -94,7 +89,7 @@ def start_webserver():
     try:
         app.run(debug=False)
     except socket.error, ex:
-        print(ex)
+        logger.error(ex)
         sys.exit(1)
 
 

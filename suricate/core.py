@@ -1,3 +1,6 @@
+import logging
+from os.path import join
+
 import redis
 from apscheduler import events
 
@@ -5,7 +8,7 @@ from suricate.schedulers import Scheduler
 from suricate.configuration import config
 from suricate.errors import CannotGetComponentError, ComponentAttributeError
 
-
+logger = logging.getLogger('suricate')
 r = redis.StrictRedis()
 
 
@@ -77,14 +80,18 @@ class Publisher(object):
         args = []  # list of tuples [(component, attribute_name, timer), (...)]
         from suricate.services import Component
         for component_name, attributes in config.items():
-            c = Component(component_name)
+            try:
+                c = Component(component_name)
+            except CannotGetComponentError:
+                logger.error('cannot get component %s' % component_name)
+                continue
             prefix = c.device_attribute_prefix
             for a in attributes:
                 if hasattr(c, prefix + a['attribute']):
                     args.append((c, a['attribute'], a['timer']))
                 else:
-                    raise ValueError(
-                        '%s has not attribute %s' % (c.name, a['attribute']))
+                    logger.error('%s has not attribute %s' % (c.name, a['attribute']))
+                        
 
         for arg in args:
             self.s.add_attribute_job(*arg)
