@@ -11,8 +11,8 @@ logger = logging.getLogger('suricate')
 
 def acs_property_publisher(channel, component, property_name):
     """Get the component reference and a property as a dict object."""
-    value_dict = {'value': None, 'timestamp': str(datetime.datetime.now())}
-    data_dict = dict(error=False, message='', **value_dict)
+    value_dict = {'value': '', 'timestamp': str(datetime.datetime.now())}
+    data_dict = dict(error='', **value_dict)
     try:
         prefix = component.device_attribute_prefix
         get_property_obj = getattr(component, prefix + property_name)
@@ -34,9 +34,7 @@ def acs_property_publisher(channel, component, property_name):
         raise ComponentAttributeError(message)
     finally:
         r = redis.StrictRedis()
-        value = value_dict['value']
-        timestamp = value_dict['timestamp']
-        r.set(channel, '%s @ %s' % (value, timestamp))
+        r.hmset(channel, data_dict)
         r.publish(channel, json.dumps(data_dict))
         healthy_job_key = 'healthy_job:%s' % channel
         r.set(healthy_job_key, 1)
