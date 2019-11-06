@@ -12,6 +12,14 @@ log_dir = os.path.join(suricate_dir, 'logs')
 
 # --- CREATE FILES AND DIRECTORIES
 try:  
+    os.mkdir(suricate_dir)
+except OSError:
+    pass  # The directory already exists
+try:  
+    os.mkdir(config_dir)
+except OSError:
+    pass  # The directory already exists
+try:  
     os.mkdir(log_dir)
 except OSError:
     pass  # The directory already exists
