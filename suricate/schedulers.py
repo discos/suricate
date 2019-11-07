@@ -1,4 +1,3 @@
-import logging
 import redis
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -6,8 +5,6 @@ from suricate import jobs
 
 
 __all__ = ['Scheduler']
-
-logging.basicConfig()
 
 
 class ACSScheduler(BackgroundScheduler):

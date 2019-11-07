@@ -8,10 +8,6 @@ Suricate
 .. image:: https://coveralls.io/repos/github/marco-buttu/suricate/badge.svg?branch=master
    :target: https://coveralls.io/github/marco-buttu/suricate?branch=master
 
-.. image:: https://landscape.io/github/marco-buttu/suricate/master/landscape.svg?style=flat
-   :target: https://landscape.io/github/marco-buttu/suricate/master
-   :alt: Code Health
-
 Suricate is an application that reads the properties (and method
 outputs) of your ACS components, in order to publish and save them
 via `Redis <http://redis.io/>`_. You can use Suricate for
