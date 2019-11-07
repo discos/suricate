@@ -1,5 +1,3 @@
-from suricate.errors import CannotGetComponentError
-
 import pytest
 
 
@@ -39,16 +37,20 @@ def test_three_arguments_init(Publisher):
     assert jobs_id == ['TestNamespace/Positioner/position', 'rescheduler']
 
 
-def test_wrong_component_name(Publisher):
-    """In case of wrong component name, raise a ValueError"""
-    with pytest.raises(CannotGetComponentError):
-        Publisher('foo', 'position', 0.1)
+def test_wrong_component_name(Publisher, logger):
+    """In case of wrong component name, write log message"""
+    Publisher('foo', 'position', 0.1)
+    line = open(logger.file_name).readline()
+    assert 'ERROR' in line
+    assert 'cannot get component foo' in line
 
 
-def test_wrong_attribute_name(Publisher):
-    """In case of wrong component name, raise a ValueError"""
-    with pytest.raises(ValueError):
-        Publisher('TestNamespace/Positioner', 'foo', 0.1)
+def test_wrong_attribute_name(Publisher, logger):
+    """In case of wrong attribute name, write log message"""
+    Publisher('TestNamespace/Positioner', 'foo', 0.1)
+    line = open(logger.file_name).readline()
+    assert 'ERROR' in line
+    assert 'Positioner has not attribute foo' in line
 
 
 if __name__ == '__main__':
