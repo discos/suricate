@@ -35,7 +35,9 @@ def acs_property_publisher(channel, component, property_name):
         raise ComponentAttributeError(message)
     finally:
         r = redis.StrictRedis()
-        r.hmset(channel, data_dict)
+        if not r.hmset(channel, data_dict):
+            logger.error('cannot write data for %s' % channel)
         r.publish(channel, json.dumps(data_dict))
         healthy_job_key = 'healthy_job:%s' % channel
-        r.set(healthy_job_key, 1)
+        if not r.set(healthy_job_key, 1):
+            logger.error('cannot set %s' % healthy_job_key)

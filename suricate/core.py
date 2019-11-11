@@ -89,9 +89,6 @@ class Publisher(object):
             for a in attributes:
                 if hasattr(c, prefix + a['attribute']):
                     args.append((c, a['attribute'], a['timer']))
-                    job_id = '%s/%s' % (component_name, a['attribute'])
-                    r.delete('error_job:%s' % job_id)
-                    r.delete('healthy_job:%s' % job_id)
                 else:
                     logger.error('%s has not attribute %s' % (c.name, a['attribute']))
                         
@@ -134,7 +131,8 @@ class Publisher(object):
                 # Save job.seconds, because we will temporarily change it
                 sec, mic = job.trigger.interval.seconds, job.trigger.interval.microseconds
                 interval = sec + mic / (1.0 * 10 ** 6)
-                r.set(error_job_key, interval)
+                if not r.set(error_job_key, interval):
+                    logger.error('cannot set %s' % error_job_key)
                 # Slowdown the job, until the component comes available
                 Publisher.s.reschedule_job(
                     job_id,
