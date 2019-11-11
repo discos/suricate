@@ -89,6 +89,9 @@ class Publisher(object):
             for a in attributes:
                 if hasattr(c, prefix + a['attribute']):
                     args.append((c, a['attribute'], a['timer']))
+                    job_id = '%s/%s' % (component_name, a['attribute'])
+                    r.delete('error_job:%s' % job_id)
+                    r.delete('healthy_job:%s' % job_id)
                 else:
                     logger.error('%s has not attribute %s' % (c.name, a['attribute']))
                         
