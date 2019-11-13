@@ -24,7 +24,6 @@ def test_one_argument_init(Publisher):
     }
     publisher = Publisher(config)
     jobs_id = sorted([job.id for job in publisher.get_jobs()])
-    open('/discos-sw/discos/foo', 'w').write(str(jobs_id))
     assert jobs_id == [
         'TestNamespace/Positioner00/current',
         'TestNamespace/Positioner00/position',
