@@ -140,7 +140,7 @@ class Publisher(object):
                 (CannotGetComponentError, ComponentAttributeError)):
             job = Publisher.s.get_job(job_id)
             error_job_key = 'error_job:%s' % job_id
-            if not r.get(error_job_key):
+            if not r.get(error_job_key) and job:
                 # Save job.seconds, because we will temporarily change it
                 sec, mic = job.trigger.interval.seconds, job.trigger.interval.microseconds
                 interval = sec + mic / (1.0 * 10 ** 6)

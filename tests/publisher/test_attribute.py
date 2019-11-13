@@ -1,5 +1,6 @@
-import pytest
+import time
 import json
+import pytest
 
 
 def test_publish_to_default_channel(component, scheduler, pubsub):
@@ -21,15 +22,33 @@ def test_publish_to_custom_channel(component, scheduler, pubsub):
     assert message['channel'] == 'my-channel'
 
 
-def test_publish_property_value(component, scheduler, pubsub):
-    """Verify the job gets and publishes the property value"""
-    component.setPosition(3)  # Set the position property to 3
+def test_set_publish_property_value(component, scheduler, pubsub, redis_client):
+    """Verify the job gets and publishes/sets the property value"""
+    component.setPosition(3)
     job = scheduler.add_attribute_job(component, 'position', seconds=0.01)
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='*position')
     prop = json.loads(message['data'])
+    assert not prop['error']
+    assert prop['value'] == 3
+    component.setPosition(2)
+    time.sleep(0.1)
+    job_id = '%s/position' % component.name
+    assert float(redis_client.hget(job_id, 'value')) == 2.0
+
+def test_set_publish_method_value(component, scheduler, pubsub, redis_client):
+    """Verify the job gets and publishes/sets the method value"""
+    component.setPosition(3)
+    job = scheduler.add_attribute_job(component, 'getPosition', seconds=0.01)
+    scheduler.wait_until_executed(job)
+    message = pubsub.get_data_message(channel='*getPosition')
+    prop = json.loads(message['data'])
     assert prop['value'] == 3
     assert not prop['error']
+    component.setPosition(4)
+    time.sleep(0.1)
+    job_id = '%s/getPosition' % component.name
+    assert float(redis_client.hget(job_id, 'value')) == 4.0
 
 
 def test_wrong_property_name(component, scheduler, pubsub):

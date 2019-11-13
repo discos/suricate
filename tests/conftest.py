@@ -154,16 +154,17 @@ class MockComponent(object):
     def setPosition(self, value):
         self.set_property('position', value)
 
-    def _property_value(property_):
-        obj = property_.get_sync()
-        value, timestamp = obj
+    def _property_value(self, property_):
+        obj = property_()
+        comp = property_.get_sync()
+        value, timestamp = comp
         return value
 
     def getPosition(self):
-        return _property_value(self.position)
+        return self._property_value(self._get_position)
 
     def getCurrent(self):
-        return _property_value(self.current)
+        return self._property_value(self._get_current)
 
     def set_property(self, name, value, error_code=0, timestamp=0):
         completion = Completion(error_code, timestamp)
@@ -244,6 +245,17 @@ def pubsub(request):
 
     request.addfinalizer(close_pubsub)
     return ps
+
+
+@pytest.fixture()
+def redis_client(request):
+    r = redis.StrictRedis()
+
+    def close_redis_client():
+        r.close()
+
+    request.addfinalizer(close_redis_client)
+    return r
 
 
 @pytest.fixture()

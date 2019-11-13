@@ -22,8 +22,9 @@ def acs_publisher(channel, component, attribute):
             epoch = (comp.timeStamp - 122192928000000000) / 10000000.
             t = datetime.datetime.fromtimestamp(epoch)
         else:  # It is a method, just call it
+            method = getattr(component, attribute)
             t = datetime.datetime.utcnow()
-            value = attribute_obj()
+            value = method()
         value_dict = {'value': value, 'timestamp': str(t)}
         data_dict.update(value_dict)
     except CannotGetComponentError:
