@@ -31,4 +31,4 @@ class ACSScheduler(BackgroundScheduler):
 
 # TODO: check the configuration and bind the right scheduler
 Scheduler = ACSScheduler
-publisher = jobs.acs_property_publisher
+publisher = jobs.acs_publisher

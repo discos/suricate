@@ -21,24 +21,24 @@ def test_publish_to_custom_channel(component, scheduler, pubsub):
     assert message['channel'] == 'my-channel'
 
 
-def test_publish_attribute_value(component, scheduler, pubsub):
-    """Verify the job gets and publishes the attribute value"""
-    component.setPosition(3)  # Set the position attribute to 3
+def test_publish_property_value(component, scheduler, pubsub):
+    """Verify the job gets and publishes the property value"""
+    component.setPosition(3)  # Set the position property to 3
     job = scheduler.add_attribute_job(component, 'position', seconds=0.01)
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='*position')
-    attribute = json.loads(message['data'])
-    assert attribute['value'] == 3
-    assert not attribute['error']
+    prop = json.loads(message['data'])
+    assert prop['value'] == 3
+    assert not prop['error']
 
 
-def test_wrong_attribute_name(component, scheduler, pubsub):
+def test_wrong_property_name(component, scheduler, pubsub):
     job = scheduler.add_attribute_job(component, 'wrong', seconds=0.01)
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='*wrong')
-    attribute = json.loads(message['data'])
-    assert attribute['error'] != ''
-    assert attribute['value'] == ''
+    prop = json.loads(message['data'])
+    assert prop['error'] != ''
+    assert prop['value'] == ''
 
 
 def test_broken_reference(component, scheduler, pubsub):
@@ -46,9 +46,9 @@ def test_broken_reference(component, scheduler, pubsub):
     job = scheduler.add_attribute_job(component, 'position', seconds=0.01)
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='*position')
-    attribute = json.loads(message['data'])
-    assert attribute['error']
-    assert attribute['value'] == ''
+    prop = json.loads(message['data'])
+    assert prop['error']
+    assert prop['value'] == ''
 
 
 def test_attribute_proxy(component):
@@ -57,10 +57,10 @@ def test_attribute_proxy(component):
     assert attribute.__name__ == '_get_position'
 
 
-def test_set_attribute_value(component, scheduler, pubsub):
-    """Verify the job gets and publishes the attribute value"""
+def test_set_property_value(component, scheduler, pubsub):
+    """Verify the job gets and publishes the property value"""
     value = 3.0
-    component.setPosition(value)  # Set the position attribute to 3
+    component.setPosition(value)  # Set the position property to 3
     job = scheduler.add_attribute_job(component, 'position', seconds=0.01)
     scheduler.wait_until_executed(job)
     pubsub.get_data_message(channel='*position')  # Wait the data to be ready

@@ -10,19 +10,19 @@ logging.basicConfig()
 
 def test_get_all_messages(components, scheduler, pubsub):
     """Verify we get at least the 95% of the messages"""
-    # We want each attribute value to be published every `iterval_time`
+    # We want each property value to be published every `iterval_time`
     # seconds, for a `total_time` number of seconds
     interval_time = 0.1
     total_time = 5  # Number of seconds we will publish
-    attributes = ('position', 'current')
+    properties = ('position', 'current')
     pubsub.psubscribe('test*')
     for component in components:
-        for attribute in attributes:
+        for prop in properties:
             scheduler.add_attribute_job(
                 component,
-                attribute,
+                prop,
                 seconds=interval_time,
-                channel='test/%s/%s' % (component.name, attribute))
+                channel='test/%s/%s' % (component.name, prop))
 
     t0 = datetime.datetime.now()
     messages = []
@@ -37,7 +37,7 @@ def test_get_all_messages(components, scheduler, pubsub):
         time.sleep(interval_time/(5.0 * len(components)))
     # Number of messages
     nmessages = len(messages) - 1   # Do not count the subscription message
-    expected = len(components) * len(attributes) * int(delay/interval_time)
+    expected = len(components) * len(properties) * int(delay/interval_time)
     assert nmessages > expected*0.95  # Get at least the 95% of all messages
 
     print('\n')

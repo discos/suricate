@@ -27,12 +27,21 @@ except OSError:
 
 default_config = { 
     'COMPONENTS': {
-        "TestNamespace/Positioner00": [
-            {"attribute": "position", "timer": 0.1},
-            {"attribute": "current", "timer": 0.1}],
-        "TestNamespace/Positioner01": [
-            {"attribute": "current", "timer": 0.1}],
-    },  
+        "TestNamespace/Positioner00": {
+            'properties': [
+                {"name": "position", "timer": 0.1},
+                {"name": "current", "timer": 0.1}
+            ],
+            'methods': [
+                {"name": "getPosition", "timer": 0.1},
+            ],
+        },
+        "TestNamespace/Positioner01": {
+            "properties": [
+                {"name": "current", "timer": 0.1}
+            ],
+        } 
+    },
 
     'SCHEDULER': {
         'RESCHEDULE_INTERVAL': 5,  # Seconds

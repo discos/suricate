@@ -22,7 +22,6 @@ class Component(object):
     """Delegate the attribute access to an ACS component"""
 
     def __init__(self, name):
-        self.device_attribute_prefix = '_get_'
         self.name = str(name)
         if not hasattr(self, '_client'):
             from Acspy.Clients.SimpleClient import PySimpleClient

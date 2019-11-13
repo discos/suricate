@@ -32,19 +32,25 @@ def create_job():
         attribute = request.json.get('attribute')
         timer = request.json.get('timer')
         description = request.json.get('description', '')
+        type_ = request.json.get('type', 'property')
+        types = 'properties' if type_ == 'property' else 'methods'
 
     if not component or not attribute or not timer:
+        logger.error('specify component, attribute and timer')
         abort(400)
     else:
         try:
             timer = float(timer)
         except (TypeError, ValueError):
+            logger.error('cannot convert %s to float' % timer)
             abort(400)
 
     job = {
-        component: [
-            {'attribute': attribute, 'description': description, 'timer': timer}
-        ]
+        component: {
+            types: [
+                {'name': attribute, 'description': description, 'timer': timer}
+            ]
+        }
     }
     publisher.add_jobs(job)  # TODO: catch the exception in case of invalid job
     return jsonify({
