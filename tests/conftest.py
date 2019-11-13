@@ -137,7 +137,6 @@ class MockComponent(object):
 
     def __init__(self, name='TestNamespace/MyComponent'):
         self.name = name
-        self.device_attribute_prefix = '_get_'
         for property_ in MockComponent.properties.items():
             self.set_property(*property_)
 
@@ -155,6 +154,17 @@ class MockComponent(object):
     def setPosition(self, value):
         self.set_property('position', value)
 
+    def _property_value(property_):
+        obj = property_.get_sync()
+        value, timestamp = obj
+        return value
+
+    def getPosition(self):
+        return _property_value(self.position)
+
+    def getCurrent(self):
+        return _property_value(self.current)
+
     def set_property(self, name, value, error_code=0, timestamp=0):
         completion = Completion(error_code, timestamp)
         property_ = Property(name, value, completion)
@@ -162,7 +172,6 @@ class MockComponent(object):
 
     def _get_name(self):
         return self.name
-
 
 class Property(object):
     def __init__(self, name, value, completion):

@@ -10,47 +10,65 @@ def test_zero_argument_init(Publisher):
 def test_one_argument_init(Publisher):
     """In case of only one argument, the Publisher expects a dictionary"""
     config = {
-        "TestNamespace/Positioner00":
-            [
-                {"attribute": "position", "timer": 0.1},
-                {"attribute": "current", "timer": 0.1},
+        "TestNamespace/Positioner00": {
+            'properties': [
+                {"name": "position", "timer": 0.1},
+                {"name": "current", "timer": 0.1},
             ],
-        "TestNamespace/Positioner01":
-            [
-                {"attribute": "current", "timer": 0.1},
+        },
+        "TestNamespace/Positioner01": {
+            'methods': [
+                {"name": "getPosition", "timer": 0.1},
             ]
+        }
     }
     publisher = Publisher(config)
     jobs_id = sorted([job.id for job in publisher.get_jobs()])
+    open('/discos-sw/discos/foo', 'w').write(str(jobs_id))
     assert jobs_id == [
         'TestNamespace/Positioner00/current',
         'TestNamespace/Positioner00/position',
-        'TestNamespace/Positioner01/current',
+        'TestNamespace/Positioner01/getPosition',
         'rescheduler',
     ]
 
 
-def test_three_arguments_init(Publisher):
-    """In case of three arguments, they must be: component, attr, timer"""
-    publisher = Publisher('TestNamespace/Positioner', 'position', 0.1)
+def test_zero_arguments_init(Publisher):
+    """In case of zero arguments there is only the rescheduler."""
+    publisher = Publisher(1, 2, 3)
     jobs_id = [job.id for job in publisher.get_jobs()]
-    assert jobs_id == ['TestNamespace/Positioner/position', 'rescheduler']
+    assert jobs_id == ['rescheduler']
 
 
-def test_wrong_component_name(Publisher, logger):
+def test_wrong_number_arguments(Publisher, logger):
     """In case of wrong component name, write log message"""
     Publisher('foo', 'position', 0.1)
     line = open(logger.file_name).readline()
     assert 'ERROR' in line
-    assert 'cannot get component foo' in line
+    assert 'Publisher takes 0 or 1' in line
 
 
-def test_wrong_attribute_name(Publisher, logger):
-    """In case of wrong attribute name, write log message"""
-    Publisher('TestNamespace/Positioner', 'foo', 0.1)
+def test_wrong_component_name(Publisher, logger):
+    """In case of wrong component name, write log message"""
+    config = {"foo": {"properties": [{"name": "current", "timer": 0.1}]}}
+    Publisher(config)
     line = open(logger.file_name).readline()
     assert 'ERROR' in line
-    assert 'Positioner has not attribute foo' in line
+    assert 'cannot get component foo' in line
+
+def test_wrong_property_name(Publisher, logger):
+    """In case of wrong property name, write log message"""
+    config = {
+        "TestNamespace/Positioner": {
+            "properties": [
+                {"name": "foo", "timer": 0.1}
+            ]
+        }
+    }
+    Publisher(config)
+    line = open(logger.file_name).readline()
+    assert 'ERROR' in line
+    assert 'Positioner has not property foo' in line
 
 
 if __name__ == '__main__':

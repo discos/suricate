@@ -19,41 +19,33 @@ class Publisher(object):
     def __init__(self, *args):
         """Initialize a Publisher instance.
 
-        It takes zero, one or three arguments.
+        The argument is a dictionary. Each key is a component name,
+        and each value is a list of attributes to publish. I.e::
 
-        One argument: a (JSON) dictionary
-        -------------------------------
-        In this case the argument must be a dictionary. Each key is a component
-        name, and each value is a list of attributes to publish. This is an
-        example::
-
-            config = {
-                "TestNamespace/Positioner00":
-                    [
-                        {"attribute": "position", "timer": 0.1},
-                        {"attribute": "current", "timer": 0.1},
+            args = {
+                "TestNamespace/Positioner00": {
+                    "properties": [
+                        {"name": "position", "timer": 0.1},
+                        {"name": "current", "timer": 0.1},
                     ],
-                "TestNamespace/Positioner01":
-                    [
-                        {"attribute": "current", "timer": 0.1},
+                    "methods": [
+                        {"name": "getPosition", "timer": 0.1},
+                    ],
+                },
+                "TestNamespace/Positioner01": {
+                    "properties": [
+                        {"name": "current", "timer": 0.1},
                     ]
+                }
             }
             publisher = Publisher(config)
-
-
-        Three arguments: component name, attribute, timer
-        -------------------------------------------------
-        For instance::
-
-            publisher = Publisher('TestNamespace/Positioner', 'position', 0.1)
         """
         if len(args) == 0:
             pass
         elif len(args) == 1:  # The argument must be a (JSON) dictionary
             self.add_jobs(*args)
-        else:  # Expected arguments: component name, attribute name, timer
-            comp, attr, timer = args
-            self.add_jobs({comp: [{'attribute': attr, 'timer': timer}]})
+        else:
+            logger.error('Publisher takes 0 or 1 argument, %d given' % len(args))
 
         Publisher.add_errors_listener()
         self.s.add_job(
@@ -67,34 +59,55 @@ class Publisher(object):
     def add_jobs(self, config):
         """
         {
-            "TestNamespace/Positioner":
-            [
-                {
-                    "attribute": "position",
-                    "description": "actual position",
-                    "timer": 0.1
-                }
-            ]
+            "TestNamespace/Positioner": {
+                "properties": [
+                    {
+                        "name": "position",
+                        "description": "actual position",
+                        "timer": 0.1
+                    }
+                ],
+                "methods": [
+                    {
+                        "name": "getPosition",
+                        "description": "actual position",
+                        "timer": 0.1
+                    }
+                ],
+            }
         }
         """
-        args = []  # list of tuples [(component, attribute_name, timer), (...)]
+        # list of tuples [(component, attribute_name, timer), (...)]
+        pjobs_args = []  # Properties list
+        mjobs_args = []  # Methods list
         from suricate.services import Component
-        for component_name, attributes in config.items():
+        for component_name, targets in config.items():
+            properties = targets.get('properties', [])
+            methods = targets.get('methods', [])
             try:
                 c = Component(component_name)
             except CannotGetComponentError:
                 logger.error('cannot get component %s' % component_name)
                 continue
-            prefix = c.device_attribute_prefix
-            for a in attributes:
-                if hasattr(c, prefix + a['attribute']):
-                    args.append((c, a['attribute'], a['timer']))
-                else:
-                    logger.error('%s has not attribute %s' % (c.name, a['attribute']))
-                        
 
-        for arg in args:
+            for prop in properties:
+                if hasattr(c, '_get_%s' % prop['name']):
+                    pjobs_args.append((c, prop['name'], prop['timer']))
+                else:
+                    logger.error('%s has not property %s' % (c.name, prop['name']))
+
+            for method in methods:
+                if hasattr(c, method['name']):
+                    mjobs_args.append((c, method['name'], method['timer']))
+                else:
+                    logger.error('%s has not method %s' % (c.name, method['name']))
+                            
+
+        for arg in pjobs_args:
             self.s.add_attribute_job(*arg)
+
+        for met in mjobs_args:
+            self.s.add_attribute_job(*met)
 
 
     def rescheduler(self):
@@ -150,8 +163,6 @@ class Publisher(object):
                 Publisher.s.modify_job(job_id, args=args)
             except CannotGetComponentError:
                 pass  # Do nothing
-
-
         else:
             # TODO: manage the unexpected exception
             pass

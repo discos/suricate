@@ -9,17 +9,21 @@ from suricate.errors import CannotGetComponentError, ComponentAttributeError
 logger = logging.getLogger('suricate')
 
 
-def acs_property_publisher(channel, component, property_name):
+def acs_publisher(channel, component, attribute):
     """Get the component reference and a property as a dict object."""
-    value_dict = {'value': '', 'timestamp': str(datetime.datetime.now())}
+    value_dict = {'value': '', 'timestamp': str(datetime.datetime.utcnow())}
     data_dict = dict(error='', **value_dict)
     try:
-        prefix = component.device_attribute_prefix
-        get_property_obj = getattr(component, prefix + property_name)
-        property_obj = get_property_obj()
-        value, comp = property_obj.get_sync()
-        epoch = (comp.timeStamp - 122192928000000000) / 10000000.
-        t = datetime.datetime.fromtimestamp(epoch)
+        if hasattr(component, '_get_' + attribute):  # It is a property
+            get_property_obj = getattr(component, '_get_' + attribute)
+            property_obj = get_property_obj()
+            value, comp = property_obj.get_sync()
+            # TODO: check Acspy.Common.TimeHelper for right conversion
+            epoch = (comp.timeStamp - 122192928000000000) / 10000000.
+            t = datetime.datetime.fromtimestamp(epoch)
+        else:  # It is a method, just call it
+            t = datetime.datetime.utcnow()
+            value = attribute_obj()
         value_dict = {'value': value, 'timestamp': str(t)}
         data_dict.update(value_dict)
     except CannotGetComponentError:
@@ -29,10 +33,16 @@ def acs_property_publisher(channel, component, property_name):
         raise CannotGetComponentError(message)
     except AttributeError:
         message = 'cannot get attribute %s from %s' % (
-                property_name, component.name)
+                attribute, component.name)
         data_dict.update({'error': message})
         logger.error(message)
         raise ComponentAttributeError(message)
+    except Exception, ex:
+        message = 'cannot communicate with %s' % component.name
+        data_dict.update({'error': message})
+        logger.error(message)
+        logger.debug(ex)
+        raise CannotGetComponentError(message)
     finally:
         r = redis.StrictRedis()
         if not r.hmset(channel, data_dict):

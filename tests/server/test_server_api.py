@@ -8,7 +8,8 @@ BASE_URL = '/publisher/api/v0.1'
 DATA = {
     'component': 'TestNamespace/Positioner',
     'attribute': 'position',
-    'timer': 0.1
+    'timer': 0.1,
+    'type': 'property',
 }
 
 
@@ -17,7 +18,7 @@ jobs_from_data = {
         [
             {
                 'id': '%s/%s' % (DATA['component'], DATA['attribute']),
-                'timer': DATA['timer']
+                'timer': DATA['timer'],
             }
         ]
 }
@@ -37,7 +38,9 @@ def test_create_jobs_returns_the_job(client):
     """Return the created job"""
     response = client.post(
         '%s/jobs' %BASE_URL, data=json.dumps(DATA), headers=HEADERS)
-    assert json.loads(response.get_data()) == DATA
+    answer = DATA.copy()
+    del answer['type']
+    assert json.loads(response.get_data()) == answer
 
 
 def test_create_and_get_jobs(client):
