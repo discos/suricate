@@ -30,7 +30,11 @@ if args.action == 'start':
         server.start()
     else:
         server.start(COMPONENTS)
-elif args.action == 'stop':
+elif args.action == 'stop' and args.no_components:
+    # It is a nonsense to execute stop with no_components
+    print('ERROR: can not execute stop with no_components')
+    sys.exit(1)
+else:
     url = '%s:%d/publisher/api/v0.1/stop' % (BASEURL, PORT)
     msg = ''
     try:
