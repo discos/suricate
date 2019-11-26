@@ -25,6 +25,7 @@ except OSError:
     pass  # The directory already exists
 
 
+# --- DEFAULT CONFIGURATION PARAMETERS
 default_config = { 
     'COMPONENTS': {
         "TestNamespace/Positioner00": {
