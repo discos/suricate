@@ -6,6 +6,7 @@ import sys
 from subprocess import check_output, STDOUT
 import requests
 from suricate import server
+from suricate.configuration import config
 from argparse import ArgumentParser
 
 
@@ -14,8 +15,6 @@ parser.add_argument('--no_components', action='store_true')
 parser.add_argument('action', choices=['start', 'stop'])
 
 args = parser.parse_args()
-
-from suricate.configuration import config
 
 COMPONENTS = config['COMPONENTS']
 PORT = config['HTTP']['port']
