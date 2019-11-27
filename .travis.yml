@@ -5,24 +5,12 @@ language: python
 python:
   - 2.7
 
-matrix:
-  include:
-  - os: linux
-    env: PYTHON=2.7
-
-before_install:
-  - export PATH="/home/travis/virtualenv/python2.7.15/bin:$PATH"
-
-before_install:
-  - export PATH="/home/travis/virtualenv/python2.7.15/bin:$PATH"
-
 install:
   - pip install pytz
   - pip install pytest
   - pip install pytest-cov
   - pip install coveralls
-  - python setup.py install
-  - python setup.py install_scripts
+  - pip install --user .
 
 services:
   - redis-server
@@ -33,4 +21,4 @@ script:
 after_success: coveralls
 
 notifications:
-  email: true
+  email: false
