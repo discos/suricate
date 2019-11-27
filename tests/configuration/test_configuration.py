@@ -52,7 +52,5 @@ def test_wrong_configuration_file():
         reload(configuration)
 
 
-
-
 if __name__ == '__main__':
     pytest.main()
