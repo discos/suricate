@@ -7,9 +7,9 @@ def test_run_only_once(capsys):
     """Only one instance of suricate must be running"""
     try:
         p1 = subprocess.Popen(['suricate-server', 'start'], stdout=subprocess.PIPE)
-        time.sleep(1.5)
+        time.sleep(2)
         p2 = subprocess.Popen(['suricate-server', 'start'], stdout=subprocess.PIPE)
-        time.sleep(1.5)
+        time.sleep(2)
         out, err = p2.communicate()
         assert out.startswith('ERROR: suricate is already running')
     finally:
