@@ -83,5 +83,4 @@ try:
         if not config:
             config = default_config
 except Exception:
-        print 'INFO: Using the default configuration'
         config = default_config

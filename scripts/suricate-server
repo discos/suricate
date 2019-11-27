@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 from __future__ import print_function
-
 import os
 import sys
-from subprocess import check_output, STDOUT
+import socket
 import requests
+from subprocess import check_output, STDOUT
 from suricate import server
 from suricate.configuration import config
 from argparse import ArgumentParser
@@ -21,6 +21,13 @@ PORT = config['HTTP']['port']
 BASEURL = config['HTTP']['baseurl']
 
 if args.action == 'start':
+    # Check if suricate is already running
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind(('127.0.0.1', 54123))
+    except socket.error:
+        print('ERROR: suricate is already running')
+        sys.exit(1)
     # Check if ACS is ready
     output = check_output(['acsStatus'], stderr=STDOUT)
     if 'Unable to determine manager' in output:
