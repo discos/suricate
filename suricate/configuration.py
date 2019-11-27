@@ -80,6 +80,8 @@ logging.getLogger('suricate').setLevel(logging.INFO)
 try:
     with open(config_file) as stream:
         config = yaml.safe_load(stream)
-except IOError:
+        if not config:
+            config = default_config
+except Exception:
         print 'INFO: Using the default configuration'
         config = default_config
