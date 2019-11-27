@@ -10,7 +10,7 @@ install:
   - pip install pytest
   - pip install pytest-cov
   - pip install coveralls
-  - pip install --user .
+  - python setup.py install
 
 services:
   - redis-server
