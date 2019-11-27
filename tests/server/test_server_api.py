@@ -1,5 +1,4 @@
-from flask import json
-
+from flask import json, jsonify
 import pytest
 
 
@@ -65,6 +64,14 @@ def test_stop(client, monkeypatch):
     monkeypatch.setattr('suricate.server.publisher.shutdown', lambda: None)
     response = client.post('%s/stop' %BASE_URL)
     assert response.get_data() == 'Server stopped :-)'
+
+
+def test_get_configuration(client):
+    """Get the running configuration"""
+    response = client.get('%s/config' % BASE_URL)
+    from suricate.configuration import config
+    response_config = json.loads(response.get_data())
+    assert response_config == config
 
 
 if __name__ == '__main__':
