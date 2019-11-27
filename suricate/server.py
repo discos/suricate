@@ -8,6 +8,7 @@ import socket
 from flask import Flask, jsonify, abort, request
 from suricate.core import Publisher
 from suricate.errors import CannotGetComponentError
+from suricate.configuration import config
 
 
 app = Flask(__name__)
@@ -57,6 +58,11 @@ def create_job():
         'component': component,
         'attribute': attribute,
         'timer': timer}), 201
+
+
+@app.route('/publisher/api/v0.1/config', methods=['GET'])
+def get_config():
+    return jsonify(config)
 
 
 @app.route('/publisher/api/v0.1/stop', methods=['POST'])
