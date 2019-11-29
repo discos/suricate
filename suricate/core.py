@@ -1,7 +1,9 @@
 import logging
+import datetime
 from os.path import join
 
 import redis
+import json
 from apscheduler import events
 
 from suricate.schedulers import Scheduler
@@ -40,9 +42,10 @@ class Publisher(object):
             }
             publisher = Publisher(config)
         """
+        self.unavailable_components = {}
         if len(args) == 0:
             pass
-        elif len(args) == 1:  # The argument must be a (JSON) dictionary
+        elif len(args) == 1:  # The argument must be a dictionary (JSON format)
             self.add_jobs(*args)
         else:
             logger.error('Publisher takes 0 or 1 argument, %d given' % len(args))
@@ -82,26 +85,37 @@ class Publisher(object):
         mjobs_args = []  # Methods list
         from suricate.services import Component
         for component_name, targets in config.items():
+            # Remove the component from the unavailable dictionary
+            self.unavailable_components.pop(component_name, None)
+            # Set the default redis values
+            error_message = 'cannot get component %s' % component_name
             properties = targets.get('properties', [])
             methods = targets.get('methods', [])
             try:
                 c = Component(component_name)
             except CannotGetComponentError:
-                logger.error('cannot get component %s' % component_name)
-                continue
-
+                self.unavailable_components[component_name] = targets
+                logger.error(error_message)
+                
             for prop in properties:
-                if hasattr(c, '_get_%s' % prop['name']):
-                    pjobs_args.append((c, prop['name'], prop['timer']))
+                attr_name = prop['name']
+                if component_name in self.unavailable_components:
+                    self._set_attr_error(component_name, attr_name, error_message)
                 else:
-                    logger.error('%s has not property %s' % (c.name, prop['name']))
+                    if hasattr(c, '_get_%s' % attr_name):
+                        pjobs_args.append((c, attr_name, prop['timer']))
+                    else:
+                        logger.error('%s has not property %s' % (c.name, attr_name))
 
             for method in methods:
-                if hasattr(c, method['name']):
-                    mjobs_args.append((c, method['name'], method['timer']))
+                attr_name = method['name']
+                if component_name in self.unavailable_components:
+                    self._set_attr_error(component_name, attr_name, error_message)
                 else:
-                    logger.error('%s has not method %s' % (c.name, method['name']))
-                            
+                    if hasattr(c, attr_name):
+                        mjobs_args.append((c, attr_name, method['timer']))
+                    else:
+                        logger.error('%s has not method %s' % (c.name, attr_name))
 
         for arg in pjobs_args:
             self.s.add_attribute_job(*arg)
@@ -111,6 +125,10 @@ class Publisher(object):
 
 
     def rescheduler(self):
+        # Check if unavailable components are now available
+        self.add_jobs(self.unavailable_components)
+
+        # Reschedule old jobs currently unavailable
         for job in self.get_jobs():
             error_job_key = 'error_job:%s' % job.id
             healthy_job_key = 'healthy_job:%s' % job.id
@@ -177,3 +195,16 @@ class Publisher(object):
             job.remove()
         cls.s.shutdown(wait=False)
         cls.s = Scheduler()
+
+    def _set_attr_error(self, component_name, attribute, message):
+        data_dict = {
+            'error': '',
+            'value': '',
+            'timestamp': str(datetime.datetime.utcnow())
+        }
+        job_id = '%s/%s' % (component_name, attribute)
+        data_dict.update({'error': message})
+        if not r.hmset(job_id, data_dict):
+            logger.error('cannot write on redis: "%s"' % message)
+        r.publish(job_id, json.dumps(data_dict))
+

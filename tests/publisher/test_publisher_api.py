@@ -1,4 +1,5 @@
 import pytest
+import suricate.services
 
 
 def test_zero_argument_init(Publisher):
@@ -48,12 +49,17 @@ def test_wrong_number_arguments(Publisher, logger):
 
 
 def test_wrong_component_name(Publisher, logger):
-    """In case of wrong component name, write log message"""
-    config = {"foo": {"properties": [{"name": "current", "timer": 0.1}]}}
-    Publisher(config)
-    line = open(logger.file_name).readline()
-    assert 'ERROR' in line
-    assert 'cannot get component foo' in line
+    """In case of wrong component name, write a log message"""
+    try:
+        config = {"foo": {"properties": [{"name": "current", "timer": 0.1}]}}
+        suricate.services.Component.unavailables.append('foo')
+        Publisher(config)
+        line = open(logger.file_name).readline()
+        assert 'ERROR' in line
+        assert 'cannot get component foo' in line
+    finally:
+        suricate.services.Component.unavailables = []
+
 
 def test_wrong_property_name(Publisher, logger):
     """In case of wrong property name, write log message"""

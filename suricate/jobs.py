@@ -47,7 +47,7 @@ def acs_publisher(channel, component, attribute):
     finally:
         r = redis.StrictRedis()
         if not r.hmset(channel, data_dict):
-            logger.error('cannot write data for %s' % channel)
+            logger.error('cannot write data on redis for %s' % channel)
         r.publish(channel, json.dumps(data_dict))
         healthy_job_key = 'healthy_job:%s' % channel
         if not r.set(healthy_job_key, 1):
