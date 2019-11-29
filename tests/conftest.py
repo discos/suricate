@@ -120,7 +120,7 @@ class MockComponent(object):
     """Fake ascpub.services.Component, to use when ACS is not active"""
 
     components = {}
-    unavailables = ['foo']
+    unavailables = []  # Unavailable components
 
     properties = {
         'position': 0,
@@ -136,6 +136,9 @@ class MockComponent(object):
         return cls.components[name]
 
     def __init__(self, name='TestNamespace/MyComponent'):
+        if name in self.unavailables:
+            raise CannotGetComponentError('component %s not available' % name)
+
         self.name = name
         for property_ in MockComponent.properties.items():
             self.set_property(*property_)
@@ -252,6 +255,7 @@ def redis_client(request):
     r = redis.StrictRedis()
 
     def close_redis_client():
+        r.flushall()
         r.close()
 
     request.addfinalizer(close_redis_client)

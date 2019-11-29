@@ -21,7 +21,11 @@ class Proxy(object):
 class Component(object):
     """Delegate the attribute access to an ACS component"""
 
+    unavailables = []  # Unavailable components
+
     def __init__(self, name):
+        if name in self.unavailables:
+            raise CannotGetComponentError('component %s not available' % name)
         self.name = str(name)
         if not hasattr(self, '_client'):
             from Acspy.Clients.SimpleClient import PySimpleClient
