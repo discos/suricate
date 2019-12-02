@@ -9,7 +9,6 @@ suricate_dir = os.path.join(os.getenv('HOME'), '.suricate')
 config_dir = os.path.join(suricate_dir, 'config')
 config_file  = os.path.join(config_dir, 'config.yaml')
 log_dir = os.path.join(suricate_dir, 'logs')
-template_dir = os.path.join(suricate_dir, 'templates')
 
 # --- CREATE FILES AND DIRECTORIES
 try:  
@@ -22,10 +21,6 @@ except OSError:
     pass  # The directory already exists
 try:  
     os.mkdir(log_dir)
-except OSError:
-    pass  # The directory already exists
-try:  
-    os.mkdir(template_dir)
 except OSError:
     pass  # The directory already exists
 
