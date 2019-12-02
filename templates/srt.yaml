@@ -1,0 +1,90 @@
+COMPONENTS:
+
+  ANTENNA/Boss:
+    properties:
+    - name: rawAzimuth
+      timer: 0.2
+    - name: rawElevation
+      timer: 0.2
+    - name: observedAzimuth
+      timer: 0.2
+    - name: observedElevation
+      timer: 0.2
+    - name: observedDeclination
+      timer: 0.2
+    - name: observedGalLatitude
+      timer: 0.2
+    - name: observedGalLongitude
+      timer: 0.2
+    - name: observedRightAscension
+      timer: 0.2
+    - name: pointingAzimuthCorrection
+      timer: 5.0
+    - name: pointingElevationCorrection
+      timer: 5.0
+
+  ANTENNA/Mount:
+    properties:
+    - name: azimuth
+      timer: 0.2
+    - name: elevation
+      timer: 0.2
+
+  RECEIVERS/SRT7GHzReceiver:
+    properties:
+    - name: cryoTemperatureCoolHead
+      timer: 60
+    - name: cryoTemperatureCoolHeadWindow
+      timer: 60
+    - name: environmentTemperature
+      timer: 60
+    - name: cryoTemperatureLNA
+      timer: 60
+    - name: cryoTemperatureLNAWindow
+      timer: 60
+    - name: initialFrequency
+      timer: 60
+    - name: mode
+      timer: 60
+
+  RECEIVERS/SRTKBandMFReceiver:
+    properties:
+    - name: cryoTemperatureCoolHead
+      timer: 60
+    - name: cryoTemperatureCoolHeadWindow
+      timer: 60
+    - name: environmentTemperature
+      timer: 60
+    - name: cryoTemperatureLNA
+      timer: 60
+    - name: cryoTemperatureLNAWindow
+      timer: 60
+    - name: initialFrequency
+      timer: 60
+    - name: mode
+      timer: 60
+
+  RECEIVERS/SRTLPBandReceiver:
+    properties:
+    - name: cryoTemperatureCoolHead
+      timer: 60
+    - name: cryoTemperatureCoolHeadWindow
+      timer: 60
+    - name: environmentTemperature
+      timer: 60
+    - name: cryoTemperatureLNA
+      timer: 60
+    - name: cryoTemperatureLNAWindow
+      timer: 60
+    - name: initialFrequency
+      timer: 60
+    - name: mode
+      timer: 60
+
+HTTP:
+  baseurl: http://127.0.0.1
+  port: 5000
+
+SCHEDULER:
+  RESCHEDULE_ERROR_INTERVAL: 10
+  RESCHEDULE_INTERVAL: 5

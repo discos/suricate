@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 from __future__ import with_statement
+from shutil import copyfile
+from argparse import ArgumentParser
 import os
 import io
 import yaml
@@ -7,7 +9,20 @@ from suricate.configuration import (
     default_config,
     config_dir,
     config_file,
+    template_dir,
 )
+
+
+
+parser = ArgumentParser(description='http://suricate.readthedocs.org/')
+parser.add_argument(
+    '-t',
+    '--template',
+    default='default',
+    choices=('srt', 'medicina', 'noto'),
+    help='Telescope configuration'
+)
+args = parser.parse_args()
 
 
 try:  
@@ -15,7 +30,14 @@ try:
 except OSError:
     pass  # The directory already exists
 
-with io.open(config_file, 'w') as outfile:
-    yaml.dump(default_config, outfile)
+if args.template == 'default':
+    with io.open(config_file, 'w') as outfile:
+        yaml.dump(default_config, outfile)
+    print '%s created!' % config_file
+else:
+    template = '%s.yaml' % args.template
+    source_file = os.path.join(template_dir, template)
+    copyfile(source_file, config_file)
+    print '%s created from %s!' % (config_file, template)
+    
 
-print '%s created!' % config_file
