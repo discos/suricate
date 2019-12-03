@@ -42,10 +42,8 @@ COMPONENTS:
       timer: 60
     - name: cryoTemperatureLNAWindow
       timer: 60
-    - name: initialFrequency
-      timer: 60
     - name: mode
-      timer: 60
+      timer: 5
 
   RECEIVERS/SRTKBandMFReceiver:
     properties:
@@ -59,10 +57,8 @@ COMPONENTS:
       timer: 60
     - name: cryoTemperatureLNAWindow
       timer: 60
-    - name: initialFrequency
-      timer: 60
     - name: mode
-      timer: 60
+      timer: 5
 
   RECEIVERS/SRTLPBandReceiver:
     properties:
@@ -76,10 +72,8 @@ COMPONENTS:
       timer: 60
     - name: cryoTemperatureLNAWindow
       timer: 60
-    - name: initialFrequency
-      timer: 60
     - name: mode
-      timer: 60
+      timer: 5
 
 HTTP:
   baseurl: http://127.0.0.1

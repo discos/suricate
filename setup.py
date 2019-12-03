@@ -54,6 +54,7 @@ setup(
     scripts=['scripts/suricate-server', 'scripts/suricate-config'],
     platforms='all',
     install_requires=[
+        'requests',
         'redis==3.3.8',
         'apscheduler==3.6.1',
         'flask==1.1.1',

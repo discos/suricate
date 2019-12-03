@@ -28,11 +28,6 @@ if args.action == 'start':
     except socket.error:
         print('ERROR: suricate is already running')
         sys.exit(1)
-    # Check if ACS is ready
-    output = check_output(['acsStatus'], stderr=STDOUT)
-    if 'Unable to determine manager' in output:
-        print('ERROR: ACS is not running')
-        sys.exit(1)
     if args.no_components:
         server.start()
     else:
