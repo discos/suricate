@@ -5,8 +5,8 @@ from argparse import ArgumentParser
 import os
 import io
 import yaml
-from suricate.configuration import (
-    default_config,
+from suricate.configuration import default_config
+from suricate.paths import (
     config_dir,
     config_file,
     template_dir,
