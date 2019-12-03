@@ -17,30 +17,27 @@ from suricate.paths import (
 )
 
 
-class CustomInstallCommand(install):
-    def run(self):
-        try:
-            os.mkdir(suricate_dir)
-        except OSError:
-            pass  # The directory already exists
-        try:
-            os.mkdir(config_dir)
-        except OSError:
-            pass  # The directory already exists
-        try:
-            os.mkdir(log_dir)
-        except OSError:
-            pass  # The directory already exists
-        try:
-            os.mkdir(template_dir)
-        except OSError:
-            pass  # The directory already exists
+try:
+    os.mkdir(suricate_dir)
+except OSError:
+    pass  # The directory already exists
+try:
+    os.mkdir(config_dir)
+except OSError:
+    pass  # The directory already exists
+try:
+    os.mkdir(log_dir)
+except OSError:
+    pass  # The directory already exists
+try:
+    os.mkdir(template_dir)
+except OSError:
+    pass  # The directory already exists
 
-        for file_name in os.listdir('templates'):
-            source_file = os.path.join('templates', file_name)
-            dest_file = os.path.join(template_dir, file_name)
-            copyfile(source_file, dest_file)
-        install.run(self)
+for file_name in os.listdir('templates'):
+    source_file = os.path.join('templates', file_name)
+    dest_file = os.path.join(template_dir, file_name)
+    copyfile(source_file, dest_file)
 
 
 setup(
@@ -67,5 +64,4 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
     ],
-    cmdclass={'install': CustomInstallCommand},
 )
