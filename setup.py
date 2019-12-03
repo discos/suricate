@@ -8,15 +8,34 @@ except ImportError:
     from distutils.core import setup
     from distutils.command.install import install
 
+from suricate.paths import (
+    suricate_dir,
+    config_dir,
+    config_file,
+    log_dir,
+    template_dir,
+)
+
 
 class CustomInstallCommand(install):
     def run(self):
-        suricate_dir = os.path.join(os.getenv('HOME'), '.suricate')
-        template_dir = os.path.join(suricate_dir, 'templates')
-        try:  
+        try:
+            os.mkdir(suricate_dir)
+        except OSError:
+            pass  # The directory already exists
+        try:
+            os.mkdir(config_dir)
+        except OSError:
+            pass  # The directory already exists
+        try:
+            os.mkdir(log_dir)
+        except OSError:
+            pass  # The directory already exists
+        try:
             os.mkdir(template_dir)
         except OSError:
             pass  # The directory already exists
+
         for file_name in os.listdir('templates'):
             source_file = os.path.join('templates', file_name)
             dest_file = os.path.join(template_dir, file_name)
