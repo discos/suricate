@@ -4,25 +4,12 @@ import sys
 import logging
 import yaml
 
-
-suricate_dir = os.path.join(os.getenv('HOME'), '.suricate')
-config_dir = os.path.join(suricate_dir, 'config')
-config_file  = os.path.join(config_dir, 'config.yaml')
-log_dir = os.path.join(suricate_dir, 'logs')
-
-# --- CREATE FILES AND DIRECTORIES
-try:  
-    os.mkdir(suricate_dir)
-except OSError:
-    pass  # The directory already exists
-try:  
-    os.mkdir(config_dir)
-except OSError:
-    pass  # The directory already exists
-try:  
-    os.mkdir(log_dir)
-except OSError:
-    pass  # The directory already exists
+from suricate.paths import (
+    suricate_dir,
+    config_dir,
+    config_file,
+    log_dir,
+)
 
 
 # --- DEFAULT CONFIGURATION PARAMETERS
