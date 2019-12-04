@@ -3,32 +3,26 @@ COMPONENTS:
   ANTENNA/Boss:
     properties:
     - name: rawAzimuth
-      timer: 0.2
+      timer: 0.4
     - name: rawElevation
-      timer: 0.2
+      timer: 0.4
     - name: observedAzimuth
-      timer: 0.2
+      timer: 0.4
     - name: observedElevation
-      timer: 0.2
+      timer: 0.4
     - name: observedDeclination
-      timer: 0.2
+      timer: 0.4
     - name: observedGalLatitude
-      timer: 0.2
+      timer: 0.4
     - name: observedGalLongitude
-      timer: 0.2
+      timer: 0.4
     - name: observedRightAscension
-      timer: 0.2
+      timer: 0.4
     - name: pointingAzimuthCorrection
       timer: 5.0
     - name: pointingElevationCorrection
       timer: 5.0
 
-  ANTENNA/Mount:
-    properties:
-    - name: azimuth
-      timer: 0.2
-    - name: elevation
-      timer: 0.2
 
   RECEIVERS/SRT7GHzReceiver:
     properties:
