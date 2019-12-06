@@ -43,6 +43,7 @@ class Publisher(object):
             publisher = Publisher(config)
         """
         self.unavailable_components = {}
+        r.delete('components')
         if len(args) == 0:
             pass
         elif len(args) == 1:  # The argument must be a dictionary (JSON format)
@@ -85,14 +86,14 @@ class Publisher(object):
         mjobs_args = []  # Methods list
         from suricate.services import Component
         for component_name, targets in config.items():
-            # Remove the component from the unavailable dictionary
-            self.unavailable_components.pop(component_name, None)
             # Set the default redis values
             error_message = 'cannot get component %s' % component_name
             properties = targets.get('properties', [])
             methods = targets.get('methods', [])
             try:
                 c = Component(component_name)
+                # Remove the component from the unavailable dictionary
+                self.unavailable_components.pop(component_name, None)
             except CannotGetComponentError:
                 self.unavailable_components[component_name] = targets
                 logger.error(error_message)
@@ -126,10 +127,18 @@ class Publisher(object):
 
     def rescheduler(self):
         # Check if unavailable components are now available
+        for comp, status in r.hgetall('components').items():
+            if status == 'available':
+                self.unavailable_components.pop(comp, None)
+
         self.add_jobs(self.unavailable_components)
 
+        scheduled_comps = set()
         # Reschedule old jobs currently unavailable
         for job in self.get_jobs():
+            if job.id.count('/') == 2:
+                component_name = '/'.join(job.id.split('/')[:2])
+                scheduled_comps.add(component_name)
             error_job_key = 'error_job:%s' % job.id
             healthy_job_key = 'healthy_job:%s' % job.id
             interval_time = r.get(error_job_key)
@@ -140,9 +149,29 @@ class Publisher(object):
                     trigger='interval',
                     seconds=float(interval_time)
                 )
-        
+
+        # Create a set of unavailable components
+        unavailable_comps = set()
+        for comp in self.unavailable_components:
+            unavailable_comps.add(comp)
+        for comp, status in r.hgetall('components').items():
+            if status == 'unavailable':
+                unavailable_comps.add(comp)
+            elif comp in unavailable_comps:
+                unavailable_comps.remove(comp)
+                
+
+        all_comps = unavailable_comps | scheduled_comps
+        for comp in all_comps:
+            if comp in unavailable_comps:
+                r.hmset('components', {comp: 'unavailable'})
+            else:
+                r.hmset('components', {comp: 'available'})
+
+
     def get_jobs(self):
         return self.s.get_jobs()
+
 
     @classmethod
     def add_errors_listener(cls):
