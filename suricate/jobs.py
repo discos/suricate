@@ -7,6 +7,7 @@ from suricate.errors import CannotGetComponentError, ComponentAttributeError
 
 
 logger = logging.getLogger('suricate')
+r = redis.StrictRedis()
 
 
 def acs_publisher(channel, component, attribute):
@@ -14,6 +15,8 @@ def acs_publisher(channel, component, attribute):
     value_dict = {'value': '', 'timestamp': str(datetime.datetime.utcnow())}
     data_dict = dict(error='', **value_dict)
     try:
+        if component.name in component.unavailables:
+            raise CannotGetComponentError()
         if hasattr(component, '_get_' + attribute):  # It is a property
             get_property_obj = getattr(component, '_get_' + attribute)
             property_obj = get_property_obj()
@@ -27,25 +30,29 @@ def acs_publisher(channel, component, attribute):
             value = method()
         value_dict = {'value': value, 'timestamp': str(t)}
         data_dict.update(value_dict)
+        # Update the components redis key
+        r.hmset('components', {component.name: 'available'})
     except CannotGetComponentError:
         message = 'cannot get component %s' % component.name
         data_dict.update({'error': message})
         logger.error(message)
+        r.hmset('components', {component.name: 'unavailable'})
         raise CannotGetComponentError(message)
     except AttributeError:
         message = 'cannot get attribute %s from %s' % (
                 attribute, component.name)
         data_dict.update({'error': message})
         logger.error(message)
+        r.hmset('components', {component.name: 'unavailable'})
         raise ComponentAttributeError(message)
     except Exception, ex:
         message = 'cannot communicate with %s' % component.name
         data_dict.update({'error': message})
         logger.error(message)
         logger.debug(ex)
+        r.hmset('components', {component.name: 'unavailable'})
         raise CannotGetComponentError(message)
     finally:
-        r = redis.StrictRedis()
         if not r.hmset(channel, data_dict):
             logger.error('cannot write data on redis for %s' % channel)
         r.publish(channel, json.dumps(data_dict))
