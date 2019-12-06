@@ -38,6 +38,7 @@ def mock_services(request, monkeypatch):
     """Mock suricate.services when --acs is not given"""
     if not request.config.getoption('--acs'):
         monkeypatch.setattr('suricate.services.Component', MockComponent)
+        monkeypatch.setattr('suricate.services.getManager', lambda: 'running')
 
 
 @pytest.fixture(autouse=True)

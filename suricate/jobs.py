@@ -3,7 +3,12 @@ import datetime
 import logging
 
 import redis
-from suricate.errors import CannotGetComponentError, ComponentAttributeError
+import suricate.services
+from suricate.errors import (
+    CannotGetComponentError,
+    ComponentAttributeError,
+    ACSNotRunningError,
+)
 
 
 logger = logging.getLogger('suricate')
@@ -15,6 +20,8 @@ def acs_publisher(channel, component, attribute):
     value_dict = {'value': '', 'timestamp': str(datetime.datetime.utcnow())}
     data_dict = dict(error='', **value_dict)
     try:
+        if not suricate.services.getManager():
+            raise ACSNotRunningError()
         if component.name in component.unavailables:
             raise CannotGetComponentError()
         if hasattr(component, '_get_' + attribute):  # It is a property
@@ -32,6 +39,12 @@ def acs_publisher(channel, component, attribute):
         data_dict.update(value_dict)
         # Update the components redis key
         r.hmset('components', {component.name: 'available'})
+    except ACSNotRunningError:
+        message = 'ACS not running'
+        data_dict.update({'error': message})
+        logger.error(message)
+        r.hmset('components', {component.name: 'unavailable'})
+        raise CannotGetComponentError(message)
     except CannotGetComponentError:
         message = 'cannot get component %s' % component.name
         data_dict.update({'error': message})

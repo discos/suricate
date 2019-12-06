@@ -9,6 +9,7 @@ from apscheduler import events
 from suricate.schedulers import Scheduler
 from suricate.configuration import config
 from suricate.errors import CannotGetComponentError, ComponentAttributeError
+import suricate.services
 
 logger = logging.getLogger('suricate')
 r = redis.StrictRedis()
@@ -47,7 +48,7 @@ class Publisher(object):
         if len(args) == 0:
             pass
         elif len(args) == 1:  # The argument must be a dictionary (JSON format)
-            self.add_jobs(*args)
+           self.add_jobs(*args)
         else:
             logger.error('Publisher takes 0 or 1 argument, %d given' % len(args))
 
@@ -87,10 +88,14 @@ class Publisher(object):
         from suricate.services import Component
         for component_name, targets in config.items():
             # Set the default redis values
-            error_message = 'cannot get component %s' % component_name
             properties = targets.get('properties', [])
             methods = targets.get('methods', [])
             try:
+                if not suricate.services.getManager():
+                    r.hmset('components', {component_name: 'unavailable'})
+                    error_message = 'ACS not running'
+                else:
+                    error_message = 'cannot get component %s' % component_name
                 c = Component(component_name)
                 # Remove the component from the unavailable dictionary
                 self.unavailable_components.pop(component_name, None)

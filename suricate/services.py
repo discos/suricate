@@ -24,6 +24,8 @@ class Component(object):
     unavailables = []  # Unavailable components
 
     def __init__(self, name):
+        if not getManager():
+            raise CannotGetComponentError('ACS not running')
         if name in self.unavailables:
             raise CannotGetComponentError('component %s not available' % name)
         self.name = str(name)
@@ -54,3 +56,8 @@ class Component(object):
         except:
             # TODO: log
             pass
+
+
+def getManager():
+    from Acspy.Util.ACSCorba import getManager as mng_ref
+    return mng_ref()
