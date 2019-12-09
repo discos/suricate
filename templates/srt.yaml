@@ -69,6 +69,21 @@ COMPONENTS:
     - name: mode
       timer: 5
 
+  WEATHERSTATION/WeatherStation:
+    properties:
+    - name: humidity
+      timer: 60
+    - name: pressure
+      timer: 60
+    - name: temperature
+      timer: 120
+    - name: winddir
+      timer: 10
+    - name: windspeed
+      timer: 10
+    - name: windspeedpeak
+      timer: 4
+
 HTTP:
   baseurl: http://127.0.0.1
   port: 5000
