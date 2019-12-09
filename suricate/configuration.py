@@ -32,8 +32,8 @@ default_config = {
     },
 
     'SCHEDULER': {
-        'RESCHEDULE_INTERVAL': 5,  # Seconds
-        'RESCHEDULE_ERROR_INTERVAL': 10,  # Seconds
+        'RESCHEDULE_INTERVAL': 1,  # Seconds
+        'RESCHEDULE_ERROR_INTERVAL': 2,  # Seconds
     },
 
     'HTTP': {

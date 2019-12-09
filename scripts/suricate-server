@@ -3,11 +3,14 @@ from __future__ import print_function
 import os
 import sys
 import socket
+import datetime
 import requests
 from subprocess import check_output, STDOUT
 from suricate import server
 from suricate.configuration import config
 from argparse import ArgumentParser
+
+import redis
 
 
 parser = ArgumentParser(description='http://suricate.readthedocs.org/')

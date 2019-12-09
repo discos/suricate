@@ -24,6 +24,8 @@ class Component(object):
     unavailables = []  # Unavailable components
 
     def __init__(self, name):
+        if not getManager():
+            raise CannotGetComponentError('ACS not running')
         if name in self.unavailables:
             raise CannotGetComponentError('component %s not available' % name)
         self.name = str(name)
@@ -34,12 +36,15 @@ class Component(object):
             self._component = self._client.getComponent(self.name)
         except Exception:
             # This except clause catches a omniORB.CORBA.OBJECT_NOT_EXISTS in case
-            # the client has been disconnected.  It caches a CORBA.COMM_FAILURE
+            # the client has been disconnected.  It catches a CORBA.COMM_FAILURE
             # when the container is down and after that you call getComponent()
             # for the first time. If the container is still down and you call
             # getComponent() another time, than it catches omniORB.CORBA.TRANSIENT
-            self._component = None
-            raise CannotGetComponentError('component %s not available' % self.name)
+            message = 'component %s not available' % self.name
+            if not getManager():
+                self._client = PySimpleClient()
+                message = 'ACS not running'
+            raise CannotGetComponentError(message)
 
     def __getattr__(self, name):
         # TODO: In case __init__ does not get the component,
@@ -54,3 +59,8 @@ class Component(object):
         except:
             # TODO: log
             pass
+
+
+def getManager():
+    from Acspy.Util.ACSCorba import getManager as mng_ref
+    return mng_ref()
