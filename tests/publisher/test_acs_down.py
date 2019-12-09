@@ -66,8 +66,8 @@ def test_after_startup(Publisher, redis_client):
             assert status == 'unavailable'
 
         # ACS running again
-        suricate.services.getManager = _getManager
-        time.sleep(config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']*1.2)
+        suricate.services.getManager = lambda: 'running'
+        time.sleep(config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']*2)
         message = redis_client.hget('TestNamespace/Positioner00/position', 'error')
         assert message == ''
         message = redis_client.hget('TestNamespace/Positioner00/getPosition', 'error')
