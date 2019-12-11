@@ -1,7 +1,7 @@
 import pytest
 import time
 import json
-import suricate.services
+import suricate.component
 from mock import patch, mock_open
 
 
@@ -42,7 +42,7 @@ def test_all_components_not_active_at_startup(Publisher, redis_client):
 
         # Components not available before starting the scheduler
         for c in config['COMPONENTS']:
-            suricate.services.Component.unavailables.append(c)
+            suricate.component.Component.unavailables.append(c)
         p = Publisher(config['COMPONENTS'])
         message = redis_client.hget('TestNamespace/Positioner02/position', 'error')
         assert message == 'cannot get component TestNamespace/Positioner02'
@@ -54,7 +54,7 @@ def test_all_components_not_active_at_startup(Publisher, redis_client):
         assert message == 'cannot get component TestNamespace/Positioner03'
 
         # Components available after starting the scheduler
-        suricate.services.Component.unavailables = []
+        suricate.component.Component.unavailables = []
         p.start()
         waiting_time = 3 * config['SCHEDULER']['RESCHEDULE_INTERVAL']
         time.sleep(waiting_time)
@@ -67,7 +67,7 @@ def test_all_components_not_active_at_startup(Publisher, redis_client):
         message = redis_client.hget('TestNamespace/Positioner01/current', 'error')
         assert not message
     finally:
-        suricate.services.Component.unavailables = []
+        suricate.component.Component.unavailables = []
         reload(configuration)
 
 
@@ -83,7 +83,7 @@ def test_some_components_not_active_at_startup(Publisher, redis_client):
             from suricate.configuration import config
 
         # Components not available before starting the scheduler
-        suricate.services.Component.unavailables.append('TestNamespace/Positioner03')
+        suricate.component.Component.unavailables.append('TestNamespace/Positioner03')
         p = Publisher(config['COMPONENTS'])
         message = redis_client.hget('TestNamespace/Positioner02/position', 'error')
         assert not message
@@ -95,7 +95,7 @@ def test_some_components_not_active_at_startup(Publisher, redis_client):
         assert message == 'cannot get component TestNamespace/Positioner03'
 
         # Components available after starting the scheduler
-        suricate.services.Component.unavailables = []
+        suricate.component.Component.unavailables = []
         p.start()
         waiting_time = 3 * config['SCHEDULER']['RESCHEDULE_INTERVAL']
         time.sleep(waiting_time)
@@ -108,7 +108,7 @@ def test_some_components_not_active_at_startup(Publisher, redis_client):
         message = redis_client.hget('TestNamespace/Positioner01/current', 'error')
         assert not message
     finally:
-        suricate.services.Component.unavailables = []
+        suricate.component.Component.unavailables = []
         reload(configuration)
 
 
