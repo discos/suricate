@@ -1,7 +1,7 @@
 import pytest
 import time
 import json
-import suricate.services
+import suricate.component
 from mock import patch, mock_open
 
 
@@ -48,7 +48,7 @@ def test_all_components_unavailable(Publisher, redis_client):
 
         # Components not available before starting the scheduler
         for c in config['COMPONENTS']:
-            suricate.services.Component.unavailables.append(c)
+            suricate.component.Component.unavailables.append(c)
         p = Publisher(config['COMPONENTS'])
         p.start()
         time.sleep(startup_time)
@@ -60,7 +60,7 @@ def test_all_components_unavailable(Publisher, redis_client):
         assert components['TestNamespace/Positioner02'] == 'unavailable'
         assert components['TestNamespace/Positioner03'] == 'unavailable'
     finally:
-        suricate.services.Component.unavailables = []
+        suricate.component.Component.unavailables = []
         reload(configuration)
 
 
@@ -84,7 +84,7 @@ def test_all_components_available(Publisher, redis_client):
         assert components['TestNamespace/Positioner02'] == 'available'
         assert components['TestNamespace/Positioner03'] == 'available'
     finally:
-        suricate.services.Component.unavailables = []
+        suricate.component.Component.unavailables = []
         reload(configuration)
 
 
@@ -98,7 +98,7 @@ def test_some_components_unavailable(Publisher, redis_client):
             from suricate.configuration import config
 
         # Components not available before starting the scheduler
-        suricate.services.Component.unavailables.append(
+        suricate.component.Component.unavailables.append(
             'TestNamespace/Positioner02'
         )
         p = Publisher(config['COMPONENTS'])
@@ -111,7 +111,7 @@ def test_some_components_unavailable(Publisher, redis_client):
         assert components['TestNamespace/Positioner01'] == 'available'
         assert components['TestNamespace/Positioner02'] == 'unavailable'
         assert components['TestNamespace/Positioner03'] == 'available'
-        suricate.services.Component.unavailables.remove(
+        suricate.component.Component.unavailables.remove(
             'TestNamespace/Positioner02'
         )
         time.sleep(startup_time)
@@ -121,7 +121,7 @@ def test_some_components_unavailable(Publisher, redis_client):
         assert components['TestNamespace/Positioner01'] == 'available'
         assert components['TestNamespace/Positioner02'] == 'available'
         assert components['TestNamespace/Positioner03'] == 'available'
-        suricate.services.Component.unavailables.append(
+        suricate.component.Component.unavailables.append(
             'TestNamespace/Positioner01'
         )
         time.sleep(startup_time)
@@ -132,7 +132,7 @@ def test_some_components_unavailable(Publisher, redis_client):
         assert components['TestNamespace/Positioner02'] == 'available'
         assert components['TestNamespace/Positioner03'] == 'available'
     finally:
-        suricate.services.Component.unavailables = []
+        suricate.component.Component.unavailables = []
         reload(configuration)
 
 

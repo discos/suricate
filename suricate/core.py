@@ -85,18 +85,18 @@ class Publisher(object):
         # list of tuples [(component, attribute_name, timer), (...)]
         pjobs_args = []  # Properties list
         mjobs_args = []  # Methods list
-        from suricate.services import Component
+        import suricate.component
         for component_name, targets in config.items():
             # Set the default redis values
             properties = targets.get('properties', [])
             methods = targets.get('methods', [])
             try:
-                if not suricate.services.getManager():
+                if not suricate.services.is_manager_online():
                     r.hmset('components', {component_name: 'unavailable'})
                     error_message = 'ACS not running'
                 else:
                     error_message = 'cannot get component %s' % component_name
-                c = Component(component_name)
+                c = suricate.component.Component(component_name)
                 # Remove the component from the unavailable dictionary
                 self.unavailable_components.pop(component_name, None)
             except CannotGetComponentError:
@@ -206,11 +206,11 @@ class Publisher(object):
                 )
 
             channel, old_component_ref, attribute = job.args
-            from suricate.services import Component
+            import suricate.component
             # If the component is available, we pass its reference to the job
             # and we restore the original job heartbeat
             try:
-                component_ref = Component(old_component_ref.name)
+                component_ref = suricate.component.Component(old_component_ref.name)
                 args = channel, component_ref, attribute
                 Publisher.s.modify_job(job_id, args=args)
             except CannotGetComponentError:

@@ -8,6 +8,7 @@ import pytest
 import redis
 from flask.testing import FlaskClient
 
+import suricate.services
 from suricate.core import Publisher as Publisher_
 from suricate.schedulers import Scheduler
 from suricate.errors import CannotGetComponentError
@@ -34,11 +35,11 @@ def pytest_cmdline_main(config):
 
 
 @pytest.fixture(autouse=True)
-def mock_services(request, monkeypatch):
+def mock_objects(request, monkeypatch):
     """Mock suricate.services when --acs is not given"""
     if not request.config.getoption('--acs'):
-        monkeypatch.setattr('suricate.services.Component', MockComponent)
-        monkeypatch.setattr('suricate.services.getManager', lambda: 'running')
+        monkeypatch.setattr('suricate.component.Component', MockComponent)
+        monkeypatch.setattr('suricate.services.is_manager_online', lambda: True)
 
 
 @pytest.fixture(autouse=True)
@@ -118,7 +119,7 @@ class RedisPubSub(object):
 
 
 class MockComponent(object):
-    """Fake ascpub.services.Component, to use when ACS is not active"""
+    """Fake suricate.component.Component, to use when ACS is not active"""
 
     components = {}
     unavailables = []  # Unavailable components
@@ -137,6 +138,8 @@ class MockComponent(object):
         return cls.components[name]
 
     def __init__(self, name='TestNamespace/MyComponent'):
+        if not suricate.services.is_manager_online():
+            raise CannotGetComponentError('ACS not running')
         if name in self.unavailables:
             raise CannotGetComponentError('component %s not available' % name)
 
@@ -165,10 +168,16 @@ class MockComponent(object):
         return value
 
     def getPosition(self):
-        return self._property_value(self._get_position)
+        if not suricate.services.is_manager_online():
+            raise CannotGetComponentError('ACS not running')
+        else:
+            return self._property_value(self._get_position)
 
     def getCurrent(self):
-        return self._property_value(self._get_current)
+        if not suricate.services.is_manager_online():
+            raise CannotGetComponentError('ACS not running')
+        else:
+            return self._property_value(self._get_current)
 
     def set_property(self, name, value, error_code=0, timestamp=0):
         completion = Completion(error_code, timestamp)
@@ -188,10 +197,16 @@ class Property(object):
         self.value = value
 
     def get_sync(self):
-        return (self.value, self.completion)
+        if not suricate.services.is_manager_online():
+            raise CannotGetComponentError('ACS not running')
+        else:
+            return (self.value, self.completion)
 
     def __call__(self):
-        return self
+        if not suricate.services.is_manager_online():
+            raise CannotGetComponentError('ACS not running')
+        else:
+            return self
 
 
 class Completion(object):
@@ -202,8 +217,8 @@ class Completion(object):
 
 def Component():
     """Return an ACS component class or a MockComponent"""
-    from suricate.services import Component as ComponentClass
-    return ComponentClass
+    import suricate.component
+    return suricate.component.Component
 
 
 @pytest.fixture()

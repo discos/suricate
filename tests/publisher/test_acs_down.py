@@ -4,13 +4,12 @@ from suricate.configuration import config
 from mock import patch
 
 import suricate.services
-_getManager = suricate.services.getManager
 
 
 def test_startup(Publisher, redis_client):
     """ACS not running at startup."""
     try:
-        suricate.services.getManager = lambda: None  # Mock getManager
+        suricate.services.is_manager_online = lambda: False  # Mock getManager
         p = Publisher(config['COMPONENTS'])
         p.start()
         time.sleep(config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']*1.2)
@@ -31,7 +30,7 @@ def test_startup(Publisher, redis_client):
         for component, status in components.items():
             assert status == 'unavailable'
     finally:
-        suricate.services.getManager = _getManager
+        suricate.services.is_manager_online = lambda: True
 
 
 def test_after_startup(Publisher, redis_client):
@@ -52,8 +51,10 @@ def test_after_startup(Publisher, redis_client):
             assert status == 'available'
 
         # ACS not running
-        suricate.services.getManager = lambda: None  # Mock getManager
-        time.sleep(config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']*1.2)
+        for c in config['COMPONENTS']:
+            suricate.component.Component.unavailables.append(c)
+        suricate.services.is_manager_online = lambda: False
+        time.sleep(config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']*5)
         message = redis_client.hget('TestNamespace/Positioner00/position', 'error')
         assert message == 'ACS not running'
         message = redis_client.hget('TestNamespace/Positioner00/getPosition', 'error')
@@ -66,7 +67,8 @@ def test_after_startup(Publisher, redis_client):
             assert status == 'unavailable'
 
         # ACS running again
-        suricate.services.getManager = lambda: 'running'
+        suricate.services.is_manager_online = lambda: True
+        suricate.component.Component.unavailables = []
         time.sleep(config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']*2)
         message = redis_client.hget('TestNamespace/Positioner00/position', 'error')
         assert message == ''
@@ -79,7 +81,8 @@ def test_after_startup(Publisher, redis_client):
         for component, status in components.items():
             assert status == 'available'
     finally:
-        suricate.services.getManager = _getManager
+        suricate.component.Component.unavailables = []
+        suricate.services.is_manager_online = lambda: True
 
 
 if __name__ == '__main__':
