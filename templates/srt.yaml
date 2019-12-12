@@ -23,7 +23,6 @@ COMPONENTS:
     - name: pointingElevationCorrection
       timer: 5.0
 
-
   RECEIVERS/SRT7GHzReceiver:
     properties:
     - name: cryoTemperatureCoolHead
@@ -36,6 +35,18 @@ COMPONENTS:
       timer: 60
     - name: cryoTemperatureLNAWindow
       timer: 60
+    - name: Id_1
+      timer: 10
+    - name: Id_2
+      timer: 10
+    - name: Vd_1
+      timer: 10
+    - name: Vd_2
+      timer: 10
+    - name: Vg_1
+      timer: 10
+    - name: Vg_2
+      timer: 10
     - name: mode
       timer: 5
 
@@ -51,6 +62,66 @@ COMPONENTS:
       timer: 60
     - name: cryoTemperatureLNAWindow
       timer: 60
+    - name: idL1
+      timer: 10
+    - name: idL2
+      timer: 10
+    - name: idL3
+      timer: 10
+    - name: idL4
+      timer: 10
+    - name: idL5
+      timer: 10
+    - name: idR1
+      timer: 10
+    - name: idR2
+      timer: 10
+    - name: idR3
+      timer: 10
+    - name: idR4
+      timer: 10
+    - name: idR5
+      timer: 10
+    - name: vdL1
+      timer: 10
+    - name: vdL2
+      timer: 10
+    - name: vdL3
+      timer: 10
+    - name: vdL4
+      timer: 10
+    - name: vdL5
+      timer: 10
+    - name: vdR1
+      timer: 10
+    - name: vdR2
+      timer: 10
+    - name: vdR3
+      timer: 10
+    - name: vdR4
+      timer: 10
+    - name: vdR5
+      timer: 10
+    - name: vgL1
+      timer: 10
+    - name: vgL2
+      timer: 10
+    - name: vgL3
+      timer: 10
+    - name: vgL4
+      timer: 10
+    - name: vgL5
+      timer: 10
+    - name: vgR1
+      timer: 10
+    - name: vgR2
+      timer: 10
+    - name: vgR3
+      timer: 10
+    - name: vgR4
+      timer: 10
+    - name: vgR5
+      timer: 10 
     - name: mode
       timer: 5
 
@@ -66,6 +137,42 @@ COMPONENTS:
       timer: 60
     - name: cryoTemperatureLNAWindow
       timer: 60
+    - name: idL1
+      timer: 10
+    - name: idL2
+      timer: 10
+    - name: idL3
+      timer: 10
+    - name: idR1
+      timer: 10
+    - name: idR2
+      timer: 10
+    - name: idR3
+      timer: 10
+    - name: vdL1
+      timer: 10
+    - name: vdL2
+      timer: 10
+    - name: vdL3
+      timer: 10
+    - name: vdR1
+      timer: 10
+    - name: vdR2
+      timer: 10
+    - name: vdR3
+      timer: 10
+    - name: vgL1
+      timer: 10
+    - name: vgL2
+      timer: 10
+    - name: vgL3
+      timer: 10
+    - name: vgR1
+      timer: 10
+    - name: vgR2
+      timer: 10
+    - name: vgR3
+      timer: 10
     - name: mode
       timer: 5
 
