@@ -1,7 +1,6 @@
 import pytest
 import time
 from suricate.configuration import config
-from mock import patch
 
 import suricate.services
 
