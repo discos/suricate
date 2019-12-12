@@ -127,6 +127,7 @@ class MockComponent(object):
     properties = {
         'position': 0,
         'current': 1,
+        'seq': (1.1, 2.3, 3.3)
     }
 
     def __new__(cls, name):
@@ -161,6 +162,9 @@ class MockComponent(object):
     def setPosition(self, value):
         self.set_property('position', value)
 
+    def setSequence(self, value):
+        self.set_property('seq', value)
+
     def _property_value(self, property_):
         obj = property_()
         comp = property_.get_sync()
@@ -178,6 +182,12 @@ class MockComponent(object):
             raise CannotGetComponentError('ACS not running')
         else:
             return self._property_value(self._get_current)
+
+    def getSequence(self):
+        if not suricate.services.is_manager_online():
+            raise CannotGetComponentError('ACS not running')
+        else:
+            return self._property_value(self._get_seq)
 
     def set_property(self, name, value, error_code=0, timestamp=0):
         completion = Completion(error_code, timestamp)

@@ -36,6 +36,24 @@ def test_set_publish_property_value(component, scheduler, pubsub, redis_client):
     job_id = '%s/position' % component.name
     assert float(redis_client.hget(job_id, 'value')) == 2.0
 
+
+def test_set_publish_property_sequence_value(component, scheduler, pubsub, redis_client):
+    """Verify the job gets and publishes/sets the sequence property value"""
+    seq1 = (1.1, 2.2, 3.3, 4.4)
+    component.setSequence(seq1)
+    job = scheduler.add_attribute_job(component, 'seq', seconds=0.01)
+    scheduler.wait_until_executed(job)
+    message = pubsub.get_data_message(channel='*seq')
+    prop = json.loads(message['data'])
+    assert not prop['error']
+    assert prop['value'] == str(seq1)
+    seq2 = (11.1, 12.2, 13.3, 14.4)
+    component.setSequence(seq2)
+    time.sleep(0.1)
+    job_id = '%s/seq' % component.name
+    assert redis_client.hget(job_id, 'value') == str(seq2)
+
+
 def test_set_publish_method_value(component, scheduler, pubsub, redis_client):
     """Verify the job gets and publishes/sets the method value"""
     component.setPosition(3)
@@ -49,6 +67,23 @@ def test_set_publish_method_value(component, scheduler, pubsub, redis_client):
     time.sleep(0.1)
     job_id = '%s/getPosition' % component.name
     assert float(redis_client.hget(job_id, 'value')) == 4.0
+
+
+def test_set_publish_method_sequence_value(component, scheduler, pubsub, redis_client):
+    """Verify the job gets and publishes/sets the sequence method value"""
+    seq1 = (1.1, 2.2, 3.3, 4.4)
+    component.setSequence(seq1)
+    job = scheduler.add_attribute_job(component, 'getSequence', seconds=0.01)
+    scheduler.wait_until_executed(job)
+    message = pubsub.get_data_message(channel='*getSequence')
+    prop = json.loads(message['data'])
+    assert prop['value'] == str(seq1)
+    assert not prop['error']
+    seq2 = (11.1, 12.2, 13.3, 14.4)
+    component.setSequence(seq2)
+    time.sleep(0.1)
+    job_id = '%s/getSequence' % component.name
+    assert redis_client.hget(job_id, 'value') == str(seq2)
 
 
 def test_wrong_property_name(component, scheduler, pubsub):

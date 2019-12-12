@@ -18,10 +18,12 @@ default_config = {
         "TestNamespace/Positioner00": {
             'properties': [
                 {"name": "position", "timer": 0.1},
-                {"name": "current", "timer": 0.1}
+                {"name": "current", "timer": 0.1},
+                {"name": "seq", "timer": 0.1},
             ],
             'methods': [
                 {"name": "getPosition", "timer": 0.1},
+                {"name": "getSequence", "timer": 0.1},
             ],
         },
         "TestNamespace/Positioner01": {
