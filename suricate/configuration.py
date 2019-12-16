@@ -17,7 +17,12 @@ default_config = {
     'COMPONENTS': {
         "TestNamespace/Positioner00": {
             'properties': [
-                {"name": "position", "timer": 0.1},
+                {
+                    "name": "position",
+                    "timer": 0.1,
+                    "units": "mm",
+                    "description": "current position",
+                },
                 {"name": "current", "timer": 0.1},
                 {"name": "seq", "timer": 0.1},
             ],

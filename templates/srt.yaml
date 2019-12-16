@@ -4,124 +4,305 @@ COMPONENTS:
     properties:
     - name: rawAzimuth
       timer: 0.4
+      units: radians
+      description: "raw azimuth (encoder value), without any correction"
     - name: rawElevation
       timer: 0.4
+      units: radians
+      description: "raw elevation (encoder value), without any correction"
     - name: observedAzimuth
       timer: 0.4
+      units: radians
+      description: "azimuth with refraction and pointing model applied"
     - name: observedElevation
       timer: 0.4
-    - name: observedDeclination
-      timer: 0.4
-    - name: observedGalLatitude
-      timer: 0.4
-    - name: observedGalLongitude
-      timer: 0.4
+      units: radians
+      description: "elevation with refraction and pointing model applied"
     - name: observedRightAscension
       timer: 0.4
+      units: radians
+      description: "RA referred to J2000, with refraction and pointing model applied"
+    - name: observedDeclination
+      timer: 0.4
+      units: radians
+      description: "DEC referred to J2000, with refraction and pointing model applied"
+    - name: observedGalLatitude
+      timer: 0.4
+      units: radians
+      description: "galactic latitude, with refraction and pointing model applied"
+    - name: observedGalLongitude
+      timer: 0.4
+      units: radians
+      description: "galactic longitude, with refraction and pointing model applied"
     - name: pointingAzimuthCorrection
       timer: 5.0
+      units: radians
+      description: "azimuth offsets applied due to pointing model"
     - name: pointingElevationCorrection
       timer: 5.0
+      units: radians
+      description: "elevation offsets applied due to pointing model"
+    - name: status
+      timer: 1.0
+      units: none
+      description: "MNG_OK or MNG_WARNING or MNG_FAILURE"
+
+  MANAGEMENT/Gavino:
+    properties:
+    - name: currentBackend
+      timer: 10
+      units: none
+      description: "currently used backend"
+    - name: currentDevice
+      timer: 10
+      units: none
+      description: "device id currently in use"
+    - name: currentRecorder
+      timer: 10
+      units: none
+      description: "currently used data recorder (i.e. FitsZilla)"
+    - name: projectCode
+      timer: 10
+      units: none
+      description: "currently running project code"
+    - name: restFrequency
+      timer: 2
+      units: MHz
+      description: "rest frequency configured for each section of the backend"
+    - name: scanID
+      timer: 10
+      units: none
+      description: "scan identifier currently played by the scheduler"
+    - name: scheduleName
+      timer: 15
+      units: none
+      description: "schedule file name that the scheduler is executing"
+    - name: subScanID
+      timer: 2
+      units: none
+      description: "schedule file name that the scheduler is executing"
+    - name: tracking
+      timer: 2
+      units: none
+      description: "summary of tracking and status attributes of all subsystems:
+      MNG_TRUE means that all subsystems are working and tracking properly"
+
+  RECEIVERS/Boss:
+    properties:
+    - name: actualSetup
+      timer: 10
+      units: none
+      description: "setup code: KKG, CCB, LLP, ..."
+    - name: bandWidth
+      timer: 10
+      units: MHz
+      description: "a sequence of bandwidth values, one per channel"
+    - name: initialFrequency
+      timer: 10
+      units: MHz
+      description: "a sequence of frequencies values, one per channel"
+    - name: LO
+      timer: 10
+      units: MHz
+      description: "a sequence of LO frequencies values, one per channel"
+    - name: mode
+      timer: 10
+      units: none
+      description: "label indicating the operating mode: VLBI, SINGLEDISH, ..."
 
   RECEIVERS/SRT7GHzReceiver:
     properties:
     - name: cryoTemperatureCoolHead
       timer: 60
+      units: kelvin
+      description: "cryogenic temperature measured near to the cool head"
     - name: cryoTemperatureCoolHeadWindow
       timer: 60
-    - name: environmentTemperature
-      timer: 60
+      units: kelvin
+      description: "cryogenic temperature measured at cool head window"
     - name: cryoTemperatureLNA
       timer: 60
+      units: kelvin
+      description: "cryogenic temperature measured near to the LNA"
     - name: cryoTemperatureLNAWindow
       timer: 60
+      units: kelvin
+      description: "cryogenic temperature measured at the LNA window"
+    - name: environmentTemperature
+      timer: 60
+      units: Celsius degrees
+      description: "temperature of the room in which the receiver is installed"
     - name: Id_1
       timer: 10
+      units: mA
+      description: "drain current of the left LNA channel (average of the stages)"
     - name: Id_2
+      units: mA
+      description: "drain current of the right LNA channel (average of the stages)"
       timer: 10
     - name: Vd_1
       timer: 10
+      units: volt
+      description: "drain voltage of the left LNA channel (average of the stages)"
     - name: Vd_2
       timer: 10
+      units: volt
+      description: "drain voltage of the right LNA channel (average of the stages)"
     - name: Vg_1
       timer: 10
+      units: volt
+      description: "gate voltage of the left LNA channel (average of the stages)"
     - name: Vg_2
       timer: 10
+      units: volt
+      description: "gate voltage of the right LNA channel (average of the stages)"
     - name: mode
       timer: 5
+      units: none
+      description: "label indicating the current receiver operating mode"
 
   RECEIVERS/SRTKBandMFReceiver:
     properties:
     - name: cryoTemperatureCoolHead
       timer: 60
+      units: kelvin
+      description: "cryogenic temperature measured near to the cool head"
     - name: cryoTemperatureCoolHeadWindow
       timer: 60
+      units: kelvin
+      description: "cryogenic temperature measured at cool head window"
     - name: environmentTemperature
       timer: 60
+      units: Celsius degrees
+      description: "temperature of the room in which the receiver is installed"
     - name: cryoTemperatureLNA
       timer: 60
+      units: kelvin
+      description: "cryogenic temperature measured near to the LNA"
     - name: cryoTemperatureLNAWindow
       timer: 60
+      units: kelvin
+      description: "cryogenic temperature measured at the LNA window"
     - name: idL1
       timer: 10
+      units: mA
+      description: "drain current of the 1st LNA stage, left channel"
     - name: idL2
       timer: 10
+      units: mA
+      description: "drain current of the 2nd LNA stage, left channel"
     - name: idL3
       timer: 10
+      units: mA
+      description: "drain current of the 3rd LNA stage, left channel"
     - name: idL4
       timer: 10
+      units: mA
+      description: "drain current of the 4th LNA stage, left channel"
     - name: idL5
       timer: 10
+      units: mA
+      description: "drain current of the 5th LNA stage, left channel"
     - name: idR1
       timer: 10
+      units: mA
+      description: "drain current of the 1st LNA stage, right channel"
     - name: idR2
       timer: 10
+      units: mA
+      description: "drain current of the 2nd LNA stage, right channel"
     - name: idR3
       timer: 10
+      units: mA
+      description: "drain current of the 3rd LNA stage, right channel"
     - name: idR4
       timer: 10
+      units: mA
+      description: "drain current of the 4th LNA stage, right channel"
     - name: idR5
       timer: 10
+      units: mA
+      description: "drain current of the 5th LNA stage, right channel"
     - name: vdL1
       timer: 10
+      units: volt
+      description: "drain voltage of the 1st LNA stage, left channel"
     - name: vdL2
       timer: 10
+      units: volt
+      description: "drain voltage of the 2nd LNA stage, left channel"
     - name: vdL3
       timer: 10
+      units: volt
+      description: "drain voltage of the 3rd LNA stage, left channel"
     - name: vdL4
       timer: 10
+      units: volt
+      description: "drain voltage of the 4th LNA stage, left channel"
     - name: vdL5
       timer: 10
+      units: volt
+      description: "drain voltage of the 5th LNA stage, left channel"
     - name: vdR1
       timer: 10
+      units: volt
+      description: "drain voltage of the 1st LNA stage, right channel"
     - name: vdR2
       timer: 10
+      units: volt
+      description: "drain voltage of the 2nd LNA stage, right channel"
     - name: vdR3
       timer: 10
+      units: volt
+      description: "drain voltage of the 3rd LNA stage, right channel"
     - name: vdR4
       timer: 10
+      units: volt
+      description: "drain voltage of the 4th LNA stage, right channel"
     - name: vdR5
       timer: 10
+      units: volt
+      description: "drain voltage of the 5th LNA stage, right channel"
     - name: vgL1
       timer: 10
+      units: volt
+      description: "gate voltage of the 1st LNA stage, left channel"
     - name: vgL2
       timer: 10
+      units: volt
+      description: "gate voltage of the 2nd LNA stage, left channel"
     - name: vgL3
       timer: 10
+      units: volt
+      description: "gate voltage of the 3rd LNA stage, left channel"
     - name: vgL4
       timer: 10
+      units: volt
+      description: "gate voltage of the 4th LNA stage, left channel"
     - name: vgL5
       timer: 10
+      units: volt
+      description: "gate voltage of the 5th LNA stage, left channel"
     - name: vgR1
       timer: 10
+      units: volt
+      description: "gate voltage of the 1st LNA stage, right channel"
     - name: vgR2
       timer: 10
+      units: volt
+      description: "gate voltage of the 2nd LNA stage, right channel"
     - name: vgR3
       timer: 10
+      units: volt
+      description: "gate voltage of the 3rd LNA stage, right channel"
     - name: vgR4
       timer: 10
+      units: volt
+      description: "gate voltage of the 4th LNA stage, right channel"
     - name: vgR5
       timer: 10 
+      units: volt
+      description: "gate voltage of the 5th LNA stage, right channel"
     - name: mode
       timer: 5
 
@@ -129,50 +310,96 @@ COMPONENTS:
     properties:
     - name: cryoTemperatureCoolHead
       timer: 60
+      units: kelvin
+      description: "cryogenic temperature measured near to the cool head"
     - name: cryoTemperatureCoolHeadWindow
       timer: 60
+      timer: 60
+      units: kelvin
     - name: environmentTemperature
       timer: 60
+      units: Celsius degrees
+      description: "temperature of the room in which the receiver is installed"
     - name: cryoTemperatureLNA
       timer: 60
+      units: kelvin
+      description: "cryogenic temperature measured near to the LNA"
     - name: cryoTemperatureLNAWindow
       timer: 60
+      units: kelvin
+      description: "cryogenic temperature measured at the LNA window"
     - name: idL1
       timer: 10
+      units: mA
+      description: "drain current of the 1st LNA stage, left channel"
     - name: idL2
       timer: 10
+      units: mA
+      description: "drain current of the 2nd LNA stage, left channel"
     - name: idL3
       timer: 10
+      units: mA
+      description: "drain current of the 3rd LNA stage, left channel"
     - name: idR1
       timer: 10
+      units: mA
+      description: "drain current of the 1st LNA stage, right channel"
     - name: idR2
       timer: 10
+      units: mA
+      description: "drain current of the 2nd LNA stage, right channel"
     - name: idR3
       timer: 10
+      units: mA
+      description: "drain current of the 3rd LNA stage, right channel"
     - name: vdL1
       timer: 10
+      units: volt
+      description: "drain voltage of the 1st LNA stage, left channel"
     - name: vdL2
       timer: 10
+      units: volt
+      description: "drain voltage of the 2nd LNA stage, left channel"
     - name: vdL3
       timer: 10
+      units: volt
+      description: "drain voltage of the 3rd LNA stage, left channel"
     - name: vdR1
       timer: 10
+      units: volt
+      description: "drain voltage of the 1st LNA stage, right channel"
     - name: vdR2
       timer: 10
+      units: volt
+      description: "drain voltage of the 2nd LNA stage, right channel"
     - name: vdR3
       timer: 10
+      units: volt
+      description: "drain voltage of the 3rd LNA stage, right channel"
     - name: vgL1
       timer: 10
+      units: volt
+      description: "gate voltage of the 1st LNA stage, left channel"
     - name: vgL2
       timer: 10
+      units: volt
+      description: "gate voltage of the 2nd LNA stage, left channel"
     - name: vgL3
       timer: 10
+      units: volt
+      description: "gate voltage of the 3rd LNA stage, left channel"
     - name: vgR1
       timer: 10
+      units: volt
+      description: "gate voltage of the 1st LNA stage, right channel"
     - name: vgR2
       timer: 10
+      units: volt
+      description: "gate voltage of the 2nd LNA stage, right channel"
     - name: vgR3
       timer: 10
+      units: volt
+      description: "gate voltage of the 3rd LNA stage, right channel"
     - name: mode
       timer: 5
 

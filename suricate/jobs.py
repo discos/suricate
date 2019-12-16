@@ -15,10 +15,15 @@ logger = logging.getLogger('suricate')
 r = redis.StrictRedis()
 
 
-def acs_publisher(channel, component, attribute):
+def acs_publisher(channel, component, attribute, units='', description=''):
     """Get the component reference and a property as a dict object."""
-    value_dict = {'value': '', 'timestamp': str(datetime.datetime.utcnow())}
-    data_dict = dict(error='', **value_dict)
+    data_dict = {
+        'value': '',
+        'error': '',
+        'units': units,
+        'description': description,
+        'timestamp': str(datetime.datetime.utcnow()),
+    }
     try:
         if component.name in component.unavailables:
             raise CannotGetComponentError()
@@ -35,8 +40,7 @@ def acs_publisher(channel, component, attribute):
             value = method()
         if isinstance(value, list) or isinstance(value, tuple):
             value = str(tuple(value))  # Convert the value to string
-        value_dict = {'value': value, 'timestamp': str(t)}
-        data_dict.update(value_dict)
+        data_dict.update({'value': value, 'timestamp': str(t)})
         # Update the components redis key
         if r.hget('components', component.name) != 'available':
             logger.info('OK - component %s is online' % component.name)

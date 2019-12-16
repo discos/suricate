@@ -2,6 +2,8 @@ import time
 import json
 import pytest
 
+from suricate.configuration import config
+
 
 def test_publish_to_default_channel(component, scheduler, pubsub):
     """Publishing to the default channel `namespace/component/attribute"""
@@ -35,6 +37,28 @@ def test_set_publish_property_value(component, scheduler, pubsub, redis_client):
     time.sleep(0.1)
     job_id = '%s/position' % component.name
     assert float(redis_client.hget(job_id, 'value')) == 2.0
+
+
+def test_unit_and_description(Publisher, pubsub):
+    """Positioner00/position has units and description set in configuration.py"""
+    p = Publisher(config['COMPONENTS'])
+    p.start()
+    time.sleep(config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']*1.2)
+    message = pubsub.get_data_message(channel='*position')
+    prop = json.loads(message['data'])
+    assert prop['description'] == 'current position'
+    assert prop['units'] == 'mm'
+
+
+def test_default_unit_and_description(Publisher, pubsub):
+    """Positioner00/current has no units and description set in configuration.py"""
+    p = Publisher(config['COMPONENTS'])
+    p.start()
+    time.sleep(config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']*1.2)
+    message = pubsub.get_data_message(channel='*current')
+    prop = json.loads(message['data'])
+    assert prop['description'] == ''
+    assert prop['units'] == ''
 
 
 def test_set_publish_property_sequence_value(component, scheduler, pubsub, redis_client):

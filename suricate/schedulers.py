@@ -13,7 +13,14 @@ class ACSScheduler(BackgroundScheduler):
     - It should delegate... or proxy
     """
 
-    def add_attribute_job(self, component_ref, attr, seconds, channel=''):
+    def add_attribute_job(
+            self,
+            component_ref,
+            attr,
+            seconds,
+            units='',
+            description='',
+            channel=''):
         """TODO: docstring. The component could be a name or an instance"""
         # Job identifier: namespace/component/attribute
         job_id = '/'.join([component_ref.name, attr])
@@ -23,7 +30,7 @@ class ACSScheduler(BackgroundScheduler):
         r.delete(error_job_key)
         return super(ACSScheduler, self).add_job(
             func=publisher,
-            args=(channel, component_ref, attr),
+            args=(channel, component_ref, attr, units, description),
             id=job_id,
             trigger='interval',
             seconds=seconds)

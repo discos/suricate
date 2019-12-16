@@ -33,6 +33,7 @@ def create_job():
         attribute = request.json.get('attribute')
         timer = request.json.get('timer')
         description = request.json.get('description', '')
+        units = request.json.get('units', '')
         type_ = request.json.get('type', 'property')
         types = 'properties' if type_ == 'property' else 'methods'
 
@@ -49,15 +50,23 @@ def create_job():
     job = {
         component: {
             types: [
-                {'name': attribute, 'description': description, 'timer': timer}
+                {
+                    'name': attribute,
+                    'description': description,
+                    'timer': timer,
+                    'units': units,
+                }
             ]
         }
     }
     publisher.add_jobs(job)  # TODO: catch the exception in case of invalid job
     return jsonify({
-        'component': component,
-        'attribute': attribute,
-        'timer': timer}), 201
+            'component': component,
+            'attribute': attribute,
+            'description': description,
+            'units': units,
+            'timer': timer}
+        ), 201
 
 
 @app.route('/publisher/api/v0.1/config', methods=['GET'])

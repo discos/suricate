@@ -7,6 +7,8 @@ BASE_URL = '/publisher/api/v0.1'
 DATA = {
     'component': 'TestNamespace/Positioner',
     'attribute': 'position',
+    'description': 'a brief description',
+    'units': 'mm',
     'timer': 0.1,
     'type': 'property',
 }

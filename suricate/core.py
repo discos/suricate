@@ -28,7 +28,12 @@ class Publisher(object):
             args = {
                 "TestNamespace/Positioner00": {
                     "properties": [
-                        {"name": "position", "timer": 0.1},
+                        {
+                            "name": "position",
+                            "timer": 0.1,
+                            "units": "mm",
+                            "description": "current position",
+                        },
                         {"name": "current", "timer": 0.1},
                     ],
                     "methods": [
@@ -69,20 +74,22 @@ class Publisher(object):
                     {
                         "name": "position",
                         "description": "actual position",
-                        "timer": 0.1
+                        "timer": 0.1,
+                        "units": "mm",
                     }
                 ],
                 "methods": [
                     {
                         "name": "getPosition",
                         "description": "actual position",
-                        "timer": 0.1
+                        "timer": 0.1,
+                        "units": "mm",
                     }
                 ],
             }
         }
         """
-        # list of tuples [(component, attribute_name, timer), (...)]
+        # list of tuples [(component, attribute_name, timer, units, description), ...]
         pjobs_args = []  # Properties list
         mjobs_args = []  # Methods list
         import suricate.component
@@ -105,21 +112,49 @@ class Publisher(object):
                 
             for prop in properties:
                 attr_name = prop['name']
+                units = prop.get('units', '')
+                description = prop.get('description', '')
                 if component_name in self.unavailable_components:
-                    self._set_attr_error(component_name, attr_name, error_message)
+                    self._set_attr_error(
+                        component_name,
+                        attr_name,
+                        units,
+                        description,
+                        error_message
+                    )
                 else:
                     if hasattr(c, '_get_%s' % attr_name):
-                        pjobs_args.append((c, attr_name, prop['timer']))
+                        pjobs_args.append((
+                            c,
+                            attr_name,
+                            prop['timer'],
+                            units,
+                            description
+                        ))
                     else:
                         logger.error('%s has not property %s' % (c.name, attr_name))
 
             for method in methods:
                 attr_name = method['name']
+                units = method.get('units', '')
+                description = method.get('description', '')
                 if component_name in self.unavailable_components:
-                    self._set_attr_error(component_name, attr_name, error_message)
+                    self._set_attr_error(
+                        component_name,
+                        attr_name,
+                        units,
+                        description,
+                        error_message
+                    )
                 else:
                     if hasattr(c, attr_name):
-                        mjobs_args.append((c, attr_name, method['timer']))
+                        mjobs_args.append((
+                            c,
+                            attr_name,
+                            method['timer'],
+                            units,
+                            description
+                        ))
                     else:
                         logger.error('%s has not method %s' % (c.name, attr_name))
 
@@ -205,13 +240,13 @@ class Publisher(object):
                     seconds=config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']
                 )
 
-            channel, old_component_ref, attribute = job.args
+            channel, old_component_ref, attribute, units, description  = job.args
             import suricate.component
             # If the component is available, we pass its reference to the job
             # and we restore the original job heartbeat
             try:
                 component_ref = suricate.component.Component(old_component_ref.name)
-                args = channel, component_ref, attribute
+                args = channel, component_ref, attribute, units, description
                 Publisher.s.modify_job(job_id, args=args)
             except CannotGetComponentError:
                 pass  # Do nothing
@@ -230,15 +265,21 @@ class Publisher(object):
         cls.s.shutdown(wait=False)
         cls.s = Scheduler()
 
-    def _set_attr_error(self, component_name, attribute, message):
+    def _set_attr_error(
+            self,
+            component_name,
+            attribute,
+            units,
+            description,
+            message):
         data_dict = {
-            'error': '',
+            'error': message,
             'value': '',
+            'units': units,
+            'description': description,
             'timestamp': str(datetime.datetime.utcnow())
         }
         job_id = '%s/%s' % (component_name, attribute)
-        data_dict.update({'error': message})
         if not r.hmset(job_id, data_dict):
             logger.error('cannot write on redis: "%s"' % message)
         r.publish(job_id, json.dumps(data_dict))
-
