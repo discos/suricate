@@ -18,8 +18,8 @@ parser = ArgumentParser(description='http://suricate.readthedocs.org/')
 parser.add_argument(
     '-t',
     '--template',
-    default='default',
-    choices=('srt', 'medicina', 'noto'),
+    required=True,
+    choices=('default', 'srt', 'medicina', 'noto'),
     help='Telescope configuration'
 )
 args = parser.parse_args()
@@ -39,5 +39,3 @@ else:
     source_file = os.path.join(template_dir, template)
     copyfile(source_file, config_file)
     print '%s created from %s!' % (config_file, template)
-    
-
