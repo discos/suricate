@@ -38,8 +38,9 @@ def acs_publisher(channel, component, attribute, units='', description=''):
             method = getattr(component, attribute)
             t = datetime.datetime.utcnow()
             value = method()
-        if isinstance(value, list) or isinstance(value, tuple):
-            value = str(tuple(value))  # Convert the value to string
+        if isinstance(value, list):
+            value = tuple(value)  # Convert the value to a tuple
+        value = str(value)
         data_dict.update({'value': value, 'timestamp': str(t)})
         # Update the components redis key
         if r.hget('components', component.name) != 'available':
