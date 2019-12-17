@@ -8,20 +8,35 @@ import requests
 from subprocess import check_output, STDOUT
 from suricate import server
 from suricate.configuration import config
-from argparse import ArgumentParser
+from argparse import ArgumentParser, FileType
 
 import redis
+import yaml
 
 
 parser = ArgumentParser(description='http://suricate.readthedocs.org/')
+parser.add_argument(
+    '-f',
+    '--file',
+    type=FileType(),
+    help='Configuration file'
+)
 parser.add_argument('--no_components', action='store_true')
 parser.add_argument('action', choices=['start', 'stop'])
-
 args = parser.parse_args()
 
-COMPONENTS = config['COMPONENTS']
-PORT = config['HTTP']['port']
-BASEURL = config['HTTP']['baseurl']
+try:
+    config = yaml.safe_load(args.file) if args.file else config
+    COMPONENTS = config['COMPONENTS']
+    PORT = config['HTTP']['port']
+    BASEURL = config['HTTP']['baseurl']
+except KeyError, ex:
+    print('ERROR: can not load %s from configuration' % str(ex))
+    sys.exit(1)
+except Exception:
+    print('ERROR: can not properly load the configuration')
+    sys.exit(1)
+
 
 if args.action == 'start':
     # Check if suricate is already running
