@@ -4,13 +4,13 @@ Suricate's documentation
 
 .. topic:: Preface
 
-   Suricate reads the properties (and method outputs) of your `ACS 
-   <http://www.eso.org/projects/alma/develop/acs/>`_  components,
-   in order to publish and save their values
-   via `Redis <http://redis.io/>`_. You can use Suricate for
-   different purposes: to save the properties and methods values on a
-   data base, to integrate an alarm system on your control software, to
-   show the values on a GUI, and so forth.
+   GUIs, RFI checkers, receiver monitors, backends, meteo services,
+   they all need to know some antenna parameters like the current
+   azimuth and elevation, device temperatures, configurations, LO
+   frequencies and so forth.  The :ref:`user-guide` chapter of this
+   documentation explains how to easily get them.  If you are a
+   system administrator in charge to install the Suricate services,
+   then the :ref:`admin-guide` is intended to be read from you.
 
 
 
@@ -20,7 +20,5 @@ Contents
 .. toctree::
    :maxdepth: 1
 
-   motivations.rst
-   quickstart.rst
    userguide.rst
-   devguide.rst
+   adminguide.rst

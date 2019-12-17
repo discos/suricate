@@ -1,21 +1,11 @@
-.. _dev-guide:
+.. _admin-guide:
 
-*****************
-Development Guide
-*****************
+**************************
+System Administrator Guide
+**************************
 
 Architecture
 ============
-The Suricate's architecture is illustraded in :numref:`architecture`.
-
-.. _architecture:
-
-.. figure:: images/architecture.png
-   :figwidth: 50 %
-   :align: left
-
-   The Suricate architecture.
-
 The ``suricate-server`` is a Python application, composed of two parts:
 a web application and a core.
 The web application exposes an HTTP API to the clients. By means of this API
@@ -42,7 +32,7 @@ Every job has to:
 #. publish the value to a data channel
 
 To better understand, take a look at the file :file:`config.py` we say
-in the :ref:`quickstart` chapter::
+in the quickstart chapter::
 
     COMPONENTS = { 
         "TestNamespace/Positioner00": [
@@ -69,7 +59,7 @@ property:
   in-memory database.
 
 You can ask for the active jobs using an HTTP GET, as we saw in the
-section :ref:`quickstart-jobs`:
+section quickstart-jobs:
 
 .. code-block:: shell
 
@@ -93,7 +83,7 @@ section :ref:`quickstart-jobs`:
 
 A job is a thread that basically gets the property value
 The period of execution is indicated by the ``timer`` attribute we say in
-section :ref:`quickstart-conf`.
+section quickstart-conf.
 
 
 .. note:: The job is a thread, but APScheduler can be configured to
