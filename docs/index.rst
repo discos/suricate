@@ -9,8 +9,8 @@ Suricate's documentation
    azimuth and elevation, device temperatures, configurations, LO
    frequencies and so forth.  The :ref:`user-guide` chapter of this
    documentation explains how to easily get them.  If you are a
-   system administrator in charge to install the Suricate services,
-   then the :ref:`admin-guide` is intended to be read from you.
+   system administrator in charge of installing Suricate, please
+   read the :ref:`admin-guide`.
 
 
 
