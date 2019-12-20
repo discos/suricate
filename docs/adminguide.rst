@@ -4,6 +4,11 @@
 System Administrator Guide
 **************************
 
+.. topic:: Preface
+
+   There is a ...
+
+
 * Install prerequesites in a machine deployed with discos-deploy
 * install suricate
 * start and stop the service

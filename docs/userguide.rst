@@ -11,18 +11,6 @@ User Guide
    former one, because the HTTP API is still under development.
 
 
-.. _prerequisites:
-
-Prerequisites
-=============
-To get the antenna parameters you need to install a Redis client on your machine.
-Visit the `official Redis webpage <https://redis.io/clients>`__ to choose and
-download a client for your operating system and programming language.  Please also
-read your clients documentation in order to understand how to install and use it.
-For instance, if Python is your programming language, read the `redis-py client
-documentation <https://pypi.org/project/redis/>`__.
-
-
 How to get the antenna parameters
 =================================
 The :download:`SRT configuration file <../templates/srt.yaml>` contains all
@@ -43,16 +31,61 @@ or *methods*) that you can ask for. They are identified by the lable
 To get them you need:
 
 #. a Redis client installed on your machine
-#. the IP address of the Redis server you will connect to
-#. to tell you client how to connect to the Redis server and
-   get the parameters
+#. a way to use your client in order to get the antenna parameters
 
-If you have followed the instructions of previous section
-(:ref:`prerequisites`) then you already have a Redis client installed
-on your machine.
-The server IP address is ``192.168.200.207``, so now you only need
-to understand how your client works. These instructions should be
-provided by your redis client documentation. Let's see two examples,
+
+
+Install a Redis client
+----------------------
+In this section we will briefly see how to install one of them for Python
+and C, but if you do not use that languages, visit the
+`official Redis webpage <https://redis.io/clients>`__ to get
+the right client for your operating system and programming language.
+
+Python
+~~~~~~
+The most used Python client is called `redis-py <https://pypi.org/project/redis/>`__.
+To install it by ``pip``, simply:
+
+.. code-block:: shell
+
+   $ pip install redis
+
+If you do not have ``pip``, then download the source files from the
+`redis-py webpage <https://pypi.org/project/redis/>`__, extract them,
+move to the source file directory and execute:
+
+.. code-block:: shell
+
+   $ python setup.py install
+
+
+C Programming Language
+~~~~~~~~~~~~~~~~~~~~~~
+The official C client is available on the `Hiredis GitHub page
+<https://github.com/redis/hiredis>`__. Clone it on your machine:
+
+.. code-block:: shell
+
+  $ git clone https://github.com/redis/hiredis.git
+
+The installation steps depend of your operating system and compiler.
+For instance, on Linux CentOS:
+
+.. code-block:: shell
+
+  $ cd hiredis/
+  $ make
+  $ sudo make install
+
+
+Use your client to get the antenna parameters
+---------------------------------------------
+To get the antenna parameters you have to connect your client
+to the Redis server.  Server IP and port are ``192.168.200.207``
+and ``6379``. That is not enough, because you need to understand
+how your client works. These instructions should be
+provided by your Redis client documentation. Let's see two examples,
 using Python and C. Please read the :ref:`python_client` section
 also if you want to use the C programming language, because the
 Python examples show you all information (the :ref:`c_client` section
@@ -61,16 +94,14 @@ is just a short summary).
 
 .. _python_client:
 
-Python client
--------------
-Download the source files and install them, as explained in the `Python client webpage
-`here <https://pypi.org/project/redis/>`__. Now you are ready to work.
+How to use the Python client
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Let's see how to get the ``rawAzimuth`` from a Python shell:
 
 .. code-block:: python
 
-   >>> import redis  # Import the redis client
-   >>> r = redis.StrictRedis(host='192.168.10.207')  # Connect to the server
+   >>> from redis import StrictRedis # Import the redis client
+   >>> r = StrictRedis(host='192.168.10.207', port=6379)  # Connect to server
    >>> r.hgetall('ANTENNA/Boss/rawAzimuth')  # Ask for the rawAzimuth parameter
    {
      'units': 'radians', 'timestamp': '2019-12-18 12:52:04.206445',
@@ -135,20 +166,9 @@ the key ``components``:
 
 .. _c_client:
 
-C client
---------
-Download the redis C client form its `GitHub page <https://github.com/redis/hiredis>`__
-and install it. For example, on a Linux CentOS distribution:
-
-.. code-block:: shell
-
-  $ $ git clone https://github.com/redis/hiredis.git
-  $ cd hiredis/
-  $ make
-  $ sudo make install
-
-
-Look how to get the ``rawAzimuth`` parameter by reading the
+How to use the C client
+~~~~~~~~~~~~~~~~~~~~~~~
+To understand how to get the ``rawAzimuth`` parameter look at the
 most important lines of :download:`example.c <examples/example.c>`
 source file:
 
@@ -158,7 +178,7 @@ source file:
    :linenos:
 
 If you compile :download:`example.c <examples/example.c>` and execute the
-program you get the following output:
+program, then you get the following output:
 
 .. code-block:: shell
 
@@ -176,3 +196,155 @@ program you get the following output:
 
 For more information about the Redis C client please scroll down the
 `C client website page <https://github.com/redis/hiredis>`__.
+
+
+Public and subscribe
+====================
+We saw how to ask for antenna parameters in a *request-response* manner.
+Using that pattern you have to take care of the result, because you
+can get the same value for different requests.
+For intance, if you look at the :download:`SRT configuration file
+<../templates/srt.yaml>` you see that ``rawAzimuth`` has a sampling time of 400ms.
+That is why if you ask for the parameter faster than 400ms you get the same result
+for different requests:
+
+.. code-block:: python
+
+   >>> import time
+   >>> import redis
+   >>> r = redis.StrictRedis(host='192.168.10.207', port=6379)
+   ...     print(r.hgetall('ANTENNA/Boss/rawAzimuth')['timestamp'])
+   ...     time.sleep(0.2)  # 200ms
+   ...
+   2019-12-20 12:11:48.443357
+   2019-12-20 12:11:48.842924
+   2019-12-20 12:11:48.842924
+   2019-12-20 12:11:49.246206
+   2019-12-20 12:11:49.246206
+
+As you can see by looking at these timestamps, the second result is
+the same as the third, and the forth is the same as the fifth. It is
+not a big issue, because you can discard the result in case its
+timestamp is the same as the previous response. But there is
+another way: the *public-subscribe* pattern.  In that case you
+subscribe to a channel and wait for new data.
+Let'see how to do it by examples, using the Python client.
+
+As a first step we create a *pubsub* object and subscribe it
+to the ``ANTENNA/Boss/rawAzimuth`` channel:
+
+.. code-block:: python
+
+   >>> import redis
+   >>> r = redis.StrictRedis(host='192.168.10.207', port=6379)
+   >>> pubsub = r.pubsub()
+   >>> pubsub.subscribe('ANTENNA/Boss/rawAzimuth')
+
+Now we are ready to get the messages. The first one is a kind of header
+that tell us the channel we are listening from.  Its ``type`` is ``subscribe``:
+
+.. code-block:: python
+
+   >>> pubsub.get_message()
+   {
+     u'pattern': None, u'type': 'subscribe',
+     u'channel': 'ANTENNA/Boss/rawAzimuth', u'data': 1L
+   }
+
+From now on the ``type`` of the messages is ``message``, and that
+means it contains the antenna parameter:
+
+.. code-block:: python
+
+   >>> pubsub.get_message()
+   {
+     u'pattern': None, u'type': 'message', u'channel': 'ANTENNA/Boss/rawAzimuth',
+     u'data': '{
+       "description": "raw azimuth (encoder value), without any correction",
+       "error": "", "units": "radians", "timestamp": "2019-12-20 14:43:16.262544",
+       "value": "3.97375753112"
+     }'
+   }
+
+The ``pubsub`` has a method ``listen()`` that waits for new
+messages. In fact, as you can see in the following example, we
+do not get the same message on different responses, as appened
+in the *request-response* pattern:
+
+.. code-block:: python
+
+    ... for item in pubsub.listen():
+    ...     if item['type'] == 'message':
+    ...         data = json.loads(item['data'])
+    ...         timestamp = data.get('timestamp')
+    ...         value = data.get('value')
+    ...         print(timestamp, value)
+    ...
+    (u'2019-12-20 15:04:23.648343', u'4.07524413623')
+    (u'2019-12-20 15:04:24.043550', u'4.07527853477')
+    (u'2019-12-20 15:04:24.465494', u'4.07530617372')
+    (u'2019-12-20 15:04:24.843325', u'4.07533925004')
+    (u'2019-12-20 15:04:25.246359', u'4.07536964412')
+
+.. note:: The antenna parameter is stored as a json string in the
+   ``data`` field of the item.  I used ``json.loads()`` in order
+   to convert the json string to a Python dictionary.
+
+You can subscribe to more than one channel at the same time:
+
+.. code-block:: python
+
+   ... pubsub = r.pubsub()
+   ... pubsub.subscribe(
+   ...       'ANTENNA/Boss/rawAzimuth',
+   ...       'ANTENNA/Boss/rawElevation'
+   ... )
+   ... for item in pubsub.listen():
+   ...     if item['type'] == 'message':
+   ...         channel = item['channel']
+   ...         data = json.loads(item['data'])
+   ...         value = data.get('value')
+   ...         print(channel, value)
+   ...         i += 1
+   ...         if i == 5:
+   ...             break
+   ...
+   ('ANTENNA/Boss/rawAzimuth', u'0.758804232371')
+   ('ANTENNA/Boss/rawElevation', u'0.659474554184')
+   ('ANTENNA/Boss/rawAzimuth', u'0.758810651617')
+   ('ANTENNA/Boss/rawElevation', u'0.659490653912')
+   ('ANTENNA/Boss/rawElevation', u'0.659506753743')
+
+
+You can also use the *glob* syntax. It means you can use a
+``*`` to listen from more than one channel. For insance, if the following
+case we are listening to all channels starting with ``ANTENNA/Boss``:
+
+.. code-block:: python
+
+   ... pubsub = r.pubsub()
+   ... pubsub.psubscribe('ANTENNA/Boss/*')
+   ... for item in pubsub.listen():
+   ...     if item['type'] == 'pmessage':
+   ...         channel = item['channel']
+   ...         data = json.loads(item['data'])
+   ...         value = data.get('value')
+   ...         print(channel, value)
+   ...         i += 1
+   ...         if i == 10:
+   ...             break
+   ...
+   ('ANTENNA/Boss/observedDeclination', u'0.952583014116')
+   ('ANTENNA/Boss/observedAzimuth', u'0.800302875968')
+   ('ANTENNA/Boss/rawElevation', u'0.668070294866')
+   ('ANTENNA/Boss/observedElevation', u'0.666206037338')
+   ('ANTENNA/Boss/rawAzimuth', u'0.762179742186')
+   ('ANTENNA/Boss/observedRightAscension', u'0.929348150783')
+   ('ANTENNA/Boss/observedGalLongitude', u'2.53064537516')
+   ('ANTENNA/Boss/observedGalLatitude', u'-0.0212982297497')
+   ('ANTENNA/Boss/status', u'MNG_OK')
+   ('ANTENNA/Boss/observedAzimuth', u'0.800308445826')
+
+.. note:: In the last example (glob syntax) We subcribed to the channels
+   using ``pubsub.psubscribe()``  and not ``pubsub.subscribe()``.
+   We also wait for the type ``pmessage`` and not ``message``.
