@@ -8,10 +8,7 @@ Suricate
 .. image:: https://coveralls.io/repos/github/marco-buttu/suricate/badge.svg?branch=master
    :target: https://coveralls.io/github/marco-buttu/suricate?branch=master
 
-Suricate is an application that reads the properties (and method
-outputs) of your ACS components, in order to publish and save them
-via `Redis <http://redis.io/>`_. You can use Suricate for
-different purposes: to save the properties and methods values on a
-data base, to integrate an alarm system on your control software, to
-show the values on a GUI, and so forth. For more information, take a
-look at the `documentation <https://suricate.readthedocs.org>`_.
+Suricate allows GUIs, RFI checkers, receiver monitors, backends and meteo services
+to know some antenna parameters like the current azimuth and elevation, device
+temperatures, configurations, LO frequencies and so forth.
+To use Suricate look at the `documentation <https://suricate.readthedocs.org>`_.
