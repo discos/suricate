@@ -114,7 +114,7 @@ component name (``ANTENNA/Boss``) and the parameter name
 (``rawAzimuth``): ``ANTENNA/Boss/rawAzimuth``.  The result of the
 request contains the value of the property, its units, description
 and timestamp.  In case of error there is an error message, and the
-value is an empty string:
+``value`` is an empty string:
 
 .. code-block:: python
 
@@ -241,7 +241,7 @@ to the ``ANTENNA/Boss/rawAzimuth`` channel:
    >>> pubsub.subscribe('ANTENNA/Boss/rawAzimuth')
 
 Now we are ready to get the messages. The first one is a kind of header
-that tell us what the channel we are listening from is.  Its ``type``
+that tell us which channel we are listening from.  Its ``type``
 is ``subscribe``:
 
 .. code-block:: python
