@@ -1,17 +1,102 @@
 .. _admin-guide:
 
-**************************
-System Administrator Guide
-**************************
+***********************************
+Suricate System Administrator Guide
+***********************************
 
 .. topic:: Preface
 
-   There is a ...
+   A system administrator in charge of installing, configuring, starting
+   and stopping Suricate should read this chapter.
 
 
-* Install prerequesites in a machine deployed with discos-deploy
-* install suricate
-* start and stop the service
-* look at the logs
-* configure suricate
+Installation
+============
+Suricate requires `Redis <https://redis.io/>`_. Additional requirements are
+listed in the Suricate's *setup.py* file: we do not care about them because
+they will be automatically installed during the Suricate installation.
 
+.. note:: Suricate works with Python 2.7, the same version of the latest
+   `ACS <http://www.eso.org/~almamgr/AlmaAcs/index.html>`_ framework.
+   Python 2.7 is not supported anymore and maybe at some point we will not be
+   able to find the Python 2.7 Suricate dependencies online.  That is why we
+   put all of them on a private `DISCOS GitHub repository
+   <https://github.com/discos/dependencies/tree/suricate>`_.
+
+Redis
+-----
+In this section we will see how to install and configure `Redis <https://redis.io/>`_
+on Linux CentOS.  If that is not your case, get the source code from the
+`Redis website <https://redis.io/download/>`_ and follow the documentation.
+
+On Linux CentOS:
+
+.. code-block:: shell
+
+   sudo yum install redis
+
+To bind Redis server to all ports, open */etc/redis.conf* and
+change the line ``bind 127.0.0.1`` to ``bind 0.0.0.0``.
+Change also ``protected-mode`` from ``yes`` to ``no``. At this
+point:
+
+.. code-block:: shell
+
+   $ sudo chkconfig redis on
+   $ sudo service redis restart
+
+
+Suricate
+--------
+To install Suricate clone the repository and use ``pip``:
+
+.. code-block:: shell
+
+   $ sudo ln -s /alma/ACS-FEB2017/Python/bin/python /bin/python
+   $ git clone https://github.com/marco-buttu/suricate.git
+   $ cd suricate
+   $ sudo pip install .
+   $ sudo cp startup/suricate-server /etc/rc.d/init.d/
+   $ sudo chkconfig --add suricate-server
+   $ sudo chkconfig suricate-server on
+
+At this point Suricate is a startup service.  Before starting we need
+to configure it.  To install the SRT configuration:
+
+.. code-block:: bash
+
+   $ suricate-config -t srt
+
+This command copies the SRT configuration to *~/.suricate/config/config.yaml*.
+If you want to add or change some antenna parameters, change that file.
+
+To start Suricate:
+
+.. code-block:: shell
+
+   $ service suricate-server start
+
+To know its status and stop it:
+
+.. code-block:: shell
+
+   $ sudo service suricate-server status
+   suricate-server is running
+   $ sudo service suricate-server stop
+   $ sudo service suricate-server status
+   suricate-server is NOT running
+
+To uninstall Suricate:
+
+.. code-block:: shell
+
+   $ sudo pip uninstall suricate
+
+
+Logging
+=======
+There are three log files you have to take care of:
+
+* *~/.suricate/logs/suricate.log*: user log file, with main information
+* *~/.suricate/logs/apscheduler.log*: apscheduler debug file
+* */tmp/suricate.log*: service log file

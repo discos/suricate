@@ -241,7 +241,8 @@ to the ``ANTENNA/Boss/rawAzimuth`` channel:
    >>> pubsub.subscribe('ANTENNA/Boss/rawAzimuth')
 
 Now we are ready to get the messages. The first one is a kind of header
-that tell us the channel we are listening from.  Its ``type`` is ``subscribe``:
+that tell us what the channel we are listening from is.  Its ``type``
+is ``subscribe``:
 
 .. code-block:: python
 
@@ -252,7 +253,7 @@ that tell us the channel we are listening from.  Its ``type`` is ``subscribe``:
    }
 
 From now on the ``type`` of the messages is ``message``, and that
-means it contains the antenna parameter:
+means they contain the antenna parameter:
 
 .. code-block:: python
 
@@ -305,19 +306,17 @@ You can subscribe to more than one channel at the same time:
    ...         data = json.loads(item['data'])
    ...         value = data.get('value')
    ...         print(channel, value)
-   ...         i += 1
-   ...         if i == 5:
-   ...             break
    ...
    ('ANTENNA/Boss/rawAzimuth', u'0.758804232371')
    ('ANTENNA/Boss/rawElevation', u'0.659474554184')
    ('ANTENNA/Boss/rawAzimuth', u'0.758810651617')
    ('ANTENNA/Boss/rawElevation', u'0.659490653912')
    ('ANTENNA/Boss/rawElevation', u'0.659506753743')
+                         ...
 
 
 You can also use the *glob* syntax. It means you can use a
-``*`` to listen from more than one channel. For insance, if the following
+``*`` to listen from more than one channel. For insance, in the following
 case we are listening to all channels starting with ``ANTENNA/Boss``:
 
 .. code-block:: python
@@ -330,9 +329,6 @@ case we are listening to all channels starting with ``ANTENNA/Boss``:
    ...         data = json.loads(item['data'])
    ...         value = data.get('value')
    ...         print(channel, value)
-   ...         i += 1
-   ...         if i == 10:
-   ...             break
    ...
    ('ANTENNA/Boss/observedDeclination', u'0.952583014116')
    ('ANTENNA/Boss/observedAzimuth', u'0.800302875968')
@@ -344,6 +340,7 @@ case we are listening to all channels starting with ``ANTENNA/Boss``:
    ('ANTENNA/Boss/observedGalLatitude', u'-0.0212982297497')
    ('ANTENNA/Boss/status', u'MNG_OK')
    ('ANTENNA/Boss/observedAzimuth', u'0.800308445826')
+                           ...
 
 .. note:: In the last example (glob syntax) We subcribed to the channels
    using ``pubsub.psubscribe()``  and not ``pubsub.subscribe()``.
