@@ -5,35 +5,35 @@ COMPONENTS:
     - name: rawAzimuth
       timer: 0.4
       units: radians
-      description: "raw azimuth (encoder value), without any correction"
+      description: "commanded azimuth (encoder value), without any correction"
     - name: rawElevation
       timer: 0.4
       units: radians
-      description: "raw elevation (encoder value), without any correction"
+      description: "commanded elevation (encoder value), without any correction"
     - name: observedAzimuth
       timer: 0.4
       units: radians
-      description: "azimuth with refraction and pointing model applied"
+      description: "current azimuth with refraction and pointing model applied"
     - name: observedElevation
       timer: 0.4
       units: radians
-      description: "elevation with refraction and pointing model applied"
+      description: "current elevation with refraction and pointing model applied"
     - name: observedRightAscension
       timer: 0.4
       units: radians
-      description: "RA referred to J2000, with refraction and pointing model applied"
+      description: "current RA referred to J2000, with refraction and pointing model applied"
     - name: observedDeclination
       timer: 0.4
       units: radians
-      description: "DEC referred to J2000, with refraction and pointing model applied"
+      description: "current DEC referred to J2000, with refraction and pointing model applied"
     - name: observedGalLatitude
       timer: 0.4
       units: radians
-      description: "galactic latitude, with refraction and pointing model applied"
+      description: "current galactic latitude, with refraction and pointing model applied"
     - name: observedGalLongitude
       timer: 0.4
       units: radians
-      description: "galactic longitude, with refraction and pointing model applied"
+      description: "current galactic longitude, with refraction and pointing model applied"
     - name: pointingAzimuthCorrection
       timer: 5.0
       units: radians
@@ -407,16 +407,28 @@ COMPONENTS:
     properties:
     - name: humidity
       timer: 60
+      units: none
+      description: "relative umidity"
     - name: pressure
       timer: 60
+      units: mbar
+      description: "atmospheric pressure"
     - name: temperature
       timer: 120
+      units: Celsius degrees
+      description: "atmospheric temperature"
     - name: winddir
       timer: 10
+      units: degrees
+      description: "wind direction"
     - name: windspeed
       timer: 10
+      units: km/h
+      description: "wind speed"
     - name: windspeedpeak
       timer: 4
+      units: km/h
+      description: "wind peak catched on the last 5 seconds"
 
 HTTP:
   baseurl: http://127.0.0.1
