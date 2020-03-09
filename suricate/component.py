@@ -1,6 +1,9 @@
+import logging
+import threading
 import suricate.services
 from suricate.errors import CannotGetComponentError
 
+logger = logging.getLogger('suricate')
 
 class Proxy(object):
 
@@ -23,7 +26,8 @@ class Component(object):
     """Delegate the attribute access to an ACS component"""
 
     unavailables = []  # Unavailable components
-    _client = None
+    clients = {}
+    Component.lock = threading.Lock()
 
     def __init__(self, name):
         if not suricate.services.is_manager_online():
@@ -31,11 +35,24 @@ class Component(object):
         if name in self.unavailables:
             raise CannotGetComponentError('component %s not available' % name)
         self.name = str(name)
-        if Component._client is None:
-            from Acspy.Clients.SimpleClient import PySimpleClient
-            Component._client = PySimpleClient()
         try:
-            self._component = Component._client.getComponent(self.name)
+            Component.lock.acquire()
+            client = Component.clients.pop(self.name)
+            client.disconnect()
+        except KeyError:
+            pass  # There is no client to disconnect and remove
+        except Exception, ex:
+            logger.debug('got exception %s' % str(ex))
+            logger.warning('cannot disconnect %s client' % self.name)
+        finally:
+            Component.lock.release()
+
+        from Acspy.Clients.SimpleClient import PySimpleClient
+        client = PySimpleClient(self.name)
+        try:
+            Component.lock.acquire()
+            Component.clients[self.name] = client
+            self._component = client.getComponent(self.name)
         except Exception, ex:
             # I check the name of the class because I can not catch the
             # proper exception. Actually I can not catch it when executing
@@ -48,7 +65,6 @@ class Component(object):
                 # ACS has been shutdown after the client instantiation. Now
                 # it is available again but the client is no more active and
                 # has to be istantiated
-                Component._client = None
                 message = 'component %s not available' % self.name
             elif 'COMM_FAILURE' in ex_name or 'TRANSIENT' in ex_name:
                 # ACS is not running: do not istantiate a new client
@@ -61,9 +77,10 @@ class Component(object):
                     message = 'ACS not running'
                 else:
                     message = 'component %s not available' % self.name
-                Component._client = None
 
             raise CannotGetComponentError(message)
+        finally:
+            Component.lock.release()
 
 
     def __getattr__(self, name):
@@ -75,7 +92,13 @@ class Component(object):
 
     def release(self):
         try:
-            Component._client.forceReleaseComponent(self.name)
-        except:
-            # TODO: log
-            pass
+            Component.lock.acquire()
+            client = Component.clients.pop(self.name)
+            client.disconnect()
+        except KeyError:
+            pass  # There is no client to disconnect and remove
+        except Exception, ex:
+            logger.debug('got exception %s' % str(ex))
+            logger.warning('cannot disconnect %s client' % self.name)
+        finally:
+            Component.lock.release()
