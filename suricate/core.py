@@ -8,7 +8,11 @@ from apscheduler import events
 
 from suricate.schedulers import Scheduler
 from suricate.configuration import config
-from suricate.errors import CannotGetComponentError, ComponentAttributeError
+from suricate.errors import (
+    CannotGetComponentError,
+    ComponentAttributeError,
+    ACSNotRunningError,
+)
 import suricate.services
 
 logger = logging.getLogger('suricate')
@@ -224,7 +228,7 @@ class Publisher(object):
         r.delete(healthy_job_key)
         if isinstance(
                 event.exception,
-                (CannotGetComponentError, ComponentAttributeError)):
+                (CannotGetComponentError, ComponentAttributeError, ACSNotRunningError)):
             job = Publisher.s.get_job(job_id)
             error_job_key = 'error_job:%s' % job_id
             if not r.get(error_job_key) and job:

@@ -12,6 +12,7 @@ from suricate.errors import (
 
 
 logger = logging.getLogger('suricate')
+logger_dbg = logging.getLogger('suricate_dbg')
 r = redis.StrictRedis()
 
 
@@ -69,11 +70,10 @@ def acs_publisher(channel, component, attribute, units='', description=''):
             message = 'ACS not running'
             Exc = ACSNotRunningError
         else:
-            message = 'cannot communicate with %s' % component.name
+            message = 'cannot get component %s' % component.name
             Exc = CannotGetComponentError
         data_dict.update({'error': message})
         logger.error(message)
-        logger.debug(ex)
         r.hmset('components', {component.name: 'unavailable'})
         raise Exc(message)
     finally:

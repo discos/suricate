@@ -1,7 +1,9 @@
 import logging
 import threading
 import suricate.services
-from suricate.errors import CannotGetComponentError
+from suricate.errors import (
+    CannotGetComponentError,
+)
 
 logger = logging.getLogger('suricate')
 
@@ -27,7 +29,7 @@ class Component(object):
 
     unavailables = []  # Unavailable components
     clients = {}
-    Component.lock = threading.Lock()
+    lock = threading.Lock()
 
     def __init__(self, name):
         if not suricate.services.is_manager_online():
@@ -36,30 +38,22 @@ class Component(object):
             raise CannotGetComponentError('component %s not available' % name)
         self.name = str(name)
         try:
-            Component.lock.acquire()
-            client = Component.clients.pop(self.name)
-            client.disconnect()
-        except KeyError:
-            pass  # There is no client to disconnect and remove
-        except Exception, ex:
-            logger.debug('got exception %s' % str(ex))
-            logger.warning('cannot disconnect %s client' % self.name)
-        finally:
-            Component.lock.release()
-
-        from Acspy.Clients.SimpleClient import PySimpleClient
-        client = PySimpleClient(self.name)
-        try:
-            Component.lock.acquire()
-            Component.clients[self.name] = client
-            self._component = client.getComponent(self.name)
+            self.release()
+            with Component.lock:
+                Client = suricate.services.get_client_class()
+                client = Client(self.name)
+                Component.clients[self.name] = client
+                if not suricate.services.is_container_online(client, self.name):
+                    raise CannotGetComponentError('%s container not running' % self.name)
+                self._component = Component.clients[self.name].getComponent(self.name)
         except Exception, ex:
             # I check the name of the class because I can not catch the
             # proper exception. Actually I can not catch it when executing
             # the tests online, where there is either no ACS no CORBA.
+            message = str(ex)
             ex_name = ex.__class__.__name__
             if 'CannotGetComponent' in ex_name:
-                # ACS is running, container down
+                # ACS is running, component not available
                 message = 'component %s not available' % self.name
             elif 'NoPermissionEx' in ex_name:
                 # ACS has been shutdown after the client instantiation. Now
@@ -77,10 +71,7 @@ class Component(object):
                     message = 'ACS not running'
                 else:
                     message = 'component %s not available' % self.name
-
             raise CannotGetComponentError(message)
-        finally:
-            Component.lock.release()
 
 
     def __getattr__(self, name):
@@ -91,14 +82,9 @@ class Component(object):
         return Proxy(attr, self.name)
 
     def release(self):
-        try:
-            Component.lock.acquire()
-            client = Component.clients.pop(self.name)
-            client.disconnect()
-        except KeyError:
-            pass  # There is no client to disconnect and remove
-        except Exception, ex:
-            logger.debug('got exception %s' % str(ex))
-            logger.warning('cannot disconnect %s client' % self.name)
-        finally:
-            Component.lock.release()
+        """Return the number of component released"""
+        with Component.lock:
+            client = Component.clients.pop(self.name, None)
+            if client:
+                client.forceReleaseComponent(self.name)
+                client.disconnect()

@@ -1,4 +1,6 @@
+"""This module tests the real component.py, just mocking the client"""
 import pytest
+import conftest
 import time
 import suricate.services
 import suricate.component
@@ -6,20 +8,8 @@ from suricate.configuration import config
 from suricate.errors import CannotGetComponentError 
 
 
-class Client(object):
-
-    def __init__(self):
-        self.exc_name = ''
-
-    def getComponent(self, name):
-        class MyException(Exception): pass
-        if self.exc_name:
-            exc = MyException()
-            exc.__class__.__name__ = self.exc_name
-            raise exc
-
-    def set_exc_name(self, exc_name):
-        self.exc_name = exc_name
+COMP_NAME = 'TestNamespace/Positioner00'
+suricate.services.is_container_online = lambda x, y: True
 
 
 def test_manager_offline():
@@ -46,90 +36,89 @@ def test_component_unavailable():
 
 def test_get_component():
     # suricate.component has been moked, reload the original one
+    # Real component, mocked client
     reload(suricate.component)
-    client = Client()
-    client.set_exc_name('CannotGetComponent')
     try:
-        suricate.component.Component._client = client
-        comp_name = 'TestNamespace/Positioner00'
+        Client = suricate.services.get_client_class()
+        conftest.MockACSClient.set_exc_name('CannotGetComponent')
+        suricate.services.get_client_class = lambda: conftest.MockACSClient
         with pytest.raises(CannotGetComponentError) as exc:
-            suricate.component.Component(comp_name)
-        expected = 'component %s not available' % comp_name
+            suricate.component.Component(COMP_NAME)
+        expected = 'component %s not available' % COMP_NAME
         assert expected in str(exc.value)
-        assert suricate.component.Component._client
     finally:
-        suricate.component.Component._client = None
+        suricate.services.get_client_class = lambda: Client
+        conftest.MockACSClient.set_exc_name('')
 
 
 def test_no_permission_ex():
     # suricate.component has been moked, reload the original one
+    # Real component, mocked client
     reload(suricate.component)
-    client = Client()
-    client.set_exc_name('NoPermissionEx')
     try:
-        suricate.component.Component._client = client
-        comp_name = 'TestNamespace/Positioner00'
+        Client = suricate.services.get_client_class()
+        conftest.MockACSClient.set_exc_name('NoPermissionEx')
+        suricate.services.get_client_class = lambda: conftest.MockACSClient
         with pytest.raises(CannotGetComponentError) as exc:
-            suricate.component.Component(comp_name)
-        expected = 'component %s not available' % comp_name
+            suricate.component.Component(COMP_NAME)
+        expected = 'component %s not available' % COMP_NAME
         assert expected in str(exc.value)
-        assert suricate.component.Component._client is None
     finally:
-        suricate.component.Component._client = None
+        suricate.services.get_client_class = lambda: Client
+        conftest.MockACSClient.set_exc_name('')
 
 
 def test_comm_failure_manager_online():
     # suricate.component has been moked, reload the original one
+    # Real component, mocked client
     reload(suricate.component)
-    client = Client()
-    client.set_exc_name('COMM_FAILURE')
     try:
-        suricate.component.Component._client = client
-        comp_name = 'TestNamespace/Positioner00'
+        Client = suricate.services.get_client_class()
+        conftest.MockACSClient.set_exc_name('COMM_FAILURE')
+        suricate.services.get_client_class = lambda: conftest.MockACSClient
         with pytest.raises(CannotGetComponentError) as exc:
-            suricate.component.Component(comp_name)
+            suricate.component.Component(COMP_NAME)
         expected = 'cannot communicate with component'
         assert expected in str(exc.value)
-        assert suricate.component.Component._client
     finally:
-        suricate.component.Component._client = None
+        suricate.services.get_client_class = lambda: Client
+        conftest.MockACSClient.set_exc_name('')
 
 
 def test_comm_failure_manager_offline():
     # suricate.component has been moked, reload the original one
+    # Real component, mocked client
     reload(suricate.component)
-    client = Client()
-    client.set_exc_name('COMM_FAILURE')
     try:
+        Client = suricate.services.get_client_class()
+        conftest.MockACSClient.set_exc_name('COMM_FAILURE')
+        suricate.services.get_client_class = lambda: conftest.MockACSClient
         suricate.services.is_manager_online = lambda: False
-        suricate.component.Component._client = client
-        comp_name = 'TestNamespace/Positioner00'
         with pytest.raises(CannotGetComponentError) as exc:
-            suricate.component.Component(comp_name)
+            suricate.component.Component(COMP_NAME)
         expected = 'ACS not running'
         assert expected in str(exc.value)
-        assert suricate.component.Component._client
     finally:
-        suricate.component.Component._client = None
+        suricate.services.get_client_class = lambda: Client
         suricate.services.is_manager_online = lambda: True
+        conftest.MockACSClient.set_exc_name('')
 
 
 def test_unexpected_exception_manager_online():
     # suricate.component has been moked, reload the original one
+    # Real component, mocked client
     reload(suricate.component)
-    client = Client()
-    client.set_exc_name('unexpected')
     try:
-        suricate.component.Component._client = client
-        comp_name = 'TestNamespace/Positioner00'
+        Client = suricate.services.get_client_class()
+        conftest.MockACSClient.set_exc_name('unexpected')
+        suricate.services.get_client_class = lambda: conftest.MockACSClient
         with pytest.raises(CannotGetComponentError) as exc:
-            suricate.component.Component(comp_name)
-        expected = 'component %s not available' % comp_name
+            suricate.component.Component(COMP_NAME)
+        expected = 'component %s not available' % COMP_NAME
         assert expected in str(exc.value)
-        assert suricate.component.Component._client is None
     finally:
-        suricate.component.Component._client = None
-        suricate.services.is_manager_online = lambda: True
+        suricate.services.get_client_class = lambda: Client
+        conftest.MockACSClient.set_exc_name('')
 
 
 def test_proxy_attribute():

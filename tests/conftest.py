@@ -1,5 +1,6 @@
 import time
 import logging
+import threading
 from tempfile import NamedTemporaryFile
 from datetime import datetime, timedelta
 from pytz import utc
@@ -39,7 +40,9 @@ def mock_objects(request, monkeypatch):
     """Mock suricate.services when --acs is not given"""
     if not request.config.getoption('--acs'):
         monkeypatch.setattr('suricate.component.Component', MockComponent)
+        monkeypatch.setattr('suricate.services.get_client_class', lambda: MockACSClient)
         monkeypatch.setattr('suricate.services.is_manager_online', lambda: True)
+        monkeypatch.setattr('suricate.services.is_container_online', lambda x, y: True)
 
 
 @pytest.fixture(autouse=True)
@@ -118,11 +121,39 @@ class RedisPubSub(object):
             time.sleep(0.0001)
 
 
+class MockACSClient(object):
+    """Fake ACS PySimpleClient, to use when ACS is not active"""
+    
+    exc_name = ''
+
+    def __init__(self, client_name):
+        client_name = client_name
+
+    def getComponent(self, component_name):
+        class MyException(Exception): pass
+        if self.exc_name:
+            exc = MyException()
+            exc.__class__.__name__ = self.exc_name
+            raise exc
+
+    @classmethod
+    def set_exc_name(cls, exc_name):
+        cls.exc_name = exc_name
+    
+    def forceReleaseComponent(self, name):
+        pass
+
+    def disconnect(self):
+        pass
+
+
 class MockComponent(object):
     """Fake suricate.component.Component, to use when ACS is not active"""
 
     components = {}
     unavailables = []  # Unavailable components
+    clients = {}
+    lock = threading.Lock()
 
     properties = {
         'position': 0,
@@ -136,6 +167,8 @@ class MockComponent(object):
         if name not in cls.components:
             cls.components.update(
                 {name: super(MockComponent, cls).__new__(cls)})
+            with MockComponent.lock:
+                MockComponent.clients[name] = True
         return cls.components[name]
 
     def __init__(self, name='TestNamespace/MyComponent'):
@@ -155,6 +188,9 @@ class MockComponent(object):
         for name in MockComponent.properties:
             property_ = getattr(self, '_get_%s' % name)()
             property_.get_sync = get_sync
+
+        with MockComponent.lock:
+            MockComponent.clients.pop(self.name, None)
 
         if self.name in self.__class__.components:
             del self.__class__.components[self.name]
@@ -196,6 +232,7 @@ class MockComponent(object):
 
     def _get_name(self):
         return self.name
+
 
 class Property(object):
     def __init__(self, name, value, completion):
