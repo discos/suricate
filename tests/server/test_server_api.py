@@ -5,6 +5,7 @@ import pytest
 BASE_URL = '/publisher/api/v0.1'
 
 DATA = {
+    'container': 'PositionerContainer',
     'component': 'TestNamespace/Positioner',
     'attribute': 'position',
     'description': 'a brief description',

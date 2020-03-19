@@ -8,6 +8,7 @@ from mock import patch, mock_open
 user_config = """
 COMPONENTS:
   TestNamespace/Positioner01:
+    container: PositionerContainer
     methods:
     - name: getPosition
       timer: 0.1
@@ -15,6 +16,7 @@ COMPONENTS:
     - name: position
       timer: 0.1
   TestNamespace/Positioner02:
+    container: PositionerContainer
     methods:
     - name: getPosition
       timer: 0.1
@@ -24,6 +26,7 @@ COMPONENTS:
     - name: current
       timer: 0.1
   TestNamespace/Positioner03:
+    container: PositionerContainer
     properties:
     - name: current
       timer: 0.1

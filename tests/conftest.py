@@ -42,7 +42,7 @@ def mock_objects(request, monkeypatch):
         monkeypatch.setattr('suricate.component.Component', MockComponent)
         monkeypatch.setattr('suricate.services.get_client_class', lambda: MockACSClient)
         monkeypatch.setattr('suricate.services.is_manager_online', lambda: True)
-        monkeypatch.setattr('suricate.services.is_container_online', lambda x, y: True)
+        monkeypatch.setattr('suricate.services.is_container_online', lambda x: True)
 
 
 @pytest.fixture(autouse=True)
@@ -161,7 +161,7 @@ class MockComponent(object):
         'seq': (1.1, 2.3, 3.3)
     }
 
-    def __new__(cls, name):
+    def __new__(cls, name, container):
         if name in cls.unavailables:
             raise CannotGetComponentError('%s unavailable' % name)
         if name not in cls.components:
@@ -171,13 +171,14 @@ class MockComponent(object):
                 MockComponent.clients[name] = True
         return cls.components[name]
 
-    def __init__(self, name='TestNamespace/MyComponent'):
+    def __init__(self, name='TestNamespace/MyComponent', container='PositionerContainer'):
         if not suricate.services.is_manager_online():
             raise CannotGetComponentError('ACS not running')
         if name in self.unavailables:
             raise CannotGetComponentError('component %s not available' % name)
 
         self.name = name
+        self.container = container
         for property_ in MockComponent.properties.items():
             self.set_property(*property_)
 
@@ -276,7 +277,10 @@ def component(request, component_id=0):
     to default it gets and returns the TestNamespace/Positioner00 component.
     """
     ComponentClass = Component()
-    comp = ComponentClass('TestNamespace/Positioner%02d' % component_id)
+    comp = ComponentClass(
+        'TestNamespace/Positioner%02d' % component_id,
+        'PositionerContainer'
+    )
 
     def release():
         comp.release()
@@ -291,7 +295,10 @@ def components(request):
     comps = []
     ComponentClass = Component()
     for i in range(4):  # Get 4 components
-        comp = ComponentClass('TestNamespace/Positioner%02d' % i)
+        comp = ComponentClass(
+            'TestNamespace/Positioner%02d' % i,
+            'PositionerContainer'
+        )
         comps.append(comp)
 
     def release():

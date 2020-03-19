@@ -16,6 +16,7 @@ from suricate.paths import (
 default_config = { 
     'COMPONENTS': {
         "TestNamespace/Positioner00": {
+            'container': "PositionerContainer",
             'properties': [
                 {
                     "name": "position",
@@ -32,6 +33,7 @@ default_config = {
             ],
         },
         "TestNamespace/Positioner01": {
+            "container": "PositionerContainer",
             "properties": [
                 {"name": "current", "timer": 0.1}
             ],

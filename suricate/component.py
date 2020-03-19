@@ -1,11 +1,11 @@
 import logging
 import threading
 import suricate.services
-from suricate.errors import (
-    CannotGetComponentError,
-)
+from suricate.errors import CannotGetComponentError
+
 
 logger = logging.getLogger('suricate')
+
 
 class Proxy(object):
 
@@ -31,21 +31,32 @@ class Component(object):
     clients = {}
     lock = threading.Lock()
 
-    def __init__(self, name):
+    def __init__(self, name, container):
+        self.name = str(name)
+        self.container = str(container)
+
         if not suricate.services.is_manager_online():
             raise CannotGetComponentError('ACS not running')
         if name in self.unavailables:
             raise CannotGetComponentError('component %s not available' % name)
-        self.name = str(name)
         try:
-            self.release()
             with Component.lock:
-                Client = suricate.services.get_client_class()
-                client = Client(self.name)
-                Component.clients[self.name] = client
-                if not suricate.services.is_container_online(client, self.name):
+                self.release()
+                try:
+                    is_online = True
+                    is_online = suricate.services.is_container_online(self.container)
+                except Exception, ex:
+                    # In case of exception I do not know if the container is offline
+                    # or online, so I suppose it is online and I get a new client
+                    logger.warning('cannot get the %s status' % self.container)
+
+                if not is_online:
                     raise CannotGetComponentError('%s container not running' % self.name)
-                self._component = Component.clients[self.name].getComponent(self.name)
+                else:
+                    Client = suricate.services.get_client_class()
+                    client = Client(self.name)
+                    Component.clients[self.name] = client
+                    self._component = Component.clients[self.name].getComponent(self.name)
         except Exception, ex:
             # I check the name of the class because I can not catch the
             # proper exception. Actually I can not catch it when executing
@@ -82,9 +93,7 @@ class Component(object):
         return Proxy(attr, self.name)
 
     def release(self):
-        """Return the number of component released"""
-        with Component.lock:
-            client = Component.clients.pop(self.name, None)
-            if client:
-                client.forceReleaseComponent(self.name)
-                client.disconnect()
+        client = Component.clients.pop(self.name, None)
+        if client:
+            client.forceReleaseComponent(self.name)
+            client.disconnect()

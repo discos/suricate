@@ -1,3 +1,4 @@
+import sys
 import logging
 import datetime
 from os.path import join
@@ -24,34 +25,6 @@ class Publisher(object):
     s = Scheduler()
 
     def __init__(self, *args):
-        """Initialize a Publisher instance.
-
-        The argument is a dictionary. Each key is a component name,
-        and each value is a list of attributes to publish. I.e::
-
-            args = {
-                "TestNamespace/Positioner00": {
-                    "properties": [
-                        {
-                            "name": "position",
-                            "timer": 0.1,
-                            "units": "mm",
-                            "description": "current position",
-                        },
-                        {"name": "current", "timer": 0.1},
-                    ],
-                    "methods": [
-                        {"name": "getPosition", "timer": 0.1},
-                    ],
-                },
-                "TestNamespace/Positioner01": {
-                    "properties": [
-                        {"name": "current", "timer": 0.1},
-                    ]
-                }
-            }
-            publisher = Publisher(config)
-        """
         self.unavailable_components = {}
         r.delete('components')
         if len(args) == 0:
@@ -74,6 +47,7 @@ class Publisher(object):
         """
         {
             "TestNamespace/Positioner": {
+                "container": "PositionerContainer",
                 "properties": [
                     {
                         "name": "position",
@@ -101,13 +75,17 @@ class Publisher(object):
             # Set the default redis values
             properties = targets.get('properties', [])
             methods = targets.get('methods', [])
+            container_name = targets.get('container')
+            if not container_name:
+                logger.error('no container specified for %s' % component_name)
+                sys.exit(0)
             try:
                 if not suricate.services.is_manager_online():
                     r.hmset('components', {component_name: 'unavailable'})
                     error_message = 'ACS not running'
                 else:
                     error_message = 'cannot get component %s' % component_name
-                c = suricate.component.Component(component_name)
+                c = suricate.component.Component(component_name, container_name)
                 # Remove the component from the unavailable dictionary
                 self.unavailable_components.pop(component_name, None)
             except CannotGetComponentError:
@@ -249,7 +227,10 @@ class Publisher(object):
             # If the component is available, we pass its reference to the job
             # and we restore the original job heartbeat
             try:
-                component_ref = suricate.component.Component(old_component_ref.name)
+                component_ref = suricate.component.Component(
+                    old_component_ref.name,
+                    old_component_ref.container
+                )
                 args = channel, component_ref, attribute, units, description
                 Publisher.s.modify_job(job_id, args=args)
             except CannotGetComponentError:
