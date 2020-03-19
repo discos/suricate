@@ -3,7 +3,6 @@ import subprocess
 import logging
 import redis
 
-from Acspy.Util.ACSCorba import getManagerHost
 logger = logging.getLogger('suricate')
 
 
@@ -28,6 +27,7 @@ def is_manager_online():
 
 
 def is_container_online(name):
+    from Acspy.Util.ACSCorba import getManagerHost
     ssh_process = subprocess.Popen(
         ['ssh', '-T', 'discos@%s' % getManagerHost()],
         stdin=subprocess.PIPE, 
