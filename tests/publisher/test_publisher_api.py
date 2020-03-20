@@ -2,6 +2,9 @@ import pytest
 import suricate.component
 
 
+suricate.services.is_container_online = lambda x: True
+
+
 def test_zero_argument_init(Publisher):
     publisher = Publisher()
     jobs_id = [job.id for job in publisher.get_jobs()]

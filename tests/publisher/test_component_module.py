@@ -35,6 +35,35 @@ def test_component_unavailable():
         suricate.component.Component.unavailables = []
 
 
+def test_container_offline():
+    """The container is offline, raise CannotGetComponentError"""
+    # suricate.component has been moked, reload the original one
+    reload(suricate.component)
+    try:
+        suricate.services.is_container_online = lambda x: False
+        with pytest.raises(CannotGetComponentError):
+            suricate.component.Component(COMP_NAME, CONT_NAME)
+    finally:
+        suricate.services.is_container_online = lambda x: True
+
+
+def test_is_container_online_raises_ex(logger):
+    """is_container_online() raises exception: I must get the client
+    and get a component"""
+    # suricate.component has been moked, reload the original one
+    reload(suricate.component)
+    try:
+        suricate.services.is_container_online = lambda x: undef_name
+        comp = suricate.component.Component(COMP_NAME, CONT_NAME)
+        assert hasattr(comp, '_component')
+        line = open(logger.file_name).readline()
+        assert 'WARNING' in line
+        assert ('cannot get the %s status' % CONT_NAME) in line
+    finally:
+        suricate.services.is_container_online = lambda x: True
+        comp.release()
+
+
 def test_get_component():
     # suricate.component has been moked, reload the original one
     # Real component, mocked client
