@@ -46,6 +46,26 @@ point:
    $ sudo service redis restart
 
 
+Public SSH key authentication with manager host
+-----------------------------------------------
+Upload your public SSH key to the manager host:
+
+.. code-block:: bash
+
+   $ ssh-keygen -t dsa
+   $ scp .ssh/id_dsa.pub discos@discos-manager:~
+
+Go to the manager host and add your public SSH key:
+
+.. code-block:: bash
+
+   $ ssh discos@discos-manager
+   $ cat id_dsa.pub >> .ssh/authorized_keys
+   $ rm id_dsa.pub
+   $ logout
+
+
+
 Suricate
 --------
 To install Suricate clone the repository and use ``pip``:
@@ -70,7 +90,7 @@ to configure it.  To install the SRT configuration:
 This command copies the SRT configuration to *~/.suricate/config/config.yaml*.
 If you want to add or change some antenna parameters, change that file.
 
-To start Suricate:
+Now you are ready to start Suricate:
 
 .. code-block:: shell
 

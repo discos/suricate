@@ -1,6 +1,7 @@
 COMPONENTS:
 
   ANTENNA/Boss:
+    container: AntennaBossContainer
     properties:
     - name: rawAzimuth
       timer: 0.4
@@ -48,6 +49,7 @@ COMPONENTS:
       description: "MNG_OK or MNG_WARNING or MNG_FAILURE"
 
   MANAGEMENT/Gavino:
+    container: ManagementContainer
     properties:
     - name: currentBackend
       timer: 10
@@ -88,6 +90,7 @@ COMPONENTS:
       MNG_TRUE means that all subsystems are working and tracking properly"
 
   RECEIVERS/Boss:
+    container: ReceiversContainer
     properties:
     - name: actualSetup
       timer: 10
@@ -111,6 +114,7 @@ COMPONENTS:
       description: "label indicating the operating mode: VLBI, SINGLEDISH, ..."
 
   RECEIVERS/SRT7GHzReceiver:
+    container: SRT7GHzContainer
     properties:
     - name: cryoTemperatureCoolHead
       timer: 60
@@ -162,6 +166,7 @@ COMPONENTS:
       description: "label indicating the current receiver operating mode"
 
   RECEIVERS/SRTKBandMFReceiver:
+    container: SRTKBandContainer
     properties:
     - name: cryoTemperatureCoolHead
       timer: 60
@@ -307,6 +312,7 @@ COMPONENTS:
       timer: 5
 
   RECEIVERS/SRTLPBandReceiver:
+    container: SRTLPBandContainer
     properties:
     - name: cryoTemperatureCoolHead
       timer: 60
@@ -314,8 +320,8 @@ COMPONENTS:
       description: "cryogenic temperature measured near to the cool head"
     - name: cryoTemperatureCoolHeadWindow
       timer: 60
-      timer: 60
       units: kelvin
+      description: "cryogenic temperature measured at cool head window"
     - name: environmentTemperature
       timer: 60
       units: Celsius degrees
@@ -404,6 +410,7 @@ COMPONENTS:
       timer: 5
 
   WEATHERSTATION/WeatherStation:
+    container: WeatherStationContainer
     properties:
     - name: humidity
       timer: 60
@@ -435,5 +442,5 @@ HTTP:
   port: 5000
 
 SCHEDULER:
-  RESCHEDULE_ERROR_INTERVAL: 30
+  RESCHEDULE_ERROR_INTERVAL: 45
   RESCHEDULE_INTERVAL: 15
