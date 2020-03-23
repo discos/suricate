@@ -64,6 +64,15 @@ Go to the manager host and add your public SSH key:
    $ rm id_dsa.pub
    $ logout
 
+Now login to the manager host via SSH and answer ``yes``:
+
+.. code-block:: bash
+
+   $ ssh discos@discos-manager
+             ...
+   Are you sure you want to continue connecting (yes/no)?
+
+You are now ready to install and use Suricate.
 
 
 Suricate
@@ -94,7 +103,7 @@ Now you are ready to start Suricate:
 
 .. code-block:: shell
 
-   $ service suricate-server start
+   $ sudo service suricate-server start
 
 To know its status and stop it:
 
