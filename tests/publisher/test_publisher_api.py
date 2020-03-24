@@ -2,6 +2,9 @@ import pytest
 import suricate.component
 
 
+suricate.services.is_container_online = lambda x: True
+
+
 def test_zero_argument_init(Publisher):
     publisher = Publisher()
     jobs_id = [job.id for job in publisher.get_jobs()]
@@ -12,12 +15,16 @@ def test_one_argument_init(Publisher):
     """In case of only one argument, the Publisher expects a dictionary"""
     config = {
         "TestNamespace/Positioner00": {
+            "startup_delay": 0,
+            "container": "PositionerContainer",
             'properties': [
                 {"name": "position", "timer": 0.1},
                 {"name": "current", "timer": 0.1},
             ],
         },
         "TestNamespace/Positioner01": {
+            "startup_delay": 0,
+            "container": "PositionerContainer",
             'methods': [
                 {"name": "getPosition", "timer": 0.1},
             ]
@@ -51,7 +58,13 @@ def test_wrong_number_arguments(Publisher, logger):
 def test_wrong_component_name(Publisher, logger):
     """In case of wrong component name, write a log message"""
     try:
-        config = {"foo": {"properties": [{"name": "current", "timer": 0.1}]}}
+        config = {
+            "foo": {
+                "startup_delay": 0,
+                "container": "PositionerContainer",
+                "properties": [{"name": "current", "timer": 0.1}]
+            }
+        }
         suricate.component.Component.unavailables.append('foo')
         Publisher(config)
         line = open(logger.file_name).readline()
@@ -65,6 +78,8 @@ def test_wrong_property_name(Publisher, logger):
     """In case of wrong property name, write log message"""
     config = {
         "TestNamespace/Positioner": {
+            "startup_delay": 0,
+            "container": "PositionerContainer",
             "properties": [
                 {"name": "foo", "timer": 0.1}
             ]

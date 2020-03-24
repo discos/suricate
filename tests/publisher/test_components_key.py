@@ -8,6 +8,8 @@ from mock import patch, mock_open
 user_config = """
 COMPONENTS:
   TestNamespace/Positioner01:
+    startup_delay: 0
+    container: PositionerContainer
     methods:
     - name: getPosition
       timer: 0.1
@@ -15,6 +17,8 @@ COMPONENTS:
     - name: position
       timer: 0.1
   TestNamespace/Positioner02:
+    startup_delay: 0
+    container: PositionerContainer
     methods:
     - name: getPosition
       timer: 0.1
@@ -24,6 +28,8 @@ COMPONENTS:
     - name: current
       timer: 0.1
   TestNamespace/Positioner03:
+    startup_delay: 0
+    container: PositionerContainer
     properties:
     - name: current
       timer: 0.1
@@ -31,8 +37,8 @@ HTTP:
   baseurl: http://127.0.0.1
   port: 5000
 SCHEDULER:
-  RESCHEDULE_ERROR_INTERVAL: 0.4
-  RESCHEDULE_INTERVAL: 0.2
+  reschedule_error_interval: 0.4
+  reschedule_interval: 0.2
 """
 
 startup_time = 5  # Seconds
@@ -52,7 +58,7 @@ def test_all_components_unavailable(Publisher, redis_client):
         p = Publisher(config['COMPONENTS'])
         p.start()
         time.sleep(startup_time)
-        waiting_time = 3 * config['SCHEDULER']['RESCHEDULE_INTERVAL']
+        waiting_time = 3 * config['SCHEDULER']['reschedule_interval']
         time.sleep(waiting_time)
         components = redis_client.hgetall('components')
         assert len(components) == 3
@@ -76,7 +82,7 @@ def test_all_components_available(Publisher, redis_client):
         p = Publisher(config['COMPONENTS'])
         p.start()
         time.sleep(startup_time)
-        waiting_time = 3 * config['SCHEDULER']['RESCHEDULE_INTERVAL']
+        waiting_time = 3 * config['SCHEDULER']['reschedule_interval']
         time.sleep(waiting_time)
         components = redis_client.hgetall('components')
         assert len(components) == 3
@@ -104,7 +110,7 @@ def test_some_components_unavailable(Publisher, redis_client):
         p = Publisher(config['COMPONENTS'])
         p.start()
         time.sleep(startup_time)
-        waiting_time = 3 * config['SCHEDULER']['RESCHEDULE_INTERVAL']
+        waiting_time = 3 * config['SCHEDULER']['reschedule_interval']
         time.sleep(waiting_time)
         components = redis_client.hgetall('components')
         assert len(components) == 3
@@ -134,7 +140,6 @@ def test_some_components_unavailable(Publisher, redis_client):
     finally:
         suricate.component.Component.unavailables = []
         reload(configuration)
-
 
 
 if __name__ == '__main__':

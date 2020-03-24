@@ -1,5 +1,9 @@
+from __future__ import print_function, unicode_literals
 import subprocess
+import logging
 import redis
+
+logger = logging.getLogger('suricate')
 
 
 mng_online_cmd = """python -c "from __future__ import print_function;
@@ -20,3 +24,32 @@ def is_manager_online():
     else:
         result = subprocess.check_output(mng_online_cmd, shell=True)
         return True if result == 'yes' else False
+
+
+def is_container_online(name):
+    from Acspy.Util.ACSCorba import getManagerHost
+    ssh_process = subprocess.Popen(
+        ['ssh', '-T', 'discos@%s' % getManagerHost()],
+        stdin=subprocess.PIPE, 
+        stdout = subprocess.PIPE,
+        universal_newlines=True,
+        bufsize=0
+    )   
+    ssh_process.stdin.write("acsContainersStatus\n")
+    ssh_process.stdin.write("echo END\n")
+    ssh_process.stdin.write("logout\n")
+    ssh_process.stdin.close()
+    
+    for line in ssh_process.stdout:
+        if line == "END\n":
+            break
+        if ('%s container is running' % name) in line:
+            return True
+
+    return False
+
+
+
+def get_client_class():
+    from Acspy.Clients.SimpleClient import PySimpleClient
+    return PySimpleClient

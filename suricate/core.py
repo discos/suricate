@@ -1,3 +1,4 @@
+import sys
 import logging
 import datetime
 from os.path import join
@@ -8,7 +9,11 @@ from apscheduler import events
 
 from suricate.schedulers import Scheduler
 from suricate.configuration import config
-from suricate.errors import CannotGetComponentError, ComponentAttributeError
+from suricate.errors import (
+    CannotGetComponentError,
+    ComponentAttributeError,
+    ACSNotRunningError,
+)
 import suricate.services
 
 logger = logging.getLogger('suricate')
@@ -20,34 +25,6 @@ class Publisher(object):
     s = Scheduler()
 
     def __init__(self, *args):
-        """Initialize a Publisher instance.
-
-        The argument is a dictionary. Each key is a component name,
-        and each value is a list of attributes to publish. I.e::
-
-            args = {
-                "TestNamespace/Positioner00": {
-                    "properties": [
-                        {
-                            "name": "position",
-                            "timer": 0.1,
-                            "units": "mm",
-                            "description": "current position",
-                        },
-                        {"name": "current", "timer": 0.1},
-                    ],
-                    "methods": [
-                        {"name": "getPosition", "timer": 0.1},
-                    ],
-                },
-                "TestNamespace/Positioner01": {
-                    "properties": [
-                        {"name": "current", "timer": 0.1},
-                    ]
-                }
-            }
-            publisher = Publisher(config)
-        """
         self.unavailable_components = {}
         r.delete('components')
         if len(args) == 0:
@@ -63,13 +40,15 @@ class Publisher(object):
             args=(),
             id='rescheduler',
             trigger='interval',
-            seconds=config['SCHEDULER']['RESCHEDULE_INTERVAL']
+            seconds=config['SCHEDULER']['reschedule_interval']
         )
 
     def add_jobs(self, config):
         """
         {
             "TestNamespace/Positioner": {
+                "startup_delay": 0,
+                "container": "PositionerContainer",
                 "properties": [
                     {
                         "name": "position",
@@ -97,19 +76,42 @@ class Publisher(object):
             # Set the default redis values
             properties = targets.get('properties', [])
             methods = targets.get('methods', [])
+            startup_delay = targets.get('startup_delay')
+            if startup_delay is None:
+                logger.error('no startup_delay specified for %s' % component_name)
+                sys.exit(0)
+            try:
+                startup_delay = int(startup_delay)
+            except ValueError:
+                logger.error('cannot convert startup_delay %ss to int' % startup_delay)
+                sys.exit(0)
+            container_name = targets.get('container')
+            if container_name is None:
+                logger.error('no container specified for %s' % component_name)
+                sys.exit(0)
             try:
                 if not suricate.services.is_manager_online():
                     r.hmset('components', {component_name: 'unavailable'})
                     error_message = 'ACS not running'
                 else:
                     error_message = 'cannot get component %s' % component_name
-                c = suricate.component.Component(component_name)
+
+                key = '__%s/error' % component_name
+                c = suricate.component.Component(
+                        component_name,
+                        container_name,
+                        startup_delay
+                )
                 # Remove the component from the unavailable dictionary
                 self.unavailable_components.pop(component_name, None)
+                r.delete(key)
             except CannotGetComponentError:
                 self.unavailable_components[component_name] = targets
-                logger.error(error_message)
-                
+                with suricate.component.Component.lock:
+                    if r.get(key) != error_message:
+                        logger.error(error_message)
+                    r.set(key, error_message)
+
             for prop in properties:
                 attr_name = prop['name']
                 units = prop.get('units', '')
@@ -224,7 +226,7 @@ class Publisher(object):
         r.delete(healthy_job_key)
         if isinstance(
                 event.exception,
-                (CannotGetComponentError, ComponentAttributeError)):
+                (CannotGetComponentError, ComponentAttributeError, ACSNotRunningError)):
             job = Publisher.s.get_job(job_id)
             error_job_key = 'error_job:%s' % job_id
             if not r.get(error_job_key) and job:
@@ -237,7 +239,7 @@ class Publisher(object):
                 Publisher.s.reschedule_job(
                     job_id,
                     trigger='interval',
-                    seconds=config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']
+                    seconds=config['SCHEDULER']['reschedule_error_interval']
                 )
 
             channel, old_component_ref, attribute, units, description  = job.args
@@ -245,7 +247,11 @@ class Publisher(object):
             # If the component is available, we pass its reference to the job
             # and we restore the original job heartbeat
             try:
-                component_ref = suricate.component.Component(old_component_ref.name)
+                component_ref = suricate.component.Component(
+                    old_component_ref.name,
+                    old_component_ref.container,
+                    old_component_ref.startup_delay
+                )
                 args = channel, component_ref, attribute, units, description
                 Publisher.s.modify_job(job_id, args=args)
             except CannotGetComponentError:

@@ -1,5 +1,6 @@
 import time
 import logging
+import threading
 from tempfile import NamedTemporaryFile
 from datetime import datetime, timedelta
 from pytz import utc
@@ -39,11 +40,18 @@ def mock_objects(request, monkeypatch):
     """Mock suricate.services when --acs is not given"""
     if not request.config.getoption('--acs'):
         monkeypatch.setattr('suricate.component.Component', MockComponent)
+        monkeypatch.setattr('suricate.services.get_client_class', lambda: MockACSClient)
         monkeypatch.setattr('suricate.services.is_manager_online', lambda: True)
+        monkeypatch.setattr('suricate.services.is_container_online', lambda x: True)
 
 
 @pytest.fixture(autouse=True)
 def logger(request):
+    r = redis.StrictRedis()
+    # Log messages start with ___ : remove them
+    for key in r.scan_iter("*"):
+        if key.startswith('__'):
+            r.delete(key)
     f = NamedTemporaryFile()
     file_handler = logging.FileHandler(f.name, 'w')
     file_handler.setFormatter(formatter)
@@ -118,11 +126,39 @@ class RedisPubSub(object):
             time.sleep(0.0001)
 
 
+class MockACSClient(object):
+    """Fake ACS PySimpleClient, to use when ACS is not active"""
+    
+    exc_name = ''
+
+    def __init__(self, client_name):
+        client_name = client_name
+
+    def getComponent(self, component_name):
+        class MyException(Exception): pass
+        if self.exc_name:
+            exc = MyException()
+            exc.__class__.__name__ = self.exc_name
+            raise exc
+
+    @classmethod
+    def set_exc_name(cls, exc_name):
+        cls.exc_name = exc_name
+    
+    def forceReleaseComponent(self, name):
+        pass
+
+    def disconnect(self):
+        pass
+
+
 class MockComponent(object):
     """Fake suricate.component.Component, to use when ACS is not active"""
 
     components = {}
     unavailables = []  # Unavailable components
+    clients = {}
+    lock = threading.Lock()
 
     properties = {
         'position': 0,
@@ -130,21 +166,31 @@ class MockComponent(object):
         'seq': (1.1, 2.3, 3.3)
     }
 
-    def __new__(cls, name):
+    def __new__(cls, name, container, startup_delay):
         if name in cls.unavailables:
             raise CannotGetComponentError('%s unavailable' % name)
         if name not in cls.components:
             cls.components.update(
                 {name: super(MockComponent, cls).__new__(cls)})
+            with MockComponent.lock:
+                MockComponent.clients[name] = True
         return cls.components[name]
 
-    def __init__(self, name='TestNamespace/MyComponent'):
+    def __init__(
+            self,
+            name='TestNamespace/MyComponent',
+            container='PositionerContainer',
+            startup_delay=0
+        ):
         if not suricate.services.is_manager_online():
             raise CannotGetComponentError('ACS not running')
         if name in self.unavailables:
             raise CannotGetComponentError('component %s not available' % name)
 
         self.name = name
+        self.container = container
+        self.startup_delay = int(startup_delay)
+        self.startup_time = datetime.utcnow() + timedelta(seconds=self.startup_delay)
         for property_ in MockComponent.properties.items():
             self.set_property(*property_)
 
@@ -155,6 +201,9 @@ class MockComponent(object):
         for name in MockComponent.properties:
             property_ = getattr(self, '_get_%s' % name)()
             property_.get_sync = get_sync
+
+        with MockComponent.lock:
+            MockComponent.clients.pop(self.name, None)
 
         if self.name in self.__class__.components:
             del self.__class__.components[self.name]
@@ -196,6 +245,7 @@ class MockComponent(object):
 
     def _get_name(self):
         return self.name
+
 
 class Property(object):
     def __init__(self, name, value, completion):
@@ -239,7 +289,11 @@ def component(request, component_id=0):
     to default it gets and returns the TestNamespace/Positioner00 component.
     """
     ComponentClass = Component()
-    comp = ComponentClass('TestNamespace/Positioner%02d' % component_id)
+    comp = ComponentClass(
+        'TestNamespace/Positioner%02d' % component_id,
+        'PositionerContainer',
+         0 # secondos of startup_delay
+    )
 
     def release():
         comp.release()
@@ -254,7 +308,11 @@ def components(request):
     comps = []
     ComponentClass = Component()
     for i in range(4):  # Get 4 components
-        comp = ComponentClass('TestNamespace/Positioner%02d' % i)
+        comp = ComponentClass(
+            'TestNamespace/Positioner%02d' % i,
+            'PositionerContainer',
+             0 # secondos of startup_delay
+        )
         comps.append(comp)
 
     def release():

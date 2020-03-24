@@ -44,7 +44,7 @@ def test_unit_and_description(Publisher, pubsub):
     """Positioner00/position has units and description set in configuration.py"""
     p = Publisher(config['COMPONENTS'])
     p.start()
-    time.sleep(config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']*1.2)
+    time.sleep(config['SCHEDULER']['reschedule_error_interval']*1.2)
     message = pubsub.get_data_message(channel='*position')
     prop = json.loads(message['data'])
     assert prop['description'] == 'current position'
@@ -55,7 +55,7 @@ def test_default_unit_and_description(Publisher, pubsub):
     """Positioner00/current has no units and description set in configuration.py"""
     p = Publisher(config['COMPONENTS'])
     p.start()
-    time.sleep(config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL']*1.2)
+    time.sleep(config['SCHEDULER']['reschedule_error_interval']*1.2)
     message = pubsub.get_data_message(channel='*current')
     prop = json.loads(message['data'])
     assert prop['description'] == ''

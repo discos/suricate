@@ -29,6 +29,8 @@ def create_job():
     if not request.json:
         abort(400)
     else:
+        startup_delay = request.json.get('startup_delay')
+        container = request.json.get('container')
         component = request.json.get('component')
         attribute = request.json.get('attribute')
         timer = request.json.get('timer')
@@ -37,8 +39,11 @@ def create_job():
         type_ = request.json.get('type', 'property')
         types = 'properties' if type_ == 'property' else 'methods'
 
-    if not component or not attribute or not timer:
-        logger.error('specify component, attribute and timer')
+    if not (component or not attribute or not timer or not container or not
+            startup_delay
+    ):
+        logger.error('specify component, container, attribute, timer and '
+                     'startup_delay')
         abort(400)
     else:
         try:
@@ -49,6 +54,8 @@ def create_job():
 
     job = {
         component: {
+            "startup_delay": startup_delay,
+            "container": container,
             types: [
                 {
                     'name': attribute,
@@ -62,6 +69,8 @@ def create_job():
     publisher.add_jobs(job)  # TODO: catch the exception in case of invalid job
     return jsonify({
             'component': component,
+            'container': container,
+            'startup_delay': startup_delay,
             'attribute': attribute,
             'description': description,
             'units': units,

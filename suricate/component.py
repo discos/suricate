@@ -1,5 +1,17 @@
+import logging
+import threading
+import redis
 import suricate.services
+from datetime import datetime, timedelta
 from suricate.errors import CannotGetComponentError
+
+
+logger = logging.getLogger('suricate')
+r = redis.StrictRedis()
+# Remove old status keys from the DB
+for key in r.scan_iter("*"):
+    if key.startswith('__'):
+        r.delete(key)
 
 
 class Proxy(object):
@@ -23,32 +35,56 @@ class Component(object):
     """Delegate the attribute access to an ACS component"""
 
     unavailables = []  # Unavailable components
-    _client = None
+    clients = {}
+    lock = threading.Lock()
 
-    def __init__(self, name):
+    def __init__(self, name, container, startup_delay=0):
+        self.name = str(name)
+        self.container = str(container)
+        self.startup_delay = startup_delay
+
         if not suricate.services.is_manager_online():
             raise CannotGetComponentError('ACS not running')
         if name in self.unavailables:
             raise CannotGetComponentError('component %s not available' % name)
-        self.name = str(name)
-        if Component._client is None:
-            from Acspy.Clients.SimpleClient import PySimpleClient
-            Component._client = PySimpleClient()
         try:
-            self._component = Component._client.getComponent(self.name)
+            with Component.lock:
+                key = '__%s/warning' % name
+                self.release()
+                try:
+                    self.is_online = True
+                    self.is_online = suricate.services.is_container_online(self.container)
+                except Exception, ex:
+                    # In case of exception I do not know if the container is offline
+                    # or online, so I suppose it is online and I get a new client
+                    message = 'cannot get the %s status' % self.container
+                    if r.get(key) != message:
+                        logger.warning(message)
+                    r.set(key, message)
+
+                if not self.is_online:
+                    raise CannotGetComponentError('%s container not running' % self.name)
+                else:
+                    Client = suricate.services.get_client_class()
+                    client = Client(self.name)
+                    Component.clients[self.name] = client
+                    self._component = Component.clients[self.name].getComponent(self.name)
+                    startup_time = datetime.utcnow() + timedelta(seconds=startup_delay)
+                    r.set('__%s/startup_time' % self.name, str(startup_time))
+                    r.delete(key)
         except Exception, ex:
             # I check the name of the class because I can not catch the
             # proper exception. Actually I can not catch it when executing
             # the tests online, where there is either no ACS no CORBA.
+            message = str(ex)
             ex_name = ex.__class__.__name__
             if 'CannotGetComponent' in ex_name:
-                # ACS is running, container down
+                # ACS is running, component not available
                 message = 'component %s not available' % self.name
             elif 'NoPermissionEx' in ex_name:
                 # ACS has been shutdown after the client instantiation. Now
                 # it is available again but the client is no more active and
                 # has to be istantiated
-                Component._client = None
                 message = 'component %s not available' % self.name
             elif 'COMM_FAILURE' in ex_name or 'TRANSIENT' in ex_name:
                 # ACS is not running: do not istantiate a new client
@@ -61,8 +97,6 @@ class Component(object):
                     message = 'ACS not running'
                 else:
                     message = 'component %s not available' % self.name
-                Component._client = None
-
             raise CannotGetComponentError(message)
 
 
@@ -74,8 +108,7 @@ class Component(object):
         return Proxy(attr, self.name)
 
     def release(self):
-        try:
-            Component._client.forceReleaseComponent(self.name)
-        except:
-            # TODO: log
-            pass
+        client = Component.clients.pop(self.name, None)
+        if client:
+            client.forceReleaseComponent(self.name)
+            client.disconnect()

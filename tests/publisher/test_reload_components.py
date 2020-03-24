@@ -8,6 +8,8 @@ from mock import patch, mock_open
 user_config = """
 COMPONENTS:
   TestNamespace/Positioner02:
+    startup_delay: 0
+    container: PositionerContainer
     methods:
     - name: getPosition
       timer: 0.1
@@ -17,6 +19,8 @@ COMPONENTS:
     - name: current
       timer: 0.1
   TestNamespace/Positioner03:
+    startup_delay: 0
+    container: PositionerContainer
     properties:
     - name: current
       timer: 0.1
@@ -24,8 +28,8 @@ HTTP:
   baseurl: http://127.0.0.1
   port: 5000
 SCHEDULER:
-  RESCHEDULE_ERROR_INTERVAL: 0.4
-  RESCHEDULE_INTERVAL: 0.2
+  reschedule_error_interval: 0.4
+  reschedule_interval: 0.2
 """
 
 
@@ -56,7 +60,7 @@ def test_all_components_not_active_at_startup(Publisher, redis_client):
         # Components available after starting the scheduler
         suricate.component.Component.unavailables = []
         p.start()
-        waiting_time = 3 * config['SCHEDULER']['RESCHEDULE_INTERVAL']
+        waiting_time = 3 * config['SCHEDULER']['reschedule_interval']
         time.sleep(waiting_time)
         message = redis_client.hget('TestNamespace/Positioner00/position', 'error')
         assert not message
@@ -97,7 +101,7 @@ def test_some_components_not_active_at_startup(Publisher, redis_client):
         # Components available after starting the scheduler
         suricate.component.Component.unavailables = []
         p.start()
-        waiting_time = 3 * config['SCHEDULER']['RESCHEDULE_INTERVAL']
+        waiting_time = 3 * config['SCHEDULER']['reschedule_interval']
         time.sleep(waiting_time)
         message = redis_client.hget('TestNamespace/Positioner00/position', 'error')
         assert not message
