@@ -47,6 +47,11 @@ def mock_objects(request, monkeypatch):
 
 @pytest.fixture(autouse=True)
 def logger(request):
+    r = redis.StrictRedis()
+    # Log messages start with ___ : remove them
+    for key in r.scan_iter("*"):
+        if key.startswith('__'):
+            r.delete(key)
     f = NamedTemporaryFile()
     file_handler = logging.FileHandler(f.name, 'w')
     file_handler.setFormatter(formatter)
@@ -161,7 +166,7 @@ class MockComponent(object):
         'seq': (1.1, 2.3, 3.3)
     }
 
-    def __new__(cls, name, container):
+    def __new__(cls, name, container, startup_delay):
         if name in cls.unavailables:
             raise CannotGetComponentError('%s unavailable' % name)
         if name not in cls.components:
@@ -171,7 +176,12 @@ class MockComponent(object):
                 MockComponent.clients[name] = True
         return cls.components[name]
 
-    def __init__(self, name='TestNamespace/MyComponent', container='PositionerContainer'):
+    def __init__(
+            self,
+            name='TestNamespace/MyComponent',
+            container='PositionerContainer',
+            startup_delay=0
+        ):
         if not suricate.services.is_manager_online():
             raise CannotGetComponentError('ACS not running')
         if name in self.unavailables:
@@ -179,6 +189,8 @@ class MockComponent(object):
 
         self.name = name
         self.container = container
+        self.startup_delay = int(startup_delay)
+        self.startup_time = datetime.utcnow() + timedelta(seconds=self.startup_delay)
         for property_ in MockComponent.properties.items():
             self.set_property(*property_)
 
@@ -279,7 +291,8 @@ def component(request, component_id=0):
     ComponentClass = Component()
     comp = ComponentClass(
         'TestNamespace/Positioner%02d' % component_id,
-        'PositionerContainer'
+        'PositionerContainer',
+         0 # secondos of startup_delay
     )
 
     def release():
@@ -297,7 +310,8 @@ def components(request):
     for i in range(4):  # Get 4 components
         comp = ComponentClass(
             'TestNamespace/Positioner%02d' % i,
-            'PositionerContainer'
+            'PositionerContainer',
+             0 # secondos of startup_delay
         )
         comps.append(comp)
 

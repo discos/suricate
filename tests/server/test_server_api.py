@@ -5,8 +5,9 @@ import pytest
 BASE_URL = '/publisher/api/v0.1'
 
 DATA = {
-    'container': 'PositionerContainer',
     'component': 'TestNamespace/Positioner',
+    'startup_delay': 0,
+    'container': 'PositionerContainer',
     'attribute': 'position',
     'description': 'a brief description',
     'units': 'mm',

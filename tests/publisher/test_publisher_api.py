@@ -15,6 +15,7 @@ def test_one_argument_init(Publisher):
     """In case of only one argument, the Publisher expects a dictionary"""
     config = {
         "TestNamespace/Positioner00": {
+            "startup_delay": 0,
             "container": "PositionerContainer",
             'properties': [
                 {"name": "position", "timer": 0.1},
@@ -22,6 +23,7 @@ def test_one_argument_init(Publisher):
             ],
         },
         "TestNamespace/Positioner01": {
+            "startup_delay": 0,
             "container": "PositionerContainer",
             'methods': [
                 {"name": "getPosition", "timer": 0.1},
@@ -58,6 +60,7 @@ def test_wrong_component_name(Publisher, logger):
     try:
         config = {
             "foo": {
+                "startup_delay": 0,
                 "container": "PositionerContainer",
                 "properties": [{"name": "current", "timer": 0.1}]
             }
@@ -75,6 +78,7 @@ def test_wrong_property_name(Publisher, logger):
     """In case of wrong property name, write log message"""
     config = {
         "TestNamespace/Positioner": {
+            "startup_delay": 0,
             "container": "PositionerContainer",
             "properties": [
                 {"name": "foo", "timer": 0.1}

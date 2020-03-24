@@ -14,7 +14,7 @@ def test_reload_component(Publisher, component, pubsub):
     message = pubsub.get_data_message(channel='*position')
     property_ = json.loads(message['data'])
     assert property_['error']  # Component not available
-    time.sleep(config['SCHEDULER']['RESCHEDULE_ERROR_INTERVAL'] * 1.1)
+    time.sleep(config['SCHEDULER']['reschedule_error_interval'] * 1.1)
     message = pubsub.get_data_message(channel='*position')
     property_ = json.loads(message['data'])
     assert not property_['error']  # Component available

@@ -16,6 +16,7 @@ from suricate.paths import (
 default_config = { 
     'COMPONENTS': {
         "TestNamespace/Positioner00": {
+            'startup_delay': 0,
             'container': "PositionerContainer",
             'properties': [
                 {
@@ -33,6 +34,7 @@ default_config = {
             ],
         },
         "TestNamespace/Positioner01": {
+            'startup_delay': 0,
             "container": "PositionerContainer",
             "properties": [
                 {"name": "current", "timer": 0.1}
@@ -41,8 +43,8 @@ default_config = {
     },
 
     'SCHEDULER': {
-        'RESCHEDULE_INTERVAL': 1,  # Seconds
-        'RESCHEDULE_ERROR_INTERVAL': 2,  # Seconds
+        'reschedule_interval': 1,  # Seconds
+        'reschedule_error_interval': 2,  # Seconds
     },
 
     'HTTP': {
@@ -78,5 +80,7 @@ try:
         config = yaml.safe_load(stream)
         if not config:
             config = default_config
-except Exception:
-        config = default_config
+except Exception, ex:
+    config = default_config
+    logger = logging.getLogger('suricate')
+    logger.warning('cannot read %s: loading default config' % config_file)
