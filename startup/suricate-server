@@ -10,7 +10,9 @@
 name="suricate-server"
 pidfile="/var/run/$name.pid"
 exec="/alma/ACS-FEB2017/Python/bin/$name"
-logfile="/tmp/suricate.log"
+# User log are in $HOME/.suricate/logs/suricate.log
+# The following logfile is just for debug:
+logfile="/tmp/suricate_service_dbg.log"
 
 start() {
         echo "Starting $name..."
