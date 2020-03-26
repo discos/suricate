@@ -190,7 +190,9 @@ class MockComponent(object):
         self.name = name
         self.container = container
         self.startup_delay = int(startup_delay)
-        self.startup_time = datetime.utcnow() + timedelta(seconds=self.startup_delay)
+        startup_time = datetime.utcnow() + timedelta(seconds=self.startup_delay)
+        r = redis.StrictRedis()
+        r.set('__%s/startup_time' % self.name, str(startup_time))
         for property_ in MockComponent.properties.items():
             self.set_property(*property_)
 
