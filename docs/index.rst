@@ -22,3 +22,4 @@ Contents
 
    userguide.rst
    adminguide.rst
+   rest_api.rst
