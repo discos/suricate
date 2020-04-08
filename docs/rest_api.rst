@@ -40,7 +40,7 @@ The client has to check the status of the command by executing
 The response to this request gives the client a JSON file containing
 all information about the command: whether it is still in execution or
 terminated, the starting time, the total time of execution, the result in
-case it is terminated (in this case the number of TPIs), possible parameters,
+case it is terminated (in that case the number of TPIs), possible parameters,
 errors, etc.
 
 In case a command takes some parameters, they have to be
@@ -49,8 +49,8 @@ included in the JSON file sent by the POST request.
 It is not possible to have multiple ``Scheduler.cmd('cmd-name')`` in execution at
 the same time.  For instance, let's suppose to send a POST request for the ``getTpi`` command and
 right after a POST for ``setLO``. If  ``Scheduler.cmd('getTpi')`` is still
-in execution, then ``POST /cmd/setLO`` gives an error saying that it is not
-possible to execute ``setLO`` because the system is till processing ``getTpi``.
+in execution, then ``POST /cmd/setLO`` gives an error to the client saying that it is not
+possible to execute ``setLO`` because the system is still processing ``getTpi``.
 
 .. note:: This does not mean that you can not execute a command if the
    previous one is running.  For instance, think to ``startScheduler``.
