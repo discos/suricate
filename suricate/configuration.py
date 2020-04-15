@@ -63,7 +63,9 @@ aps_logfile = os.path.join(log_dir, 'apscheduler.log')
 aps_handler = logging.FileHandler(aps_logfile)
 aps_handler.setFormatter(formatter)
 logging.getLogger('apscheduler').addHandler(aps_handler)
-logging.getLogger('apscheduler').setLevel(logging.WARNING)
+logging.getLogger('apscheduler').setLevel(logging.CRITICAL)
+logging.getLogger('apscheduler').propagate = False
+# logging.getLogger('apscheduler.scheduler').propagate = False
 
 sur_logfile = os.path.join(log_dir, 'suricate.log')
 sur_file_handler = logging.FileHandler(sur_logfile)
