@@ -92,11 +92,12 @@ class Publisher(object):
             try:
                 if not suricate.services.is_manager_online():
                     r.hmset('components', {component_name: 'unavailable'})
+                    key = '__manager/error'
                     error_message = 'ACS not running'
                 else:
+                    key = '__%s/error' % component_name
                     error_message = 'cannot get component %s' % component_name
 
-                key = '__%s/error' % component_name
                 c = suricate.component.Component(
                         component_name,
                         container_name,
@@ -104,10 +105,11 @@ class Publisher(object):
                 )
                 # Remove the component from the unavailable dictionary
                 self.unavailable_components.pop(component_name, None)
-                r.delete(key)
+                r.delete('__manager/error')
+                r.delete('__%s/error' % component_name)
             except CannotGetComponentError:
                 self.unavailable_components[component_name] = targets
-                with suricate.component.Component.lock:
+                with suricate.services.logging_lock:
                     if r.get(key) != error_message:
                         logger.error(error_message)
                     r.set(key, error_message)

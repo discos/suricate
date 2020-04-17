@@ -1,5 +1,4 @@
 import logging
-import threading
 import redis
 import suricate.services
 from datetime import datetime, timedelta
@@ -36,7 +35,6 @@ class Component(object):
 
     unavailables = []  # Unavailable components
     clients = {}
-    lock = threading.Lock()
 
     def __init__(self, name, container, startup_delay=0):
         self.name = str(name)
@@ -48,21 +46,9 @@ class Component(object):
         if name in self.unavailables:
             raise CannotGetComponentError('component %s not available' % name)
         try:
-            with Component.lock:
-                key = '__%s/warning' % name
+            with suricate.services.logging_lock:
                 self.release()
-                try:
-                    self.is_online = True
-                    self.is_online = suricate.services.is_container_online(self.container)
-                except Exception, ex:
-                    # In case of exception I do not know if the container is offline
-                    # or online, so I suppose it is online and I get a new client
-                    message = 'cannot get the %s status' % self.container
-                    if r.get(key) != message:
-                        logger.warning(message)
-                    r.set(key, message)
-
-                if not self.is_online:
+                if not suricate.services.is_container_online(self.container):
                     raise CannotGetComponentError('%s container not running' % self.name)
                 else:
                     Client = suricate.services.get_client_class()
@@ -71,7 +57,6 @@ class Component(object):
                     self._component = Component.clients[self.name].getComponent(self.name)
                     startup_time = datetime.utcnow() + timedelta(seconds=startup_delay)
                     r.set('__%s/startup_time' % self.name, str(startup_time))
-                    r.delete(key)
         except Exception, ex:
             # I check the name of the class because I can not catch the
             # proper exception. Actually I can not catch it when executing
