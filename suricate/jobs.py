@@ -29,7 +29,7 @@ def acs_publisher(channel, component, attribute, units='', description=''):
         if component.name in component.unavailables:
             raise CannotGetComponentError()
 
-        with component.lock:
+        with suricate.services.logging_lock:
             startup_time = r.get('__%s/startup_time' % component.name)
             if startup_time:
                 t = datetime.strptime(startup_time, "%Y-%m-%d %H:%M:%S.%f")
@@ -59,7 +59,7 @@ def acs_publisher(channel, component, attribute, units='', description=''):
         value = str(value)
         data_dict.update({'value': value, 'timestamp': str(t)})
         # Update the components redis key
-        with component.lock:
+        with suricate.services.logging_lock:
             if r.hget('components', component.name) != 'available':
                 message = 'OK - component %s is online' % component.name
                 key = '__%s/info' % component.name
@@ -72,10 +72,16 @@ def acs_publisher(channel, component, attribute, units='', description=''):
     except CannotGetComponentError:
         if not suricate.services.is_manager_online():
             error_message = 'ACS not running'
+            key = '__manager/error'
             Exc = ACSNotRunningError
+            with suricate.services.logging_lock:
+                r.delete('__%s/error' % component.name)
         else:
             error_message = 'cannot get component %s' % component.name
+            key = '__%s/error' % component.name
             Exc = CannotGetComponentError
+            with suricate.services.logging_lock:
+                r.delete('__manager/error')
         data_dict.update({'error': error_message})
         r.hmset('components', {component.name: 'unavailable'})
         raise Exc(error_message)
@@ -83,25 +89,31 @@ def acs_publisher(channel, component, attribute, units='', description=''):
         error_message = 'cannot get attribute %s from %s' % (
                 attribute, component.name)
         data_dict.update({'error': error_message})
-        key = '%s/error' % component.name
+        key = '__%s/error' % component.name
         r.hmset('components', {component.name: 'unavailable'})
         raise ComponentAttributeError(error_message)
     except Exception, ex:
         if not suricate.services.is_manager_online():
             error_message = 'ACS not running'
+            key = '__manager/error'
             Exc = ACSNotRunningError
+            with suricate.services.logging_lock:
+                r.delete('__%s/error' % component.name)
         else:
             error_message = 'cannot get component %s' % component.name
+            key = '__%s/error' % component.name
             Exc = CannotGetComponentError
+            with suricate.services.logging_lock:
+                r.delete('__manager/error')
         data_dict.update({'error': error_message})
         r.hmset('components', {component.name: 'unavailable'})
         raise Exc(error_message)
     finally:
         if error_message:
-            with component.lock:
-                if r.get('__%s/error' % component.name) != error_message:
+            with suricate.services.logging_lock:
+                if r.get(key) != error_message:
                     logger.error(error_message)
-                r.set('__%s/error' % component.name, error_message)
+                r.set(key, error_message)
 
         if not r.hmset(channel, data_dict):
             logger.error('cannot write data on redis for %s' % channel)

@@ -124,5 +124,6 @@ def start_webserver():
 
 
 def start(components=None):
+    logger.info('suricate server is starting...')
     start_publisher(components)
     start_webserver()
