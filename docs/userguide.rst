@@ -163,6 +163,25 @@ the key ``components``:
      'ANTENNA/Boss': 'available', 'RECEIVERS/Boss': 'available'
    }
 
+Some attributes are sequences, but Suricate saves them as
+strings. For instance, have a look at the current ``LO``
+value:
+
+.. code-block:: python
+   
+   >>> lo = r.hget('RECEIVERS/Boss/LO', 'value')
+   >>> lo
+   '(5850.0, 5850.0)'
+
+To get a tuple you do not need to parse the string. Just use
+``literal_eval`` from the standard library ``ast`` module:
+
+.. code-block:: python
+
+   >>> from ast import literal_eval
+   >>> literal_eval(lo)
+   (5850.0, 5850.0)
+
 
 .. _c_client:
 
