@@ -82,6 +82,7 @@ To install Suricate clone the repository and use ``pip``:
 .. code-block:: shell
 
    $ sudo ln -s /alma/ACS-FEB2017/Python/bin/python /bin/python
+   $ sudo ln -s /alma/ACS-FEB2017/Python/bin/pip /bin/pip
    $ git clone https://github.com/marco-buttu/suricate.git
    $ cd suricate
    $ sudo pip install .
@@ -122,10 +123,23 @@ To uninstall Suricate:
    $ sudo pip uninstall suricate
 
 
+Export the ACS manager reference
+================================
+In case Suricate has not been installed on the machine running
+the manager, you need to export the manager reference. On the
+Suricate machine, open */discos-sw/config/misc/bash_profile* and
+write:
+
+.. code-block:: bash
+
+   MNG_IP=192.168.200.203
+   export MANAGER_REFERENCE=corbaloc::$MNG_IP:3000/Manager
+
+
 Logging
 =======
 There are three log files you have to take care of:
 
 * *~/.suricate/logs/suricate.log*: user log file, with main information
 * *~/.suricate/logs/apscheduler.log*: apscheduler debug file
-* */tmp/suricate.log*: service log file
+* */tmp/suricate_service_dbg.log*: service log file
