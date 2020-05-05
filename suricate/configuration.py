@@ -51,6 +51,8 @@ default_config = {
         'port': 5000,  # Web app port
         'baseurl': 'http://127.0.0.1',  # Web app URL
     },
+
+    'RUN_ON_MANAGER_HOST': True
 }
 
 
