@@ -46,8 +46,18 @@ point:
    $ sudo service redis restart
 
 
-Public SSH key authentication with manager host
------------------------------------------------
+Run Suricate from remote
+------------------------
+In case Suricate has not been installed on the machine running
+the manager, you need to export the manager reference. On the
+Suricate machine, open */discos-sw/config/misc/bash_profile* and
+write:
+
+.. code-block:: bash
+
+   MNG_IP=192.168.200.203
+   export MANAGER_REFERENCE=corbaloc::$MNG_IP:3000/Manager
+
 Upload your public SSH key to the manager host:
 
 .. code-block:: bash
@@ -71,6 +81,9 @@ Now login to the manager host via SSH and answer ``yes``:
    $ ssh discos@discos-manager
              ...
    Are you sure you want to continue connecting (yes/no)?
+
+.. note:: In the configuration file need to set the ``RUN_ON_MANAGER_HOST:
+   False``. Next section explains how to create a configuration file.
 
 You are now ready to install and use Suricate.
 
@@ -121,19 +134,6 @@ To uninstall Suricate:
 .. code-block:: shell
 
    $ sudo pip uninstall suricate
-
-
-Export the ACS manager reference
-================================
-In case Suricate has not been installed on the machine running
-the manager, you need to export the manager reference. On the
-Suricate machine, open */discos-sw/config/misc/bash_profile* and
-write:
-
-.. code-block:: bash
-
-   MNG_IP=192.168.200.203
-   export MANAGER_REFERENCE=corbaloc::$MNG_IP:3000/Manager
 
 
 Logging

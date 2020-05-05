@@ -82,7 +82,7 @@ For instance, on Linux CentOS:
 Use your client to get the antenna parameters
 ---------------------------------------------
 To get the antenna parameters you have to connect your client
-to the Redis server.  Server IP and port are ``192.168.200.207``
+to the Redis server.  Server IP and port are ``192.168.200.203``
 and ``6379``. That is not enough, because you need to understand
 how your client works. These instructions should be
 provided by your Redis client documentation. Let's see two examples,
@@ -101,7 +101,7 @@ Let's see how to get the ``rawAzimuth`` from a Python shell:
 .. code-block:: python
 
    >>> from redis import StrictRedis # Import the redis client
-   >>> r = StrictRedis(host='192.168.10.207', port=6379)  # Connect to server
+   >>> r = StrictRedis(host='192.168.200.203', port=6379)  # Connect to server
    >>> r.hgetall('ANTENNA/Boss/rawAzimuth')  # Ask for the rawAzimuth parameter
    {
      'units': 'radians', 'timestamp': '2019-12-18 12:52:04.206445',
@@ -231,7 +231,7 @@ for different requests:
 
    >>> import time
    >>> import redis
-   >>> r = redis.StrictRedis(host='192.168.10.207', port=6379)
+   >>> r = redis.StrictRedis(host='192.168.200.203', port=6379)
    ...     print(r.hgetall('ANTENNA/Boss/rawAzimuth')['timestamp'])
    ...     time.sleep(0.2)  # 200ms
    ...
@@ -255,7 +255,7 @@ to the ``ANTENNA/Boss/rawAzimuth`` channel:
 .. code-block:: python
 
    >>> import redis
-   >>> r = redis.StrictRedis(host='192.168.10.207', port=6379)
+   >>> r = redis.StrictRedis(host='192.168.200.203', port=6379)
    >>> pubsub = r.pubsub()
    >>> pubsub.subscribe('ANTENNA/Boss/rawAzimuth')
 
