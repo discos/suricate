@@ -131,11 +131,20 @@ COMPONENTS:
       description: "wind peak catched on the last 5 seconds"
 
 HTTP:
+  # Base URL and port of the API
   baseurl: http://127.0.0.1
   port: 5000
 
 SCHEDULER:
-  reschedule_error_interval: 45
+  # A job called rescheduler is in charge of rescheduling jobs, in order
+  # to slow them down in case of errors (for instance, when the container
+  # is not running). This job is executed every 'reschedule_interval' seconds.
   reschedule_interval: 15
+  # In case a job fails because of errors, it will be rescheduled to be
+  # executed every 'reschedule_error_interval' seconds.  The proper
+  # sampling time will be restored when no more errors occur.
+  reschedule_error_interval: 45
 
+# Set this parameter to False if you are running Suricate on a machine that
+# is not hosting the manager. Remember to export the manager reference.
 RUN_ON_MANAGER_HOST: True
