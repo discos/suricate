@@ -36,15 +36,14 @@ The client has to check the status of the command by executing
 
     GET /cmd/getTpi
 
-
-The response to this request gives the client a JSON file containing
+The response to this request gives the client a JSON data containing
 all information about the command: whether it is still in execution or
 terminated, the starting time, the total time of execution, the result in
 case it is terminated (in that case the number of TPIs), possible parameters,
 errors, etc.
 
 In case a command takes some parameters, they have to be
-included in the JSON file sent by the POST request.
+included in the JSON data sent by the POST request.
 
 It is not possible to have multiple ``Scheduler.cmd('cmd-name')`` in execution at
 the same time.  For instance, let's suppose to send a POST request for the ``getTpi`` command and
@@ -66,6 +65,18 @@ send a DELETE request::
    DELETE /cmd
 
 This one will call ``Scheduler.cmd('abort')``.
+
+To get the list of commands from date x to date y::
+
+   GET /cmds/<x>/<y>
+
+To get the list of the last N commands::
+
+   GET /cmds/<N>/
+
+.. note:: It is possible to create new commands, combining some scheduler
+   commands.  For instance, if you want to set the proper tpi, you can
+   call a custom command that gets the TPIs and set the proper dB values.
 
 
 .. _antenna_parameters:
