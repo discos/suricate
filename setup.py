@@ -57,6 +57,7 @@ setup(
         'requests',
         'redis==3.3.8',
         'apscheduler==3.6.1',
+        'MarkupSafe==1.1.1',
         'Jinja2==2.11.1',
         'flask==1.1.1',
         'pyyaml',
