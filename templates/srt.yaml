@@ -1,5 +1,10 @@
 COMPONENTS:
 
+  # startup_delay: after getting the component, the job waits startup_delay
+  # seconds before asking for the attributes (properties and methods)
+  #
+  # container: the container that runs the component
+
   ANTENNA/Boss:
     startup_delay: 10
     container: AntennaBossContainer
