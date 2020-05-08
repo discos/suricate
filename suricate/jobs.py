@@ -15,11 +15,12 @@ logger = logging.getLogger('suricate')
 r = redis.StrictRedis()
 
 
-def acs_publisher(channel, component, attribute, units='', description=''):
+def acs_publisher(channel, component, attribute, timer, units='', description=''):
     """Get the component reference and a property as a dict object."""
     data_dict = {
         'value': '',
         'error': '',
+        'timer': timer,
         'units': units,
         'description': description,
         'timestamp': str(datetime.utcnow()),

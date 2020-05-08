@@ -116,12 +116,14 @@ class Publisher(object):
 
             for prop in properties:
                 attr_name = prop['name']
+                timer = prop['timer']
                 units = prop.get('units', '')
                 description = prop.get('description', '')
                 if component_name in self.unavailable_components:
                     self._set_attr_error(
                         component_name,
                         attr_name,
+                        timer,
                         units,
                         description,
                         error_message
@@ -131,7 +133,7 @@ class Publisher(object):
                         pjobs_args.append((
                             c,
                             attr_name,
-                            prop['timer'],
+                            timer,
                             units,
                             description
                         ))
@@ -140,12 +142,14 @@ class Publisher(object):
 
             for method in methods:
                 attr_name = method['name']
+                timer = method['timer']
                 units = method.get('units', '')
                 description = method.get('description', '')
                 if component_name in self.unavailable_components:
                     self._set_attr_error(
                         component_name,
                         attr_name,
+                        timer,
                         units,
                         description,
                         error_message
@@ -155,7 +159,7 @@ class Publisher(object):
                         mjobs_args.append((
                             c,
                             attr_name,
-                            method['timer'],
+                            timer,
                             units,
                             description
                         ))
@@ -244,7 +248,7 @@ class Publisher(object):
                     seconds=config['SCHEDULER']['reschedule_error_interval']
                 )
 
-            channel, old_component_ref, attribute, units, description  = job.args
+            channel, old_component_ref, attribute, timer, units, description  = job.args
             import suricate.component
             # If the component is available, we pass its reference to the job
             # and we restore the original job heartbeat
@@ -254,7 +258,7 @@ class Publisher(object):
                     old_component_ref.container,
                     old_component_ref.startup_delay
                 )
-                args = channel, component_ref, attribute, units, description
+                args = channel, component_ref, attribute, timer, units, description
                 Publisher.s.modify_job(job_id, args=args)
             except CannotGetComponentError:
                 pass  # Do nothing
@@ -277,12 +281,14 @@ class Publisher(object):
             self,
             component_name,
             attribute,
+            timer,
             units,
             description,
             message):
         data_dict = {
             'error': message,
             'value': '',
+            'timer': timer,
             'units': units,
             'description': description,
             'timestamp': str(datetime.datetime.utcnow())
