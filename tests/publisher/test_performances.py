@@ -21,7 +21,7 @@ def test_get_all_messages(components, scheduler, pubsub):
             scheduler.add_attribute_job(
                 component,
                 prop,
-                seconds=interval_time,
+                timer=interval_time,
                 channel='test/%s/%s' % (component.name, prop))
 
     t0 = datetime.datetime.now()

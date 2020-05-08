@@ -34,8 +34,8 @@ def create_job():
         component = request.json.get('component')
         attribute = request.json.get('attribute')
         timer = request.json.get('timer')
-        description = request.json.get('description', '')
         units = request.json.get('units', '')
+        description = request.json.get('description', '')
         type_ = request.json.get('type', 'property')
         types = 'properties' if type_ == 'property' else 'methods'
 

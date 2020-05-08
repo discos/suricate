@@ -1,6 +1,6 @@
 """Example: 
    
-   $ python suricate_gap.py -a WEATHERSTATION/WeatherStation/temperature -s 180
+   $ python suricate_gap.py -a WEATHERSTATION/WeatherStation/temperature -t 180
 
 It write a logfile with the time diffence between two adjacent timestamps.
 """
@@ -20,8 +20,8 @@ parser.add_argument(
     help='Attribute to be monitored'
 )
 parser.add_argument(
-    '-s',
-    '--stime',
+    '-t',
+    '--timer',
     type=int,
     help='Suricate sampling time of the attribute'
 )
@@ -45,12 +45,12 @@ while True:
     if prev_t:
         delta = (t - prev_t).seconds
         elapsed_time = (t - t0).seconds
-        max_allowed_delta = args.stime + 2*time_step
+        max_allowed_delta = args.timer + 2*time_step
         if delta > max_allowed_delta:
             logging.error('delta time is %d seconds' % delta)
         else:
             if t != prev_t:
-                msg = 'Elapsed time: %d seconds' % elapsed_time
+                msg = 'elapsed time: %d seconds' % elapsed_time
                 print(msg)
                 logging.info(msg)
                 t0 = t

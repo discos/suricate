@@ -8,7 +8,7 @@ from suricate.configuration import config
 def test_reload_component(Publisher, component, pubsub):
     """Docstring"""
     Publisher.add_errors_listener()
-    Publisher.s.add_attribute_job(component, 'position', seconds=0.1)
+    Publisher.s.add_attribute_job(component, 'position', timer=0.1)
     component.release()
     Publisher.start()
     message = pubsub.get_data_message(channel='*position')
@@ -22,7 +22,7 @@ def test_reload_component(Publisher, component, pubsub):
 
 def test_publish_error(Publisher, component, pubsub):
     Publisher.add_errors_listener()
-    Publisher.s.add_attribute_job(component, 'wrong_property', seconds=0.1)
+    Publisher.s.add_attribute_job(component, 'wrong_property', timer=0.1)
     Publisher.start()
     message = pubsub.get_data_message(channel='*wrong_property')
     property_ = json.loads(message['data'])

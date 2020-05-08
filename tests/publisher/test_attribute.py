@@ -7,7 +7,7 @@ from suricate.configuration import config
 
 def test_publish_to_default_channel(component, scheduler, pubsub):
     """Publishing to the default channel `namespace/component/attribute"""
-    job = scheduler.add_attribute_job(component, 'position', seconds=0.01)
+    job = scheduler.add_attribute_job(component, 'position', timer=0.01)
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='*position')
     # We expect to get a message from the default channel
@@ -18,7 +18,7 @@ def test_publish_to_default_channel(component, scheduler, pubsub):
 def test_publish_to_custom_channel(component, scheduler, pubsub):
     """Publishing to a custom channel"""
     job = scheduler.add_attribute_job(
-        component, 'position', seconds=0.01, channel='my-channel')
+        component, 'position', timer=0.01, channel='my-channel')
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='my-*')
     assert message['channel'] == 'my-channel'
@@ -28,7 +28,7 @@ def test_set_publish_property_value(component, scheduler, pubsub, redis_client):
     """Verify the job gets and publishes/sets the property value"""
     value = 3
     component.setPosition(value)
-    job = scheduler.add_attribute_job(component, 'position', seconds=0.01)
+    job = scheduler.add_attribute_job(component, 'position', timer=0.01)
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='*position')
     prop = json.loads(message['data'])
@@ -62,11 +62,21 @@ def test_default_unit_and_description(Publisher, pubsub):
     assert prop['units'] == ''
 
 
+def test_timer(Publisher, pubsub):
+    """Positioner00/position set in configuration.py"""
+    p = Publisher(config['COMPONENTS'])
+    p.start()
+    time.sleep(config['SCHEDULER']['reschedule_error_interval']*1.2)
+    message = pubsub.get_data_message(channel='*position')
+    prop = json.loads(message['data'])
+    assert prop['timer'] == 0.1
+
+
 def test_set_publish_property_sequence_value(component, scheduler, pubsub, redis_client):
     """Verify the job gets and publishes/sets the sequence property value"""
     seq1 = (1.1, 2.2, 3.3, 4.4)
     component.setSequence(seq1)
-    job = scheduler.add_attribute_job(component, 'seq', seconds=0.01)
+    job = scheduler.add_attribute_job(component, 'seq', timer=0.01)
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='*seq')
     prop = json.loads(message['data'])
@@ -83,7 +93,7 @@ def test_set_publish_method_value(component, scheduler, pubsub, redis_client):
     """Verify the job gets and publishes/sets the method value"""
     value = 3
     component.setPosition(value)
-    job = scheduler.add_attribute_job(component, 'getPosition', seconds=0.01)
+    job = scheduler.add_attribute_job(component, 'getPosition', timer=0.01)
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='*getPosition')
     prop = json.loads(message['data'])
@@ -99,7 +109,7 @@ def test_set_publish_method_sequence_value(component, scheduler, pubsub, redis_c
     """Verify the job gets and publishes/sets the sequence method value"""
     seq1 = (1.1, 2.2, 3.3, 4.4)
     component.setSequence(seq1)
-    job = scheduler.add_attribute_job(component, 'getSequence', seconds=0.01)
+    job = scheduler.add_attribute_job(component, 'getSequence', timer=0.01)
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='*getSequence')
     prop = json.loads(message['data'])
@@ -113,7 +123,7 @@ def test_set_publish_method_sequence_value(component, scheduler, pubsub, redis_c
 
 
 def test_wrong_property_name(component, scheduler, pubsub):
-    job = scheduler.add_attribute_job(component, 'wrong', seconds=0.01)
+    job = scheduler.add_attribute_job(component, 'wrong', timer=0.01)
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='*wrong')
     prop = json.loads(message['data'])
@@ -123,7 +133,7 @@ def test_wrong_property_name(component, scheduler, pubsub):
 
 def test_broken_reference(component, scheduler, pubsub):
     component.release()
-    job = scheduler.add_attribute_job(component, 'position', seconds=0.01)
+    job = scheduler.add_attribute_job(component, 'position', timer=0.01)
     scheduler.wait_until_executed(job)
     message = pubsub.get_data_message(channel='*position')
     prop = json.loads(message['data'])
@@ -141,7 +151,7 @@ def test_set_property_value(component, scheduler, pubsub):
     """Verify the job gets and publishes the property value"""
     value = 3.0
     component.setPosition(value)  # Set the position property to 3
-    job = scheduler.add_attribute_job(component, 'position', seconds=0.01)
+    job = scheduler.add_attribute_job(component, 'position', timer=0.01)
     scheduler.wait_until_executed(job)
     pubsub.get_data_message(channel='*position')  # Wait the data to be ready
     msg = pubsub._redis.hgetall(job.id)  # The value is currently set
