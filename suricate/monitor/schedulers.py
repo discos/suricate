@@ -1,7 +1,7 @@
 import redis
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from suricate import jobs
+from suricate.monitor import jobs
 
 
 __all__ = ['Scheduler']

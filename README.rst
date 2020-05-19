@@ -11,4 +11,4 @@ Suricate
 Suricate allows GUIs, RFI checkers, receiver monitors, backends and meteo services
 to know some antenna parameters like the current azimuth and elevation, device
 temperatures, configurations, LO frequencies and so forth.
-To use Suricate look at the `documentation <https://suricate.readthedocs.org>`_.
+To use Suricate look at the `documentation <https://suricate.readthedocs.io>`_.

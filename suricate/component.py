@@ -1,11 +1,9 @@
-import logging
 import redis
 import suricate.services
 from datetime import datetime, timedelta
 from suricate.errors import CannotGetComponentError
 
 
-logger = logging.getLogger('suricate')
 r = redis.StrictRedis()
 # Remove old status keys from the DB
 for key in r.scan_iter("*"):

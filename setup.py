@@ -1,12 +1,7 @@
 import os
 from shutil import copyfile
-
-try:
-    from setuptools import setup
-    from setuptools.command.install import install
-except ImportError:
-    from distutils.core import setup
-    from distutils.command.install import install
+from setuptools import setup, find_packages
+from setuptools.command.install import install
 
 from suricate.paths import (
     suricate_dir,
@@ -43,13 +38,13 @@ for file_name in os.listdir('templates'):
 setup(
     name='suricate',
     version='0.1',
-    description='ACS property publisher',
-    packages=['suricate'],
+    description='DISCOS monitor and API',
+    packages=find_packages(include=['suricate', 'suricate.*']),
     py_modules=[],
     author='Marco Buttu',
     author_email="marco.buttu@inaf.it",
     license='GPL',
-    url='https://github.com/marco-buttu/suricate/',
+    url='https://github.com/discos/suricate/',
     keywords='Alma Common Software property publisher',
     scripts=['scripts/suricate-server', 'scripts/suricate-config'],
     platforms='all',
