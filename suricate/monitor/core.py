@@ -7,7 +7,7 @@ import redis
 import json
 from apscheduler import events
 
-from suricate.schedulers import Scheduler
+from suricate.monitor.schedulers import Scheduler
 from suricate.configuration import config
 from suricate.errors import (
     CannotGetComponentError,

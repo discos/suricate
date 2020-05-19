@@ -6,9 +6,9 @@ import time
 import sys
 import socket
 from flask import Flask, jsonify, abort, request
-from suricate.core import Publisher
 from suricate.errors import CannotGetComponentError
 from suricate.configuration import config
+from suricate.monitor.core import Publisher
 
 
 app = Flask(__name__)

@@ -10,11 +10,11 @@ import redis
 from flask.testing import FlaskClient
 
 import suricate.services
-from suricate.core import Publisher as Publisher_
-from suricate.schedulers import Scheduler
 from suricate.errors import CannotGetComponentError
-from suricate.server import app, start_publisher, stop_publisher
 from suricate.configuration import formatter
+from suricate.monitor.core import Publisher as Publisher_
+from suricate.monitor.schedulers import Scheduler
+from suricate.server import app, start_publisher, stop_publisher
 
 from apscheduler.executors.pool import ProcessPoolExecutor, ThreadPoolExecutor
 from apscheduler.schedulers import SchedulerNotRunningError
