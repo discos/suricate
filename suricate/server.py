@@ -9,11 +9,26 @@ from flask import Flask, jsonify, abort, request
 from suricate.errors import CannotGetComponentError
 from suricate.configuration import config
 from suricate.monitor.core import Publisher
+import rq
+from redis import Redis
 
 
 app = Flask(__name__)
+app.task_queue = rq.Queue('discos-api', connection=Redis.from_url('redis://'))
 publisher = None
 logger = logging.getLogger('suricate')
+
+
+@app.route('/cmd/<command>', methods=['GET', 'POST'])
+def execute(command):
+    if request.method == 'POST':
+        job = app.task_queue.enqueue('api.tasks.command', command)
+        job.get_id()
+        job.is_finished
+        return 'OK'
+    else:
+        pass # Get the job_id from DB, ask for the status
+
 
 @app.route('/publisher/api/v0.1/jobs', methods=['GET'])
 def get_jobs():
