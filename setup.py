@@ -55,7 +55,8 @@ setup(
         'MarkupSafe==1.1.1',
         'Jinja2==2.11.1',
         'flask==1.1.1',
-        'pyyaml',
+        'pyyaml==5.1',
+        'rq==1.3.0',
     ],
     classifiers=[
         'Intended Audience :: Alma Common Software users',
