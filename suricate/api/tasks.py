@@ -9,8 +9,8 @@ logger = logging.getLogger('suricate')
 
 def command(line, job_id):
     from suricate.component import Component
-    cmd = Command.query.get(job_id)
     try:
+        cmd = Command.query.get(job_id)
         scheduler = Component(
             name='MANAGEMENT/Gavino',
             container='ManagementContainer',
@@ -28,4 +28,5 @@ def command(line, job_id):
     except AttributeError:
         logger.error("'%s' not found in database" % job_id)
     finally:
+        cmd.delivered = True
         db.session.commit()

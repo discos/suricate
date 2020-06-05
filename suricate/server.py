@@ -11,28 +11,12 @@ from suricate.errors import CannotGetComponentError
 from suricate.configuration import config
 from suricate.monitor.core import Publisher
 from suricate.app import db, app
+from suricate.models import Command
 import rq
 from redis import Redis
-from sqlalchemy import create_engine
 
 publisher = None
 logger = logging.getLogger('suricate')
-
-
-class Command(db.Model):
-    __tablename__ = 'commands'
-
-    id = db.Column(db.String(128), primary_key=True)
-    command = db.Column(db.String(128), nullable=False)
-    stime = db.Column(db.DateTime, nullable=False)
-    etime = db.Column(db.DateTime, nullable=False)
-    complete = db.Column(db.Boolean, default=False)
-    success = db.Column(db.Boolean, default=False)
-    result = db.Column(db.String(128), default='unknown')
-    seconds = db.Column(db.Float, default=0.0)
-
-engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
-Command.metadata.create_all(engine)
 
 
 @app.route('/cmd/<command>', methods=['POST'])
@@ -52,7 +36,7 @@ def post_command(command):
     del response['_sa_instance_state']
     db.session.add(cmd)
     db.session.commit()
-    job = app.cmd_queue.enqueue(
+    job = app.task_queue.enqueue(
         'api.tasks.command',
         args=(command, job_id),
         job_id=job_id,
