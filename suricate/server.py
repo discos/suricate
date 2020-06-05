@@ -5,29 +5,74 @@ import logging
 import time
 import sys
 import socket
-from flask import Flask, jsonify, abort, request
+from datetime import datetime
+from flask import jsonify, abort, request
 from suricate.errors import CannotGetComponentError
 from suricate.configuration import config
 from suricate.monitor.core import Publisher
+from suricate.app import db, app
 import rq
 from redis import Redis
+from sqlalchemy import create_engine
 
-
-app = Flask(__name__)
-app.task_queue = rq.Queue('discos-api', connection=Redis.from_url('redis://'))
 publisher = None
 logger = logging.getLogger('suricate')
 
 
-@app.route('/cmd/<command>', methods=['GET', 'POST'])
-def execute(command):
-    if request.method == 'POST':
-        job = app.task_queue.enqueue('api.tasks.command', command)
-        job.get_id()
-        job.is_finished
-        return 'OK'
+class Command(db.Model):
+    __tablename__ = 'commands'
+
+    id = db.Column(db.String(128), primary_key=True)
+    command = db.Column(db.String(128), nullable=False)
+    stime = db.Column(db.DateTime, nullable=False)
+    etime = db.Column(db.DateTime, nullable=False)
+    complete = db.Column(db.Boolean, default=False)
+    success = db.Column(db.Boolean, default=False)
+    result = db.Column(db.String(128), default='unknown')
+    seconds = db.Column(db.Float, default=0.0)
+
+engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+Command.metadata.create_all(engine)
+
+
+@app.route('/cmd/<command>', methods=['POST'])
+def post_command(command):
+    stime = datetime.utcnow()
+    stimestr = stime.strftime("%Y-%m-%d~%H:%M:%S")
+    job_id = '{}_{}'.format(command, stimestr)
+    cmd = Command(
+        id=job_id,
+        command=command,
+        stime=stime,
+        etime=stime,
+    )
+    # Make the response before committing the command,
+    # otherwise the commit will clean cmd.__dict__
+    response = dict(cmd.__dict__)
+    del response['_sa_instance_state']
+    db.session.add(cmd)
+    db.session.commit()
+    job = app.cmd_queue.enqueue(
+        'api.tasks.command',
+        args=(command, job_id),
+        job_id=job_id,
+    )
+    return jsonify(response)
+
+
+@app.route('/cmd/<cmd_id>', methods=['GET'])
+def get_command(cmd_id):
+    cmd = Command.query.get(cmd_id)
+    if not cmd:
+        response = {
+            'status_code': 404,
+            'error_message': "'%s' not found in database" % cmd_id,
+        }
+        return jsonify(response)
     else:
-        pass # Get the job_id from DB, ask for the status
+        response = cmd.__dict__
+        del response['_sa_instance_state']
+        return jsonify(response)
 
 
 @app.route('/publisher/api/v0.1/jobs', methods=['GET'])
@@ -142,3 +187,8 @@ def start(components=None):
     logger.info('suricate server is starting...')
     start_publisher(components)
     start_webserver()
+
+
+@app.shell_context_processor
+def make_shell_context():
+    return dict(db=db, Command=Command)
