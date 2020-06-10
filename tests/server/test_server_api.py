@@ -40,7 +40,7 @@ def test_get_empty_jobs(client):
 def test_create_jobs_returns_the_job(client):
     """Return the created job"""
     response = client.post(
-        '%s/jobs' %BASE_URL, data=json.dumps(DATA), headers=HEADERS)
+        '%s/jobs' % BASE_URL, data=json.dumps(DATA), headers=HEADERS)
     answer = DATA.copy()
     del answer['type']
     assert json.loads(response.get_data()) == answer
@@ -48,25 +48,25 @@ def test_create_jobs_returns_the_job(client):
 
 def test_create_and_get_jobs(client):
     """GET jobs returns the content of POST jobs."""
-    client.post('%s/jobs' %BASE_URL, data=json.dumps(DATA), headers=HEADERS)
+    client.post('%s/jobs' % BASE_URL, data=json.dumps(DATA), headers=HEADERS)
     response = client.get('%s/jobs' % BASE_URL)
     assert json.loads(response.get_data()) == jobs_from_data
 
 
 def test_create_jobs_invalid_json(client):
     # Do not json.dumps(DATA)
-    response = client.post('%s/jobs' %BASE_URL, data=DATA, headers=HEADERS)
+    response = client.post('%s/jobs' % BASE_URL, data=DATA, headers=HEADERS)
     assert response.status_code == 400
 
 
 def test_create_jobs_empty_json(client):
-    response = client.post('%s/jobs' %BASE_URL, data={})
+    response = client.post('%s/jobs' % BASE_URL, data={})
     assert response.status_code == 400
 
 
 def test_stop(client, monkeypatch):
     monkeypatch.setattr('suricate.server.publisher.shutdown', lambda: None)
-    response = client.post('%s/stop' %BASE_URL)
+    response = client.post('%s/stop' % BASE_URL)
     assert response.get_data() == 'Server stopped :-)'
 
 
@@ -76,6 +76,63 @@ def test_get_configuration(client):
     from suricate.configuration import config
     response_config = json.loads(response.get_data())
     assert response_config == config
+
+
+def test_post_command(client):
+    """Call the server.post_command() method"""
+    cmd = 'getTpi'
+    raw_response = client.post('/cmd/%s' % cmd)
+    response = json.loads(raw_response.get_data())
+    job_id = response['id']
+    assert '_' in job_id
+    assert cmd == job_id.split('_')[0]
+    assert response['command'] == cmd
+    assert response['stime'] == response['etime']
+    assert not response['delivered']
+    assert not response['complete']
+    assert not response['success']
+    assert response['result'] == 'unknown'
+    assert response['seconds'] == 0.0
+
+
+def test_execute_command(client):
+    """Call the api.tasks.command() method"""
+    cmd = 'getTpi'
+    raw_response = client.post('/cmd/%s' % cmd)
+    post_response = json.loads(raw_response.get_data())
+    job_id = post_response['id']
+    # time.sleep(0.5)
+    raw_response = client.get('/cmd/%s' % job_id)
+    get_response = json.loads(raw_response.get_data())
+    assert get_response['command'] == cmd
+    assert get_response['complete']
+    assert get_response['delivered']
+    assert get_response['stime'] >= get_response['etime']
+    assert get_response['success']
+    assert 'getTpi\\\n00)' in get_response['result']
+    assert get_response['seconds'] > 0.0
+
+
+def test_not_success(client):
+    """Scheduler.command() unsuccessful."""
+    cmd = 'wrongCommand'
+    raw_response = client.post('/cmd/%s' % cmd)
+    post_response = json.loads(raw_response.get_data())
+    job_id = post_response['id']
+    # time.sleep(0.5)
+    raw_response = client.get('/cmd/%s' % job_id)
+    get_response = json.loads(raw_response.get_data())
+    assert get_response['command'] == cmd
+    assert get_response['complete']
+    assert get_response['delivered']
+    assert get_response['stime'] >= get_response['etime']
+    assert not get_response['success']
+    assert 'wrongCommand?' in get_response['result']
+    assert get_response['seconds'] > 0.0
+
+
+def _test_command_not_executed(client):
+    """What heppens when the scheduler is not available?"""
 
 
 if __name__ == '__main__':

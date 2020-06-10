@@ -35,7 +35,6 @@ SCHEDULER:
 
 
 
-
 def test_startup_delay(Publisher, redis_client, logger):
     """The component will be active after startup_delay"""
     try:  # Load the user configuration
@@ -61,7 +60,7 @@ def test_startup_delay(Publisher, redis_client, logger):
         message = redis_client.hget('TestNamespace/Positioner03/current', 'error')
         assert message.endswith('startup in progress')
 
-        time.sleep(startup_delay)  # Wait for the startup to terminate
+        time.sleep(startup_delay*1.5)  # Wait for the startup to terminate
 
         message = redis_client.hget('TestNamespace/Positioner00/position', 'error')
         assert not message
