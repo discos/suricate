@@ -8,10 +8,10 @@ logger = logging.getLogger('suricate')
 
 
 def command(line, job_id):
-    from suricate.component import Component
+    import suricate.component
     try:
         cmd = Command.query.get(job_id)
-        scheduler = Component(
+        scheduler = suricate.component.Component(
             name='MANAGEMENT/Gavino',
             container='ManagementContainer',
             startup_delay=0,

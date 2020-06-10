@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from __future__ import with_statement, print_function
+from __future__ import with_statement
 
 import logging
 import time
@@ -12,6 +12,7 @@ from suricate.configuration import config
 from suricate.monitor.core import Publisher
 from suricate.app import db, app
 from suricate.models import Command
+from suricate.api import tasks
 import rq
 from redis import Redis
 
@@ -22,22 +23,27 @@ logger = logging.getLogger('suricate')
 @app.route('/cmd/<command>', methods=['POST'])
 def post_command(command):
     stime = datetime.utcnow()
-    stimestr = stime.strftime("%Y-%m-%d~%H:%M:%S")
+    stimestr = stime.strftime("%Y-%m-%d~%H:%M:%S.%f")
     job_id = '{}_{}'.format(command, stimestr)
     cmd = Command(
         id=job_id,
         command=command,
         stime=stime,
         etime=stime,
+        delivered=False,
+        complete=False,
+        success=False,
+        result='unknown',
+        seconds=0.0,
     )
-    # Make the response before committing the command,
-    # otherwise the commit will clean cmd.__dict__
+    # The commit clears cmd.__dict__, that is
+    # why I create the response before the commit.
     response = dict(cmd.__dict__)
     del response['_sa_instance_state']
     db.session.add(cmd)
     db.session.commit()
     job = app.task_queue.enqueue(
-        'api.tasks.command',
+        tasks.command,
         args=(command, job_id),
         job_id=job_id,
     )

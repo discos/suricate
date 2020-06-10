@@ -7,6 +7,7 @@ from pytz import utc
 
 import pytest
 import redis
+import rq
 from flask.testing import FlaskClient
 
 import suricate.services
@@ -14,7 +15,8 @@ from suricate.errors import CannotGetComponentError
 from suricate.configuration import formatter
 from suricate.monitor.core import Publisher as Publisher_
 from suricate.monitor.schedulers import Scheduler
-from suricate.server import app, start_publisher, stop_publisher
+from suricate.server import start_publisher, stop_publisher
+from suricate.app import app
 
 from apscheduler.executors.pool import ProcessPoolExecutor, ThreadPoolExecutor
 from apscheduler.schedulers import SchedulerNotRunningError
@@ -43,6 +45,12 @@ def mock_objects(request, monkeypatch):
         monkeypatch.setattr('suricate.services.get_client_class', lambda: MockACSClient)
         monkeypatch.setattr('suricate.services.is_manager_online', lambda: True)
         monkeypatch.setattr('suricate.services.is_container_online', lambda x: True)
+        app.task_queue = rq.Queue(
+            'discos-api',
+            is_async=False,
+            connection=redis.Redis.from_url('redis://')
+        )
+        monkeypatch.setattr('suricate.app.app', app)
 
 
 @pytest.fixture(autouse=True)
@@ -239,6 +247,15 @@ class MockComponent(object):
             raise CannotGetComponentError('ACS not running')
         else:
             return self._property_value(self._get_seq)
+
+    def command(self, line):
+        cmd = line.strip()
+        if cmd == 'getTpi':
+            return True, 'getTpi\\\n00) 800.3\n01) 750.7'
+        else:
+            if '=' in cmd:
+                cmd = cmd.split('=')[0]
+            return False, '%s? ...' % cmd
 
     def set_property(self, name, value, error_code=0, timestamp=0):
         completion = Completion(error_code, timestamp)
