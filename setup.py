@@ -6,9 +6,9 @@ from setuptools.command.install import install
 from suricate.paths import (
     suricate_dir,
     config_dir,
-    config_file,
     log_dir,
     template_dir,
+    database_dir,
 )
 
 
@@ -26,6 +26,10 @@ except OSError:
     pass  # The directory already exists
 try:
     os.mkdir(template_dir)
+except OSError:
+    pass  # The directory already exists
+try:
+    os.mkdir(database_dir)
 except OSError:
     pass  # The directory already exists
 

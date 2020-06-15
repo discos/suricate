@@ -2,67 +2,19 @@
 from __future__ import with_statement
 
 import logging
-import time
 import sys
 import socket
-from datetime import datetime
 from flask import jsonify, abort, request
-from suricate.errors import CannotGetComponentError
-from suricate.configuration import config
-from suricate.monitor.core import Publisher
-from suricate.app import db, app
-from suricate.models import Command
-from suricate.api import tasks
-import rq
-from redis import Redis
+from flask_migrate import Migrate
+from configuration import config
+from monitor.core import Publisher
+from api import tasks, create_app, db
+from api.models import Command
 
 publisher = None
 logger = logging.getLogger('suricate')
-
-
-@app.route('/cmd/<command>', methods=['POST'])
-def post_command(command):
-    stime = datetime.utcnow()
-    stimestr = stime.strftime("%Y-%m-%d~%H:%M:%S.%f")
-    job_id = '{}_{}'.format(command, stimestr)
-    cmd = Command(
-        id=job_id,
-        command=command,
-        stime=stime,
-        etime=stime,
-        delivered=False,
-        complete=False,
-        success=False,
-        result='unknown',
-        seconds=0.0,
-    )
-    # The commit clears cmd.__dict__, that is
-    # why I create the response before the commit.
-    response = dict(cmd.__dict__)
-    del response['_sa_instance_state']
-    db.session.add(cmd)
-    db.session.commit()
-    job = app.task_queue.enqueue(
-        tasks.command,
-        args=(command, job_id),
-        job_id=job_id,
-    )
-    return jsonify(response)
-
-
-@app.route('/cmd/<cmd_id>', methods=['GET'])
-def get_command(cmd_id):
-    cmd = Command.query.get(cmd_id)
-    if not cmd:
-        response = {
-            'status_code': 404,
-            'error_message': "'%s' not found in database" % cmd_id,
-        }
-        return jsonify(response)
-    else:
-        response = cmd.__dict__
-        del response['_sa_instance_state']
-        return jsonify(response)
+app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+migrate = Migrate(app, db)
 
 
 @app.route('/publisher/api/v0.1/jobs', methods=['GET'])

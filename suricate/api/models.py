@@ -1,5 +1,6 @@
+from flask import current_app
 from sqlalchemy import create_engine
-from suricate.app import db, app
+from . import db
 
 
 class Command(db.Model):
@@ -24,5 +25,6 @@ class Command(db.Model):
     # How long the task has been executed?
     seconds = db.Column(db.Float, default=0.0)
 
-engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+db_uri = current_app.config.get('SQLALCHEMY_DATABASE_URI')
+engine = create_engine(db_uri)
 Command.metadata.create_all(engine)

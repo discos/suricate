@@ -1,8 +1,8 @@
 import logging
 from datetime import datetime
-from suricate.app import db
-from suricate.server import Command
-from suricate.errors import CannotGetComponentError
+from .models import Command
+from . import db
+from .. errors import CannotGetComponentError
 
 logger = logging.getLogger('suricate')
 
