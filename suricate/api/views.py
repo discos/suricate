@@ -1,11 +1,12 @@
 from datetime import datetime
 from flask import current_app
-from .. import db
-from . import main
-from . import tasks
+from . import db
+from .main import main
+from .tasks import command as task
 from .models import Command
 
-@app.route('/cmd/<command>', methods=['POST'])
+
+@main.route('/cmd/<command>', methods=['POST'])
 def post_command(command):
     stime = datetime.utcnow()
     stimestr = stime.strftime("%Y-%m-%d~%H:%M:%S.%f")
@@ -28,14 +29,14 @@ def post_command(command):
     db.session.add(cmd)
     db.session.commit()
     job = current_app.task_queue.enqueue(
-        tasks.command,
+        task,
         args=(command, job_id),
         job_id=job_id,
     )
     return jsonify(response)
 
 
-@app.route('/cmd/<cmd_id>', methods=['GET'])
+@main.route('/cmd/<cmd_id>', methods=['GET'])
 def get_command(cmd_id):
     cmd = Command.query.get(cmd_id)
     if not cmd:

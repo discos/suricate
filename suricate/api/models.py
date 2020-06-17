@@ -1,5 +1,3 @@
-from flask import current_app
-from sqlalchemy import create_engine
 from . import db
 
 
@@ -25,6 +23,10 @@ class Command(db.Model):
     # How long the task has been executed?
     seconds = db.Column(db.Float, default=0.0)
 
-db_uri = current_app.config.get('SQLALCHEMY_DATABASE_URI')
+
+from flask import current_app
+from sqlalchemy import create_engine
+# db_uri = current_app.config.get('SQLALCHEMY_DATABASE_URI')
+db_uri = 'sqlite://'
 engine = create_engine(db_uri)
 Command.metadata.create_all(engine)

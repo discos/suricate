@@ -1,14 +1,16 @@
 #! /usr/bin/env python
 from __future__ import with_statement
 
-import logging
+import os
 import sys
 import socket
+import logging
 from flask import jsonify, abort, request
 from flask_migrate import Migrate
 from configuration import config
 from monitor.core import Publisher
 from api import tasks, create_app, db
+from api.main import main
 from api.models import Command
 
 publisher = None
@@ -17,7 +19,7 @@ app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 migrate = Migrate(app, db)
 
 
-@app.route('/publisher/api/v0.1/jobs', methods=['GET'])
+@main.route('/publisher/api/v0.1/jobs', methods=['GET'])
 def get_jobs():
     jobs = []
     for j in publisher.s.get_jobs():
@@ -26,7 +28,7 @@ def get_jobs():
     return jsonify({'jobs': jobs})
 
 
-@app.route('/publisher/api/v0.1/jobs', methods=['POST'])
+@main.route('/publisher/api/v0.1/jobs', methods=['POST'])
 def create_job():
     if not request.json:
         abort(400)
@@ -80,12 +82,12 @@ def create_job():
         ), 201
 
 
-@app.route('/publisher/api/v0.1/config', methods=['GET'])
+@main.route('/publisher/api/v0.1/config', methods=['GET'])
 def get_config():
     return jsonify(config)
 
 
-@app.route('/publisher/api/v0.1/stop', methods=['POST'])
+@main.route('/publisher/api/v0.1/stop', methods=['POST'])
 def stop():  # pragma: no cover
     try:
         app_shutdown = request.environ.get('werkzeug.server.shutdown')

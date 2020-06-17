@@ -1,3 +1,4 @@
+import os
 from suricate.paths import  database_dir
 
 
@@ -11,6 +12,8 @@ class Config:
     SURICATE_ADMIN = os.environ.get('SURICATE_ADMIN')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     REDIS_URL = 'redis://'
+    TESTING = False
+    IS_ASYNC_QUEUE = True
 
     @staticmethod
     def init_app(app):
@@ -27,7 +30,9 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or 'sqlite://'
+    IS_ASYNC_QUEUE = False
+    # SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or 'sqlite://'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:////tmp/test.db' 
 
 
 class ProductionConfig(Config):
