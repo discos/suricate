@@ -32,7 +32,7 @@ class TestingConfig(Config):
     TESTING = True
     IS_ASYNC_QUEUE = False
     # SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or 'sqlite://'
-    SQLALCHEMY_DATABASE_URI = 'sqlite:////tmp/test.db' 
+    SQLALCHEMY_DATABASE_URI = 'sqlite://' 
 
 
 class ProductionConfig(Config):

@@ -24,9 +24,9 @@ class Command(db.Model):
     seconds = db.Column(db.Float, default=0.0)
 
 
-from flask import current_app
-from sqlalchemy import create_engine
-# db_uri = current_app.config.get('SQLALCHEMY_DATABASE_URI')
-db_uri = 'sqlite://'
-engine = create_engine(db_uri)
-Command.metadata.create_all(engine)
+# from flask import current_app
+# from sqlalchemy import create_engine
+# # db_uri = current_app.config.get('SQLALCHEMY_DATABASE_URI')
+# db_uri = 'sqlite://'
+# engine = create_engine(db_uri)
+# Command.metadata.create_all(engine)

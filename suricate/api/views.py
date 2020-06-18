@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import current_app
+from flask import current_app, jsonify
 from . import db
 from .main import main
 from .tasks import command as task

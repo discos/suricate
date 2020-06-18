@@ -131,7 +131,7 @@ def test_not_success(client):
     assert get_response['seconds'] > 0.0
 
 
-def _test_command_not_executed(client):
+def test_command_not_executed(client):
     """What heppens when the scheduler is not available?"""
 
 

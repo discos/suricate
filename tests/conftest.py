@@ -86,8 +86,10 @@ def client():
 
         def __exit__(self, exc_type, exc_value, tb):
             stop_publisher()
+            db.session.commit()
             db.session.remove()
             db.drop_all()
+            db.create_all()
             super(self.__class__, self).__exit__(exc_type, exc_value, tb)
 
     app = create_app('testing')

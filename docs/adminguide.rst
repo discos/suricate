@@ -98,7 +98,7 @@ To install Suricate clone the repository and use ``pip``:
    $ sudo ln -s /alma/ACS-FEB2017/Python/bin/pip /bin/pip
    $ git clone https://github.com/marco-buttu/suricate.git
    $ cd suricate
-   $ sudo pip install .
+   $ sudo -u discos pip install .
    $ sudo cp startup/suricate-server /etc/rc.d/init.d/
    $ sudo chkconfig --add suricate-server
    $ sudo chkconfig suricate-server on
