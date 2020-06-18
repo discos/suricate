@@ -4,12 +4,7 @@ import sys
 import logging
 import yaml
 
-from suricate.paths import (
-    suricate_dir,
-    config_dir,
-    config_file,
-    log_dir,
-)
+from suricate.paths import  config_file, log_dir
 
 
 # --- DEFAULT CONFIGURATION PARAMETERS
@@ -54,6 +49,7 @@ default_config = {
 
     'RUN_ON_MANAGER_HOST': True
 }
+
 
 
 # ---- LOGGING CONFIGURATION

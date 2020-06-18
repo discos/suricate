@@ -8,7 +8,9 @@ from pytz import utc
 import pytest
 import redis
 import rq
+from flask import current_app
 from flask.testing import FlaskClient
+from suricate.api import create_app, db
 
 import suricate.services
 from suricate.errors import CannotGetComponentError
@@ -16,7 +18,6 @@ from suricate.configuration import formatter
 from suricate.monitor.core import Publisher as Publisher_
 from suricate.monitor.schedulers import Scheduler
 from suricate.server import start_publisher, stop_publisher
-from suricate.app import app
 
 from apscheduler.executors.pool import ProcessPoolExecutor, ThreadPoolExecutor
 from apscheduler.schedulers import SchedulerNotRunningError
@@ -45,12 +46,6 @@ def mock_objects(request, monkeypatch):
         monkeypatch.setattr('suricate.services.get_client_class', lambda: MockACSClient)
         monkeypatch.setattr('suricate.services.is_manager_online', lambda: True)
         monkeypatch.setattr('suricate.services.is_container_online', lambda x: True)
-        app.task_queue = rq.Queue(
-            'discos-api',
-            is_async=False,
-            connection=redis.Redis.from_url('redis://')
-        )
-        monkeypatch.setattr('suricate.app.app', app)
 
 
 @pytest.fixture(autouse=True)
@@ -84,14 +79,22 @@ def client():
             super(self.__class__, self).__init__(*args, **kwargs)
 
         def __enter__(self):
+            db.create_all()
             start_publisher()
             super(self.__class__, self).__enter__()
             return self
 
         def __exit__(self, exc_type, exc_value, tb):
             stop_publisher()
+            db.session.commit()
+            db.session.remove()
+            db.drop_all()
+            db.create_all()
             super(self.__class__, self).__exit__(exc_type, exc_value, tb)
 
+    app = create_app('testing')
+    app_context = app.app_context()
+    app_context.push()
     app.test_client_class = AppClient
     with app.test_client() as test_client:
         test_client.testing = True

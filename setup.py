@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 from shutil import copyfile
 from setuptools import setup, find_packages
@@ -6,28 +8,26 @@ from setuptools.command.install import install
 from suricate.paths import (
     suricate_dir,
     config_dir,
-    config_file,
     log_dir,
     template_dir,
+    database_dir,
 )
 
+directories = (
+    suricate_dir,
+    config_dir,
+    log_dir,
+    template_dir,
+    database_dir,
+)
 
-try:
-    os.mkdir(suricate_dir)
-except OSError:
-    pass  # The directory already exists
-try:
-    os.mkdir(config_dir)
-except OSError:
-    pass  # The directory already exists
-try:
-    os.mkdir(log_dir)
-except OSError:
-    pass  # The directory already exists
-try:
-    os.mkdir(template_dir)
-except OSError:
-    pass  # The directory already exists
+for d in directories:
+    try:
+        os.mkdir(d)
+        print('Directory %s created' % d)
+    except OSError, ex:
+        pass # Directory already exists
+
 
 for file_name in os.listdir('templates'):
     source_file = os.path.join('templates', file_name)
