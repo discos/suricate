@@ -24,8 +24,7 @@ def post_command(command):
     )
     # The commit clears cmd.__dict__, that is
     # why I create the response before the commit.
-    response = dict(cmd.__dict__)
-    del response['_sa_instance_state']
+    response = cmd.serialize
     db.session.add(cmd)
     db.session.commit()
     job = current_app.task_queue.enqueue(
@@ -46,6 +45,29 @@ def get_command(cmd_id):
         }
         return jsonify(response)
     else:
-        response = cmd.__dict__
-        del response['_sa_instance_state']
+        return jsonify(cmd.serialize)
+
+
+@main.route('/cmds/<int:N>', methods=['GET'])
+def get_last_commands(N):
+    """Returns the last N commands"""
+    query = Command.query.order_by(Command.stime.desc())
+    cmds = query.limit(N).all()
+    if not cmds:
+        response = {
+            'status_code': 404,
+            'error_message': "the command history list is empty"
+        }
         return jsonify(response)
+    else:
+        return jsonify([c.serialize for c in cmds])
+
+
+@main.route('/cmds/from/<stime>', methods=['GET'])
+def get_commands_from_stime(stime):
+    """Returns all commands from stime until now"""
+
+
+@main.route('/cmds/from/<stime>/to/<etime>', methods=['GET'])
+def get_commands_from_stime_to_etime(stime, etime):
+    """Returns all commands from stime to etime"""

@@ -1,3 +1,4 @@
+import time
 from flask import json, jsonify
 import pytest
 
@@ -43,14 +44,14 @@ def test_create_jobs_returns_the_job(client):
         '%s/jobs' % BASE_URL, data=json.dumps(DATA), headers=HEADERS)
     answer = DATA.copy()
     del answer['type']
-    assert json.loads(response.get_data()) == answer
+    assert response.get_json() == answer
 
 
 def test_create_and_get_jobs(client):
     """GET jobs returns the content of POST jobs."""
     client.post('%s/jobs' % BASE_URL, data=json.dumps(DATA), headers=HEADERS)
     response = client.get('%s/jobs' % BASE_URL)
-    assert json.loads(response.get_data()) == jobs_from_data
+    assert response.get_json() == jobs_from_data
 
 
 def test_create_jobs_invalid_json(client):
@@ -74,7 +75,7 @@ def test_get_configuration(client):
     """Get the running configuration"""
     response = client.get('%s/config' % BASE_URL)
     from suricate.configuration import config
-    response_config = json.loads(response.get_data())
+    response_config = response.get_json()
     assert response_config == config
 
 
@@ -82,7 +83,7 @@ def test_post_command(client):
     """Call the server.post_command() method"""
     cmd = 'getTpi'
     raw_response = client.post('/cmd/%s' % cmd)
-    response = json.loads(raw_response.get_data())
+    response = raw_response.get_json()
     job_id = response['id']
     assert '_' in job_id
     assert cmd == job_id.split('_')[0]
@@ -99,11 +100,11 @@ def test_execute_command(client):
     """Call the api.tasks.command() method"""
     cmd = 'getTpi'
     raw_response = client.post('/cmd/%s' % cmd)
-    post_response = json.loads(raw_response.get_data())
+    post_response = raw_response.get_json()
     job_id = post_response['id']
     # time.sleep(0.5)
     raw_response = client.get('/cmd/%s' % job_id)
-    get_response = json.loads(raw_response.get_data())
+    get_response = raw_response.get_json()
     assert get_response['command'] == cmd
     assert get_response['complete']
     assert get_response['delivered']
@@ -117,11 +118,11 @@ def test_not_success(client):
     """Scheduler.command() unsuccessful."""
     cmd = 'wrongCommand'
     raw_response = client.post('/cmd/%s' % cmd)
-    post_response = json.loads(raw_response.get_data())
+    post_response = raw_response.get_json()
     job_id = post_response['id']
     # time.sleep(0.5)
     raw_response = client.get('/cmd/%s' % job_id)
-    get_response = json.loads(raw_response.get_data())
+    get_response = raw_response.get_json()
     assert get_response['command'] == cmd
     assert get_response['complete']
     assert get_response['delivered']
@@ -129,6 +130,25 @@ def test_not_success(client):
     assert not get_response['success']
     assert 'wrongCommand?' in get_response['result']
     assert get_response['seconds'] > 0.0
+
+
+def test_get_last_commands(client):
+    """Get the last N executed commands.
+    This test checks also the case of GET /cmds/N"""
+    client.post('/cmd/getTpi')
+    time.sleep(0.01)
+    client.post('/cmd/foo')
+    time.sleep(0.01)
+    client.post('/cmd/getTpi')
+    time.sleep(0.01)
+    raw_response = client.get('/cmds/10')
+    response = raw_response.get_json()
+    assert len(response) == 3
+    assert response[1]['command'] == 'foo'
+    raw_response = client.get('/cmds/2')
+    response = raw_response.get_json()
+    assert len(response) == 2
+    assert response[0]['command'] == 'getTpi'
 
 
 def test_command_not_executed(client):

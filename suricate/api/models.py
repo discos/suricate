@@ -23,6 +23,23 @@ class Command(db.Model):
     # How long the task has been executed?
     seconds = db.Column(db.Float, default=0.0)
 
+    def __repr__(self):
+        return '<Command {}>'.format(self.id)
+
+    def get_stime(self, format_="%Y-%m-%d~%H:%M:%S.%f"):
+        return self.stime.strftime(format_)
+
+    def get_etime(self, format_="%Y-%m-%d~%H:%M:%S.%f"):
+        return self.stime.strftime(format_)
+
+    @property
+    def serialize(self):
+        obj_dict = dict(self.__dict__)
+        del obj_dict['_sa_instance_state']
+        obj_dict['stime'] = self.get_stime()
+        obj_dict['etime'] = self.get_etime()
+        return obj_dict
+
 
 # from flask import current_app
 # from sqlalchemy import create_engine

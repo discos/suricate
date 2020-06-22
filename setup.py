@@ -59,6 +59,7 @@ setup(
         'Flask-Migrate==2.5.3',
         'pyyaml==5.1',
         'rq==1.3.0',
+        'flask-shell-ipython',
         'python-dotenv',
         'requests',
     ],
