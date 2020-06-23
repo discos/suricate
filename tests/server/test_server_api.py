@@ -1,6 +1,8 @@
 import time
+from datetime import datetime
 from flask import json, jsonify
 import pytest
+from suricate.configuration import dt_format
 
 
 BASE_URL = '/publisher/api/v0.1'
@@ -108,7 +110,7 @@ def test_execute_command(client):
     assert get_response['command'] == cmd
     assert get_response['complete']
     assert get_response['delivered']
-    assert get_response['stime'] >= get_response['etime']
+    assert get_response['stime'] <= get_response['etime']
     assert get_response['success']
     assert 'getTpi\\\n00)' in get_response['result']
     assert get_response['seconds'] > 0.0
@@ -126,7 +128,7 @@ def test_not_success(client):
     assert get_response['command'] == cmd
     assert get_response['complete']
     assert get_response['delivered']
-    assert get_response['stime'] >= get_response['etime']
+    assert get_response['stime'] <= get_response['etime']
     assert not get_response['success']
     assert 'wrongCommand?' in get_response['result']
     assert get_response['seconds'] > 0.0
@@ -135,7 +137,7 @@ def test_not_success(client):
 def test_get_last_commands(client):
     """Get the last N executed commands.
     This test checks also the case of GET /cmds/N"""
-    client.post('/cmd/getTpi')
+    client.post('/cmd/moo')
     time.sleep(0.01)
     client.post('/cmd/foo')
     time.sleep(0.01)
@@ -144,11 +146,82 @@ def test_get_last_commands(client):
     raw_response = client.get('/cmds/10')
     response = raw_response.get_json()
     assert len(response) == 3
-    assert response[1]['command'] == 'foo'
+    assert response[2]['command'] == 'moo'
     raw_response = client.get('/cmds/2')
     response = raw_response.get_json()
     assert len(response) == 2
     assert response[0]['command'] == 'getTpi'
+
+
+def test_get_last_default_commands(client):
+    """Without N, GET /cmds returns the last 10 commands"""
+    for i in range(15):
+        client.post('/cmd/foo')
+    time.sleep(0.01)
+    raw_response = client.get('/cmds')
+    response = raw_response.get_json()
+    assert len(response) == 10
+
+
+def test_empty_commands_history(client):
+    raw_response = client.get('/cmds')
+    response = raw_response.get_json()
+    assert response['status_code'] == 404
+    assert response['error_message'] == 'empty command history'
+
+
+def test_get_commands_from_datetimex(client):
+    """Get all commands from datetime dtx until now"""
+    client.post('/cmd/command_1')
+    time.sleep(0.01)
+    raw_response = client.post('/cmd/command_2')
+    post_response = raw_response.get_json()
+    dtx = post_response['stime']
+    client.post('/cmd/command_3')
+    client.post('/cmd/command_4')
+    time.sleep(0.1)
+    raw_response = client.get('/cmds')
+    response = raw_response.get_json()
+    assert len(response) == 4
+    raw_response = client.get('/cmds/from/%s' % dtx)
+    response = raw_response.get_json()
+    assert len(response) == 3
+
+
+def test_get_commands_from_invalid_datetimex(client):
+    """Test invalid datetime format in GET /cmds/from/dtx"""
+    raw_response = client.get('/cmds/from/wrong_dtx')
+    response = raw_response.get_json()
+    assert response['status_code'] == 400
+    assert response['error_message'] == 'invalid datetime format'
+
+
+def test_get_commands_from_datetimex_to_datetimey(client):
+    """Get all commands from datetime dtx to dty"""
+    client.post('/cmd/command_1')
+    time.sleep(0.01)
+    raw_response = client.post('/cmd/command_2')
+    post_response = raw_response.get_json()
+    dtx = post_response['stime']
+    raw_response = client.post('/cmd/command_3')
+    post_response = raw_response.get_json()
+    dty = post_response['stime']
+    client.post('/cmd/command_4')  # cmd n.4
+    time.sleep(0.1)
+    raw_response = client.get('/cmds')
+    response = raw_response.get_json()
+    assert len(response) == 4
+    raw_response = client.get('/cmds/from/%s/to/%s' % (dtx, dty))
+    response = raw_response.get_json()
+    assert len(response) == 2
+
+
+def test_get_commands_from_invalid_datetimex_to_datetimey(client):
+    """Test invalid datetime format in GET /cmds/from/dtx/to/dty"""
+    raw_response = client.get('/cmds/from/wrong_dtx/to/wrong_dty')
+    response = raw_response.get_json()
+    assert response['status_code'] == 400
+    assert response['error_message'] == 'invalid datetime format'
 
 
 def test_command_not_executed(client):

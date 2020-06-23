@@ -1,4 +1,5 @@
 from . import db
+from ..configuration import dt_format
 
 
 class Command(db.Model):
@@ -26,11 +27,11 @@ class Command(db.Model):
     def __repr__(self):
         return '<Command {}>'.format(self.id)
 
-    def get_stime(self, format_="%Y-%m-%d~%H:%M:%S.%f"):
-        return self.stime.strftime(format_)
+    def get_stime(self, dt_format=dt_format):
+        return self.stime.strftime(dt_format)
 
-    def get_etime(self, format_="%Y-%m-%d~%H:%M:%S.%f"):
-        return self.stime.strftime(format_)
+    def get_etime(self, dt_format=dt_format):
+        return self.etime.strftime(dt_format)
 
     @property
     def serialize(self):
