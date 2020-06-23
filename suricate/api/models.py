@@ -1,4 +1,5 @@
 from . import db
+from ..configuration import dt_format
 
 
 class Command(db.Model):
@@ -22,6 +23,23 @@ class Command(db.Model):
     result = db.Column(db.String(128), default='unknown')
     # How long the task has been executed?
     seconds = db.Column(db.Float, default=0.0)
+
+    def __repr__(self):
+        return '<Command {}>'.format(self.id)
+
+    def get_stime(self, dt_format=dt_format):
+        return self.stime.strftime(dt_format)
+
+    def get_etime(self, dt_format=dt_format):
+        return self.etime.strftime(dt_format)
+
+    @property
+    def serialize(self):
+        obj_dict = dict(self.__dict__)
+        del obj_dict['_sa_instance_state']
+        obj_dict['stime'] = self.get_stime()
+        obj_dict['etime'] = self.get_etime()
+        return obj_dict
 
 
 # from flask import current_app

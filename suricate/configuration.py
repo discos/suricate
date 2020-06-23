@@ -51,6 +51,9 @@ default_config = {
 }
 
 
+# Datetime string format
+dt_format = "%Y-%m-%d~%H:%M:%S.%f"
+
 
 # ---- LOGGING CONFIGURATION
 formatter = logging.Formatter(

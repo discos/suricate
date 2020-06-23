@@ -4,6 +4,7 @@ from . import db
 from .main import main
 from .tasks import command as task
 from .models import Command
+from ..configuration import dt_format
 
 
 @main.route('/cmd/<command>', methods=['POST'])
@@ -24,8 +25,7 @@ def post_command(command):
     )
     # The commit clears cmd.__dict__, that is
     # why I create the response before the commit.
-    response = dict(cmd.__dict__)
-    del response['_sa_instance_state']
+    response = cmd.serialize
     db.session.add(cmd)
     db.session.commit()
     job = current_app.task_queue.enqueue(
@@ -46,6 +46,78 @@ def get_command(cmd_id):
         }
         return jsonify(response)
     else:
-        response = cmd.__dict__
-        del response['_sa_instance_state']
+        return jsonify(cmd.serialize)
+
+
+@main.route('/cmds/<int:N>', methods=['GET'])
+def get_last_commands(N):
+    """Returns the last N commands"""
+    query = Command.query.order_by(Command.stime.desc())
+    cmds = query.limit(N).all()
+    if not cmds:
+        response = {
+            'status_code': 404,
+            'error_message': "empty command history"
+        }
         return jsonify(response)
+    else:
+        return jsonify([c.serialize for c in cmds])
+
+
+@main.route('/cmds', methods=['GET'])
+def get_last_default_commands():
+    """Returns the last N=10 commands"""
+    return get_last_commands(10)
+
+
+@main.route('/cmds/from/<dtx>', methods=['GET'])
+def get_commands_from_datetimex(dtx):
+    """Return all commands from datetime dtx until now"""
+    try:
+        dtx = datetime.strptime(dtx, dt_format)
+        query = Command.query.order_by(Command.stime.desc())
+        cmds = query.filter(Command.stime >= dtx).all()
+    except ValueError:
+        response = {
+            'status_code': 400,  # Bad request
+            'error_message': 'invalid datetime format',
+        }
+        return jsonify(response)
+    if not cmds:
+        response = {
+            'status_code': 404,
+            'error_message': "empty command history"
+        }
+        return jsonify(response)
+    else:
+        return jsonify([c.serialize for c in cmds])
+
+
+@main.route('/cmds/from/<dtx>/to/<dty>', methods=['GET'])
+def get_commands_from_datetimex_to_datetimey(dtx, dty):
+    """Returns all commands from datetime dtx to dty"""
+    try:
+        dtx = datetime.strptime(dtx, dt_format)
+        dty = datetime.strptime(dty, dt_format)
+        query = Command.query.order_by(Command.stime.desc())
+        fquery = query.filter(
+            Command.stime >= dtx,
+            Command.stime <= dty,
+        )
+        cmds = fquery.all()
+    except ValueError:
+        response = {
+            'status_code': 400,  # Bad request
+            'error_message': 'invalid datetime format',
+        }
+        return jsonify(response)
+    if not cmds:
+        response = {
+            'status_code': 404,
+            'error_message': "empty command history"
+        }
+        return jsonify(response)
+    else:
+        return jsonify([c.serialize for c in cmds])
+
+
