@@ -4,14 +4,10 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from suricate.monitor import jobs
 
 
-__all__ = ['Scheduler']
+__all__ = ['Scheduler', 'DBScheduler']
 
 
 class ACSScheduler(BackgroundScheduler):
-    """TODO:
-    - add_method_job: like add_property_job(), but for methods
-    - It should delegate... or proxy
-    """
 
     def add_attribute_job(
             self,
@@ -21,7 +17,6 @@ class ACSScheduler(BackgroundScheduler):
             units='',
             description='',
             channel=''):
-        """TODO: docstring. The component could be a name or an instance"""
         # Job identifier: namespace/component/attribute
         job_id = '/'.join([component_ref.name, attr])
         channel = channel if channel else job_id
@@ -32,6 +27,16 @@ class ACSScheduler(BackgroundScheduler):
             func=publisher,
             args=(channel, component_ref, attr, timer, units, description),
             id=job_id,
+            trigger='interval',
+            seconds=timer)
+
+
+class DBScheduler(BackgroundScheduler):
+
+    def add_attribute_job(self, attribute_name, timer):
+        return super(ACSScheduler, self).add_job(
+            func=jobs.dbfiller,
+            args=(attribute_name,),
             trigger='interval',
             seconds=timer)
 

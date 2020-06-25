@@ -2,13 +2,15 @@ import json
 import logging
 from datetime import datetime
 
-import redis
 import suricate.services
-from suricate.errors import (
+from ..api import db
+from ..api.models import Attribute
+from ..errors import (
     CannotGetComponentError,
     ComponentAttributeError,
     ACSNotRunningError,
 )
+import redis
 
 
 logger = logging.getLogger('suricate')
@@ -122,3 +124,27 @@ def acs_publisher(channel, component, attribute, timer, units='', description=''
         healthy_job_key = 'healthy_job:%s' % channel
         if not r.set(healthy_job_key, 1):
             logger.error('cannot set %s' % healthy_job_key)
+
+
+
+def dbfiller(attribute_name):
+    data = r.hgetall(attribute_name)
+    try:
+        query = Command.query.filter(Attribute.name == 'timestamp')
+        dbfirst = query.order_by(Attribute.timestamp.desc()).first()
+        dbf_timestamp = datetime.strptime(dbfirst.timestamp, dt_format)
+        redis_timestamp = datetime.strptime(data['timestamp'], dt_format)
+        if redis_timestamp > dbf_timestamp:
+            if not data['error'] or data['error'] != dbfirst.error:
+                attr = Attribute(
+                    name=attribute_name,
+                    units=data['units'],
+                    timestamp=data['timestamp'],
+                    description=data['description'],
+                    value=data['value'],
+                    error=data['error'],
+                )
+                db.session.add(attr)
+                db.session.commit()
+    except (KeyError, TypeError), ex:
+        pass # logger.error('cannot save %s on DB' % attribute_name)

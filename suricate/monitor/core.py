@@ -7,9 +7,12 @@ import redis
 import json
 from apscheduler import events
 
-from suricate.monitor.schedulers import Scheduler
-from suricate.configuration import config
-from suricate.errors import (
+from .schedulers import (
+    Scheduler,
+    DBScheduler,
+)
+from ..configuration import config
+from ..errors import (
     CannotGetComponentError,
     ComponentAttributeError,
     ACSNotRunningError,
@@ -23,9 +26,11 @@ r = redis.StrictRedis()
 class Publisher(object):
 
     s = Scheduler()
+    db_scheduler = DBScheduler()
 
     def __init__(self, *args):
         self.unavailable_components = {}
+        self.dbkeys = []
         r.delete('components')
         if len(args) == 0:
             pass
@@ -41,6 +46,14 @@ class Publisher(object):
             id='rescheduler',
             trigger='interval',
             seconds=config['SCHEDULER']['reschedule_interval']
+        )
+
+        self.db_scheduler.add_job(
+            func=self.db_scheduler_job,
+            args=(),
+            id='db_scheduler_job',
+            trigger='interval',
+            seconds=config['SCHEDULER']['db_scheduler_job']
         )
 
     def add_jobs(self, config):
@@ -171,6 +184,23 @@ class Publisher(object):
 
         for met in mjobs_args:
             self.s.add_attribute_job(*met)
+
+
+    def db_scheduler_job(self):
+        """Get all keys from redis and look for the attributes."""
+        for key in r.scan_iter("*"):
+            if key.startswith('_'):
+                continue
+            elif key.count('/') != 2:
+                # Every attribute key has 2 slashes
+                # I.e. ANTENNA/Boss/rawAzimuth
+                continue
+            elif key in self.dbkeys:
+                continue
+            else:
+                self.dbkeys.append(key)
+                timer = r.hget(key, 'timer')
+                self.db_scheduler.add_attribute_job(key, timer)
 
 
     def rescheduler(self):
