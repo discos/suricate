@@ -31,16 +31,6 @@ class ACSScheduler(BackgroundScheduler):
             seconds=timer)
 
 
-class DBScheduler(BackgroundScheduler):
-
-    def add_attribute_job(self, attribute_name, timer):
-        return super(ACSScheduler, self).add_job(
-            func=jobs.dbfiller,
-            args=(attribute_name,),
-            trigger='interval',
-            seconds=timer)
-
-
 # TODO: check the configuration and bind the right scheduler
 Scheduler = ACSScheduler
 publisher = jobs.acs_publisher

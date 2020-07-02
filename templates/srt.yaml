@@ -149,6 +149,11 @@ SCHEDULER:
   # save the attribute on a persistent database
   db_scheduler_job: 10
 
+# Configuration database. The name must be a key from the api_config
+# dictionary defined in api/config.py. You can choose one of the following:
+# production, development, testing, default
+DATABASE: production
+
 # Set this parameter to False if you are running Suricate on a machine that
 # is not hosting the manager. Remember to export the manager reference.
 RUN_ON_MANAGER_HOST: True

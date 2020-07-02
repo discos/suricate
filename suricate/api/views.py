@@ -119,5 +119,3 @@ def get_commands_from_datetimex_to_datetimey(dtx, dty):
         return jsonify(response)
     else:
         return jsonify([c.serialize for c in cmds])
-
-

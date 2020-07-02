@@ -1,16 +1,14 @@
 import sys
 import logging
-import datetime
+from datetime import datetime
 from os.path import join
 
 import redis
 import json
 from apscheduler import events
 
-from .schedulers import (
-    Scheduler,
-    DBScheduler,
-)
+from .jobs import dbfiller
+from .schedulers import Scheduler
 from ..configuration import config
 from ..errors import (
     CannotGetComponentError,
@@ -26,11 +24,9 @@ r = redis.StrictRedis()
 class Publisher(object):
 
     s = Scheduler()
-    db_scheduler = DBScheduler()
 
     def __init__(self, *args):
         self.unavailable_components = {}
-        self.dbkeys = []
         r.delete('components')
         if len(args) == 0:
             pass
@@ -48,13 +44,13 @@ class Publisher(object):
             seconds=config['SCHEDULER']['reschedule_interval']
         )
 
-        self.db_scheduler.add_job(
-            func=self.db_scheduler_job,
-            args=(),
-            id='db_scheduler_job',
-            trigger='interval',
-            seconds=config['SCHEDULER']['db_scheduler_job']
-        )
+        # self.s.add_job(
+        #     func=dbfiller,
+        #     args=(),
+        #     id='db_scheduler_job',
+        #     trigger='interval',
+        #     seconds=config['SCHEDULER']['db_scheduler_job']
+        # )
 
     def add_jobs(self, config):
         """
@@ -186,23 +182,6 @@ class Publisher(object):
             self.s.add_attribute_job(*met)
 
 
-    def db_scheduler_job(self):
-        """Get all keys from redis and look for the attributes."""
-        for key in r.scan_iter("*"):
-            if key.startswith('_'):
-                continue
-            elif key.count('/') != 2:
-                # Every attribute key has 2 slashes
-                # I.e. ANTENNA/Boss/rawAzimuth
-                continue
-            elif key in self.dbkeys:
-                continue
-            else:
-                self.dbkeys.append(key)
-                timer = r.hget(key, 'timer')
-                self.db_scheduler.add_attribute_job(key, timer)
-
-
     def rescheduler(self):
         # Check if unavailable components are now available
         for comp, status in r.hgetall('components').items():
@@ -321,7 +300,7 @@ class Publisher(object):
             'timer': timer,
             'units': units,
             'description': description,
-            'timestamp': str(datetime.datetime.utcnow())
+            'timestamp': str(datetime.utcnow())
         }
         job_id = '%s/%s' % (component_name, attribute)
         if not r.hmset(job_id, data_dict):

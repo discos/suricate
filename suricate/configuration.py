@@ -48,7 +48,10 @@ default_config = {
         'baseurl': 'http://127.0.0.1',  # Web app URL
     },
 
-    'RUN_ON_MANAGER_HOST': True
+    'DATABASE': 'testing',
+
+    'RUN_ON_MANAGER_HOST': True,
+
 }
 
 
@@ -65,7 +68,7 @@ aps_logfile = os.path.join(log_dir, 'apscheduler.log')
 aps_handler = logging.FileHandler(aps_logfile)
 aps_handler.setFormatter(formatter)
 logging.getLogger('apscheduler').addHandler(aps_handler)
-logging.getLogger('apscheduler').setLevel(logging.CRITICAL)
+logging.getLogger('apscheduler').setLevel(logging.ERROR)
 logging.getLogger('apscheduler').propagate = False
 # logging.getLogger('apscheduler.scheduler').propagate = False
 

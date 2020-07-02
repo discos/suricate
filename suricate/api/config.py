@@ -29,10 +29,13 @@ class DevelopmentConfig(Config):
 
 
 class TestingConfig(Config):
+    """Created in test setup, deleted in tear down."""
     TESTING = True
     IS_ASYNC_QUEUE = False
-    # SQLALCHEMY_DATABASE_URI = os.environ.get('TEST_DATABASE_URL') or 'sqlite://'
-    SQLALCHEMY_DATABASE_URI = 'sqlite://' 
+    SQLALCHEMY_DATABASE_URI = (
+        os.environ.get('DEV_DATABASE_URL') or
+        'sqlite:///' + os.path.join(database_dir, 'testing.sqlite')
+    )
 
 
 class ProductionConfig(Config):
@@ -42,6 +45,8 @@ class ProductionConfig(Config):
     )
 
 
+# If you change the keys of this dictionary, you need
+# to change DATABASE comments of the templates (i.e. srt.yaml).
 api_config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,

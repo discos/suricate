@@ -11,7 +11,7 @@ from configuration import config
 from monitor.core import Publisher
 from api import tasks, create_app, db
 from api.main import main
-from api.models import Command
+from api.models import Command, Attribute
 
 publisher = None
 logger = logging.getLogger('suricate')
@@ -135,4 +135,4 @@ def start(components=None):
 
 @app.shell_context_processor
 def make_shell_context():
-    return dict(db=db, Command=Command)
+    return dict(db=db, Command=Command, Attribute=Attribute)
