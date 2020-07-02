@@ -14,7 +14,7 @@ from suricate.api import create_app, db
 
 import suricate.services
 from suricate.errors import CannotGetComponentError
-from suricate.configuration import formatter
+from suricate.configuration import formatter, dt_format
 from suricate.monitor.core import Publisher as Publisher_
 from suricate.monitor.schedulers import Scheduler
 from suricate.server import start_publisher, stop_publisher
@@ -129,8 +129,8 @@ class RedisPubSub(object):
         """Get a message from a redis channel"""
         if channel not in self._pubsub.patterns:
             self._pubsub.psubscribe(channel)
-        max_time = datetime.now() + timedelta(seconds=timeout)
-        while datetime.now() < max_time:
+        max_time = datetime.utcnow() + timedelta(seconds=timeout)
+        while datetime.utcnow() < max_time:
             message = self._pubsub.get_message()
             if message and message['type'] == 'pmessage':
                 return message  # From str to dict
@@ -203,7 +203,10 @@ class MockComponent(object):
         self.startup_delay = int(startup_delay)
         startup_time = datetime.utcnow() + timedelta(seconds=self.startup_delay)
         r = redis.StrictRedis()
-        r.set('__%s/startup_time' % self.name, str(startup_time))
+        r.set(
+            '__%s/startup_time' % self.name,
+            startup_time.strftime(dt_format),
+        )
         for property_ in MockComponent.properties.items():
             self.set_property(*property_)
 
@@ -260,7 +263,13 @@ class MockComponent(object):
                 cmd = cmd.split('=')[0]
             return False, '%s? ...' % cmd
 
-    def set_property(self, name, value, error_code=0, timestamp=0):
+    def set_property(
+            self,
+            name,
+            value,
+            error_code=0,
+            timestamp=138129971470735140L,
+        ):
         completion = Completion(error_code, timestamp)
         property_ = Property(name, value, completion)
         setattr(self, '_get_%s' % name, property_)
@@ -292,7 +301,7 @@ class Property(object):
 
 
 class Completion(object):
-    def __init__(self, code=0, timestamp=0):
+    def __init__(self, code=0, timestamp=138129971470735140L):
         self.code = code
         self.timeStamp = timestamp
 
@@ -384,8 +393,8 @@ def scheduler(request):
     def wait_until_executed(job, n=5):
         """Wait until the job is executed or n*job.trigger.interval.seconds"""
         timeout = n*job.trigger.interval.seconds
-        max_time = datetime.now() + timedelta(seconds=timeout)
-        while datetime.now() < max_time:
+        max_time = datetime.utcnow() + timedelta(seconds=timeout)
+        while datetime.utcnow() < max_time:
             if job.pending:
                 time.sleep(job.trigger.interval.seconds)
 

@@ -8,8 +8,8 @@ import json
 from apscheduler import events
 
 from .jobs import dbfiller
-from .schedulers import Scheduler
-from ..configuration import config
+from .schedulers import Scheduler, DBScheduler
+from ..configuration import config, dt_format
 from ..errors import (
     CannotGetComponentError,
     ComponentAttributeError,
@@ -24,6 +24,7 @@ r = redis.StrictRedis()
 class Publisher(object):
 
     s = Scheduler()
+    db_scheduler = DBScheduler()
 
     def __init__(self, *args):
         self.unavailable_components = {}
@@ -36,6 +37,7 @@ class Publisher(object):
             logger.error('Publisher takes 0 or 1 argument, %d given' % len(args))
 
         Publisher.add_errors_listener()
+
         self.s.add_job(
             func=self.rescheduler,
             args=(),
@@ -44,13 +46,13 @@ class Publisher(object):
             seconds=config['SCHEDULER']['reschedule_interval']
         )
 
-        # self.s.add_job(
-        #     func=dbfiller,
-        #     args=(),
-        #     id='db_scheduler_job',
-        #     trigger='interval',
-        #     seconds=config['SCHEDULER']['db_scheduler_job']
-        # )
+        self.db_scheduler.add_job(
+            func=dbfiller,
+            args=(),
+            id='db_scheduler_job',
+            trigger='interval',
+            seconds=config['SCHEDULER']['db_scheduler_job']
+        )
 
     def add_jobs(self, config):
         """
@@ -257,6 +259,9 @@ class Publisher(object):
                     seconds=config['SCHEDULER']['reschedule_error_interval']
                 )
 
+            if not hasattr(job, 'args'):
+                pass
+
             channel, old_component_ref, attribute, timer, units, description  = job.args
             import suricate.component
             # If the component is available, we pass its reference to the job
@@ -278,6 +283,7 @@ class Publisher(object):
     @classmethod
     def start(cls):
         cls.s.start()
+        cls.db_scheduler.start()
 
     @classmethod
     def shutdown(cls):
@@ -285,6 +291,10 @@ class Publisher(object):
             job.remove()
         cls.s.shutdown(wait=False)
         cls.s = Scheduler()
+        for job in cls.db_scheduler.get_jobs():
+            job.remove()
+        cls.db_scheduler.shutdown(wait=False)
+        cls.db_scheduler = DBScheduler()
 
     def _set_attr_error(
             self,
@@ -300,7 +310,7 @@ class Publisher(object):
             'timer': timer,
             'units': units,
             'description': description,
-            'timestamp': str(datetime.utcnow())
+            'timestamp': datetime.utcnow().strftime(dt_format),
         }
         job_id = '%s/%s' % (component_name, attribute)
         if not r.hmset(job_id, data_dict):

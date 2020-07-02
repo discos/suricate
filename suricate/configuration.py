@@ -40,7 +40,7 @@ default_config = {
     'SCHEDULER': {
         'reschedule_interval': 1,  # Seconds
         'reschedule_error_interval': 2,  # Seconds
-        'db_scheduler_job': 0.1, # Seconds
+        'db_scheduler_job': 2, # Seconds
     },
 
     'HTTP': {

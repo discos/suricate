@@ -31,6 +31,9 @@ HTTP:
 SCHEDULER:
   reschedule_error_interval: 0.4
   reschedule_interval: 0.2
+  db_scheduler_job: 2
+DATABASE: testing
+RUN_ON_MANAGER_HOST: True
 """ % (startup_delay, startup_delay)
 
 
@@ -60,7 +63,7 @@ def test_startup_delay(Publisher, redis_client, logger):
         message = redis_client.hget('TestNamespace/Positioner03/current', 'error')
         assert message.endswith('startup in progress')
 
-        time.sleep(startup_delay*1.5)  # Wait for the startup to terminate
+        time.sleep(startup_delay*5)  # Wait for the startup to terminate
 
         message = redis_client.hget('TestNamespace/Positioner00/position', 'error')
         assert not message
@@ -165,8 +168,6 @@ def test_some_components_not_active_at_startup(Publisher, redis_client):
     finally:
         suricate.component.Component.unavailables = []
         reload(configuration)
-
-
 
 
 if __name__ == '__main__':

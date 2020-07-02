@@ -31,6 +31,10 @@ class ACSScheduler(BackgroundScheduler):
             seconds=timer)
 
 
+class DBScheduler(BackgroundScheduler):
+    """Store the attributes to a database."""
+
+
 # TODO: check the configuration and bind the right scheduler
 Scheduler = ACSScheduler
 publisher = jobs.acs_publisher

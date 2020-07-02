@@ -38,7 +38,7 @@ def acs_publisher(channel, component, attribute, timer, units='', description=''
         with suricate.services.logging_lock:
             startup_time = r.get('__%s/startup_time' % component.name)
             if startup_time:
-                t = datetime.strptime(startup_time, "%Y-%m-%d %H:%M:%S.%f")
+                t = datetime.strptime(startup_time, dt_format)
                 if datetime.utcnow() <= t:
                     message = '%s not ready: startup in progress' % component.name
                     data_dict.update({'error': message})
@@ -77,7 +77,8 @@ def acs_publisher(channel, component, attribute, timer, units='', description=''
                 r.hmset('components', {component.name: 'available'})
                 r.delete('__%s/info' % component.name)
             r.delete('__%s/error' % component.name)
-    except CannotGetComponentError:
+    except CannotGetComponentError, ex:
+        print(ex)
         if not suricate.services.is_manager_online():
             error_message = 'ACS not running'
             key = '__manager/error'
@@ -101,6 +102,7 @@ def acs_publisher(channel, component, attribute, timer, units='', description=''
         r.hmset('components', {component.name: 'unavailable'})
         raise ComponentAttributeError(error_message)
     except Exception, ex:
+        logger.debug(str(ex))
         if not suricate.services.is_manager_online():
             error_message = 'ACS not running'
             key = '__manager/error'
@@ -136,7 +138,10 @@ def dbfiller():
     db_config = config['DATABASE']
     configuration_class = api_config[db_config]
     db_uri = configuration_class.SQLALCHEMY_DATABASE_URI
-    engine = db.create_engine(db_uri)
+    engine = db.create_engine(
+        db_uri,
+        connect_args={'check_same_thread': False},
+    )
     Attribute.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     for key in r.scan_iter("*"):
@@ -150,15 +155,17 @@ def dbfiller():
             continue
         else:
             data = r.hgetall(key)
+            if not data or not 'error' in data:
+                continue
             if data['error'] or not 'timestamp' in data:
                 continue  # Do not store error messages
 
-        redis_timestamp = datetime.strptime(data['timestamp'], dt_format)
+        timestamp = datetime.strptime(data['timestamp'], dt_format)
         attr = Attribute(
-            id='{} @ {}'.format(key, redis_timestamp),
+            id='{} @ {}'.format(key, data['timestamp']),
             name=key,
             units=data['units'],
-            timestamp=redis_timestamp,
+            timestamp=timestamp,
             timer=data['timer'],
             description=data['description'],
             value=data['value'],

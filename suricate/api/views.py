@@ -10,7 +10,7 @@ from ..configuration import dt_format
 @main.route('/cmd/<command>', methods=['POST'])
 def post_command(command):
     stime = datetime.utcnow()
-    stimestr = stime.strftime("%Y-%m-%d~%H:%M:%S.%f")
+    stimestr = stime.strftime(dt_format)
     job_id = '{}_{}'.format(command, stimestr)
     cmd = Command(
         id=job_id,
