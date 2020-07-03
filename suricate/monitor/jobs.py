@@ -6,7 +6,7 @@ import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 
 import suricate.services
-from ..api.models import Attribute
+from ..models import Attribute
 from ..api.config import api_config
 from ..configuration import config, dt_format
 from ..errors import (

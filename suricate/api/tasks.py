@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
-from .models import Command
 from . import db
+from ..models import Command
 from .. errors import CannotGetComponentError
 
 logger = logging.getLogger('suricate')

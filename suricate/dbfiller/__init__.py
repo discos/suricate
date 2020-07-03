@@ -7,7 +7,7 @@ import redis
 import sqlalchemy as db
 
 from sqlalchemy.orm import sessionmaker
-from ..api.models import Attribute
+from ..models import Attribute
 from ..api.config import api_config
 from ..configuration import config, dt_format
 
@@ -27,10 +27,7 @@ class DBFiller(object):
         db_config = config['DATABASE']
         configuration_class = api_config[db_config]
         db_uri = configuration_class.SQLALCHEMY_DATABASE_URI
-        engine = db.create_engine(
-            db_uri,
-            connect_args={'check_same_thread': False},
-        )
+        engine = db.create_engine(db_uri)
         Attribute.metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
 

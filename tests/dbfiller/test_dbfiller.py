@@ -1,7 +1,7 @@
 from datetime import datetime
 import time
 import pytest
-from suricate.api.models import Attribute
+from suricate.models import Attribute
 from suricate.configuration import config, dt_format
 
 attribute = dict(

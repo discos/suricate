@@ -3,7 +3,7 @@ from flask import current_app, jsonify
 from . import db
 from .main import main
 from .tasks import command as task
-from .models import Command
+from ..models import Command
 from ..configuration import dt_format
 
 

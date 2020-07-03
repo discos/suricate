@@ -1,5 +1,5 @@
-from . import db
-from ..configuration import dt_format
+from .configuration import dt_format
+from .api import db
 
 
 class Command(db.Model):

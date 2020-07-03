@@ -11,7 +11,7 @@ from .configuration import config
 from .monitor.core import Publisher
 from .api import tasks, create_app, db
 from .api.main import main
-from .api.models import Command, Attribute
+from .models import Command, Attribute
 from .dbfiller import DBFiller
 
 publisher = None
