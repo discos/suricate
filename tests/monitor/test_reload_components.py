@@ -13,18 +13,18 @@ COMPONENTS:
     container: PositionerContainer
     methods:
     - name: getPosition
-      timer: 0.1
+      timer: 0.2
     properties:
     - name: position
-      timer: 0.1
+      timer: 0.2
     - name: current
-      timer: 0.1
+      timer: 0.2
   TestNamespace/Positioner03:
     startup_delay: %d
     container: PositionerContainer
     properties:
     - name: current
-      timer: 0.1
+      timer: 0.2
 HTTP:
   baseurl: http://127.0.0.1
   port: 5000

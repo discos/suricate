@@ -16,23 +16,23 @@ default_config = {
             'properties': [
                 {
                     "name": "position",
-                    "timer": 0.1,
+                    "timer": 0.2,
                     "units": "mm",
                     "description": "current position",
                 },
-                {"name": "current", "timer": 0.1},
-                {"name": "seq", "timer": 0.1},
+                {"name": "current", "timer": 0.2},
+                {"name": "seq", "timer": 0.2},
             ],
             'methods': [
-                {"name": "getPosition", "timer": 0.1},
-                {"name": "getSequence", "timer": 0.1},
+                {"name": "getPosition", "timer": 0.2},
+                {"name": "getSequence", "timer": 0.2},
             ],
         },
         "TestNamespace/Positioner01": {
             'startup_delay': 0,
             "container": "PositionerContainer",
             "properties": [
-                {"name": "current", "timer": 0.1}
+                {"name": "current", "timer": 0.2}
             ],
         } 
     },

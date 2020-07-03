@@ -1,10 +1,10 @@
 from datetime import datetime
 from flask import current_app, jsonify
-from . import db
-from .main import main
-from .tasks import command as task
-from ..models import Command
-from ..configuration import dt_format
+from suricate.api import db
+from suricate.api.main import main
+from suricate.api.tasks import command as task
+from suricate.models import Command
+from suricate.configuration import dt_format
 
 
 @main.route('/cmd/<command>', methods=['POST'])

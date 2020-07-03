@@ -69,7 +69,7 @@ def test_timer(Publisher, pubsub):
     time.sleep(config['SCHEDULER']['reschedule_error_interval']*1.2)
     message = pubsub.get_data_message(channel='*position')
     prop = json.loads(message['data'])
-    assert prop['timer'] == 0.1
+    assert prop['timer'] == 0.2
 
 
 def test_set_publish_property_sequence_value(component, scheduler, pubsub, redis_client):

@@ -2,7 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from redis import Redis
 from rq import Queue
-from .config import api_config
+from suricate.api.config import api_config
 
 db = SQLAlchemy()
 
@@ -17,6 +17,6 @@ def create_app(config_name):
         is_async=app.config['IS_ASYNC_QUEUE'],
         connection=app.redis
     )
-    from .main import main as main_blueprint
+    from suricate.api.main import main as main_blueprint
     app.register_blueprint(main_blueprint)
     return app

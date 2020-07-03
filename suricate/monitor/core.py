@@ -280,7 +280,7 @@ class Publisher(object):
     def shutdown(cls):
         for job in cls.s.get_jobs():
             job.remove()
-        cls.s.shutdown(wait=False)
+        cls.s.shutdown(wait=True)
         cls.s = Scheduler()
 
 

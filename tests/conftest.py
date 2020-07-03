@@ -108,6 +108,8 @@ def Publisher(request):
     def shutdown():
         try:
             Publisher_.shutdown()
+            print '\nShutting down the scheduler...'
+            time.sleep(1)
         except SchedulerNotRunningError:
             pass
 
@@ -120,6 +122,8 @@ def DBFiller(request):
 
     def shutdown():
         DBFiller_.shutdown()
+        print '\nShutting down the dbfiller...'
+        time.sleep(1)
 
     request.addfinalizer(shutdown)
     return DBFiller_

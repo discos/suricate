@@ -1,5 +1,5 @@
-from .configuration import dt_format
-from .api import db
+from suricate.configuration import dt_format
+from suricate.api import db
 
 
 class Command(db.Model):

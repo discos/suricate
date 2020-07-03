@@ -6,10 +6,10 @@ import sqlalchemy as db
 from sqlalchemy.orm import sessionmaker
 
 import suricate.services
-from ..models import Attribute
-from ..api.config import api_config
-from ..configuration import config, dt_format
-from ..errors import (
+from suricate.models import Attribute
+from suricate.api.config import api_config
+from suricate.configuration import config, dt_format
+from suricate.errors import (
     CannotGetComponentError,
     ComponentAttributeError,
     ACSNotRunningError,

@@ -1,8 +1,8 @@
 import redis
 import suricate.services
 from datetime import datetime, timedelta
-from .errors import CannotGetComponentError
-from .configuration import dt_format
+from suricate.errors import CannotGetComponentError
+from suricate.configuration import dt_format
 
 
 r = redis.StrictRedis()

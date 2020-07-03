@@ -7,12 +7,12 @@ import socket
 import logging
 from flask import jsonify, abort, request
 from flask_migrate import Migrate
-from .configuration import config
-from .monitor.core import Publisher
-from .api import tasks, create_app, db
-from .api.main import main
-from .models import Command, Attribute
-from .dbfiller import DBFiller
+from suricate.configuration import config
+from suricate.monitor.core import Publisher
+from suricate.api import tasks, create_app, db
+from suricate.api.main import main
+from suricate.models import Command, Attribute
+from suricate.dbfiller import DBFiller
 
 publisher = None
 dbfiller = DBFiller

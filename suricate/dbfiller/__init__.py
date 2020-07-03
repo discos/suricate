@@ -7,9 +7,9 @@ import redis
 import sqlalchemy as db
 
 from sqlalchemy.orm import sessionmaker
-from ..models import Attribute
-from ..api.config import api_config
-from ..configuration import config, dt_format
+from suricate.models import Attribute
+from suricate.api.config import api_config
+from suricate.configuration import config, dt_format
 
 
 logger = logging.getLogger('suricate')
@@ -32,9 +32,6 @@ class DBFiller(object):
         Session = sessionmaker(bind=engine)
 
         while True:
-            if r.get('__dbfiller_stop') == 'yes':
-                break
-
             for key in r.scan_iter("*"):
                 if key.startswith('_'):
                     continue
@@ -46,9 +43,11 @@ class DBFiller(object):
                     continue
                 else:
                     data = r.hgetall(key)
-                    if not data or not 'error' in data:
+                    if  not isinstance(data, dict) and 'error' not in data:
                         continue
-                    if data['error'] or not 'timestamp' in data:
+                    if 'timestamp' not in data:
+                        continue
+                    if data['error']:
                         continue  # Do not store error messages
     
                 timestamp = datetime.strptime(data['timestamp'], dt_format)
@@ -68,6 +67,8 @@ class DBFiller(object):
                 session.close()
 
             time.sleep(config['SCHEDULER']['dbfiller_cycle'])
+            if r.get('__dbfiller_stop') == 'yes':
+                break
 
     def start(self):
         r.set('__dbfiller_stop', 'no')
