@@ -144,10 +144,10 @@ SCHEDULER:
   # executed every 'reschedule_error_interval' seconds.  The proper
   # sampling time will be restored when no more errors occur.
   reschedule_error_interval: 45
-  # A job called db_scheduler_job checks for the attributes stored on
-  # redis DB and executes a job for every one of them, in order to
-  # save the attribute on a persistent database
-  db_scheduler_job: 10
+  # A job called dbfiller checks for attributes stored on
+  # redis DB, in order to save them on a persistent database
+  # The check is executed every `dbfiller_cycle` seconds
+  dbfiller_cycle: 20
 
 # Configuration database. The name must be a key from the api_config
 # dictionary defined in api/config.py. You can choose one of the following:

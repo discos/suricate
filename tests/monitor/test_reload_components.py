@@ -31,7 +31,7 @@ HTTP:
 SCHEDULER:
   reschedule_error_interval: 0.4
   reschedule_interval: 0.2
-  db_scheduler_job: 2
+  dbfiller_cycle: 1
 DATABASE: testing
 RUN_ON_MANAGER_HOST: True
 """ % (startup_delay, startup_delay)

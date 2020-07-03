@@ -13,15 +13,17 @@ attribute = dict(
 )
 
 
-def test_add_attribute(client, Publisher, redis_client):
+def test_add_attribute(client, Publisher, DBFiller, redis_client):
     """The attribute is stored on db"""
+    dbfiller = DBFiller()
+    dbfiller.start()
     p = Publisher(config['COMPONENTS'])
     p.start()
     key = 'SYSTEM/Component/name'
     t = datetime.utcnow()
     attribute['timestamp'] = t.strftime(dt_format)
     redis_client.hmset(key, attribute)
-    time.sleep(config['SCHEDULER']['db_scheduler_job']*3)
+    time.sleep(config['SCHEDULER']['dbfiller_cycle']*3)
     query = Attribute.query.filter(Attribute.name == key).all()
     # All items have different timestamp. It means in this case
     # there should be only one item stored on db
@@ -38,7 +40,7 @@ def test_key_starts_unserscore(client, Publisher, redis_client):
     t = datetime.utcnow()
     attribute['timestamp'] = t.strftime(dt_format)
     redis_client.hmset(key, attribute)
-    time.sleep(config['SCHEDULER']['db_scheduler_job']*3)
+    time.sleep(config['SCHEDULER']['dbfiller_cycle']*3)
     result = Attribute.query.filter(Attribute.name == key).all()
     assert not result
 
@@ -51,7 +53,7 @@ def test_colon_in_key(client, Publisher, redis_client):
     t = datetime.utcnow()
     attribute['timestamp'] = t.strftime(dt_format)
     redis_client.hmset(key, attribute)
-    time.sleep(config['SCHEDULER']['db_scheduler_job']*3)
+    time.sleep(config['SCHEDULER']['dbfiller_cycle']*3)
     result = Attribute.query.filter(Attribute.name == key).all()
     assert not result
 
@@ -64,7 +66,7 @@ def test_three_slash_characters_in_key(client, Publisher, redis_client):
     t = datetime.utcnow()
     attribute['timestamp'] = t.strftime(dt_format)
     redis_client.hmset(key, attribute)
-    time.sleep(config['SCHEDULER']['db_scheduler_job']*3)
+    time.sleep(config['SCHEDULER']['dbfiller_cycle']*3)
     result = Attribute.query.filter(Attribute.name == key).all()
     assert not result
 
@@ -78,7 +80,7 @@ def test_do_not_store_errors(client, Publisher, redis_client):
     attribute['timestamp'] = t.strftime(dt_format)
     attribute['error'] = 'an error message'
     redis_client.hmset(key, attribute)
-    time.sleep(config['SCHEDULER']['db_scheduler_job']*3)
+    time.sleep(config['SCHEDULER']['dbfiller_cycle']*3)
     result = Attribute.query.filter(Attribute.name == key).all()
     assert not result
 
@@ -91,7 +93,7 @@ def test_no_timestamp_in_data(client, Publisher, redis_client):
     t = datetime.utcnow()
     # Notice: I am not adding the timestamp field
     redis_client.hmset(key, attribute)
-    time.sleep(config['SCHEDULER']['db_scheduler_job']*3)
+    time.sleep(config['SCHEDULER']['dbfiller_cycle']*3)
     result = Attribute.query.filter(Attribute.name == key).all()
     assert not result
 

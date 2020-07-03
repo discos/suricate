@@ -4,7 +4,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from suricate.monitor import jobs
 
 
-__all__ = ['Scheduler', 'DBScheduler']
+__all__ = ['Scheduler']
 
 
 class ACSScheduler(BackgroundScheduler):
@@ -29,10 +29,6 @@ class ACSScheduler(BackgroundScheduler):
             id=job_id,
             trigger='interval',
             seconds=timer)
-
-
-class DBScheduler(BackgroundScheduler):
-    """Store the attributes to a database."""
 
 
 # TODO: check the configuration and bind the right scheduler
