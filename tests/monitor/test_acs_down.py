@@ -11,7 +11,7 @@ def test_startup(Publisher, redis_client):
         suricate.services.is_manager_online = lambda: False  # Mock getManager
         p = Publisher(config['COMPONENTS'])
         p.start()
-        time.sleep(config['SCHEDULER']['reschedule_error_interval']*1.2)
+        time.sleep(config['SCHEDULER']['reschedule_error_interval']*3)
         message = redis_client.hget('TestNamespace/Positioner00/position', 'error')
         value = redis_client.hget('TestNamespace/Positioner00/position', 'value')
         assert message == 'ACS not running'
@@ -37,7 +37,7 @@ def test_after_startup(Publisher, redis_client):
     try:
         p = Publisher(config['COMPONENTS'])
         p.start()
-        time.sleep(config['SCHEDULER']['reschedule_error_interval']*1.2)
+        time.sleep(config['SCHEDULER']['reschedule_error_interval']*3)
         message = redis_client.hget('TestNamespace/Positioner00/position', 'error')
         assert message == ''
         message = redis_client.hget('TestNamespace/Positioner00/getPosition', 'error')
@@ -68,7 +68,7 @@ def test_after_startup(Publisher, redis_client):
         # ACS running again
         suricate.services.is_manager_online = lambda: True
         suricate.component.Component.unavailables = []
-        time.sleep(config['SCHEDULER']['reschedule_error_interval']*2)
+        time.sleep(config['SCHEDULER']['reschedule_error_interval']*3)
         message = redis_client.hget('TestNamespace/Positioner00/position', 'error')
         assert message == ''
         message = redis_client.hget('TestNamespace/Positioner00/getPosition', 'error')

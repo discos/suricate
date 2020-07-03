@@ -2,6 +2,7 @@ import redis
 import suricate.services
 from datetime import datetime, timedelta
 from suricate.errors import CannotGetComponentError
+from suricate.configuration import dt_format
 
 
 r = redis.StrictRedis()
@@ -54,7 +55,10 @@ class Component(object):
                     Component.clients[self.name] = client
                     self._component = Component.clients[self.name].getComponent(self.name)
                     startup_time = datetime.utcnow() + timedelta(seconds=startup_delay)
-                    r.set('__%s/startup_time' % self.name, str(startup_time))
+                    r.set(
+                        '__%s/startup_time' % self.name,
+                        startup_time.strftime(dt_format),
+                    )
         except Exception, ex:
             # I check the name of the class because I can not catch the
             # proper exception. Actually I can not catch it when executing

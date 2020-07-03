@@ -8,10 +8,6 @@ __all__ = ['Scheduler']
 
 
 class ACSScheduler(BackgroundScheduler):
-    """TODO:
-    - add_method_job: like add_property_job(), but for methods
-    - It should delegate... or proxy
-    """
 
     def add_attribute_job(
             self,
@@ -21,7 +17,6 @@ class ACSScheduler(BackgroundScheduler):
             units='',
             description='',
             channel=''):
-        """TODO: docstring. The component could be a name or an instance"""
         # Job identifier: namespace/component/attribute
         job_id = '/'.join([component_ref.name, attr])
         channel = channel if channel else job_id

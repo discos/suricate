@@ -38,7 +38,7 @@ def test_get_all_messages(components, scheduler, pubsub):
     # Number of messages
     nmessages = len(messages) - 1   # Do not count the subscription message
     expected = len(components) * len(properties) * int(delay/interval_time)
-    assert nmessages > expected*0.95  # Get at least the 95% of all messages
+    assert nmessages > expected*0.80  # Get at least the 80% of all messages
 
     print('\n')
     print('Number of messages: ', nmessages)

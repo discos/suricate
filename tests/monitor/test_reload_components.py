@@ -13,24 +13,27 @@ COMPONENTS:
     container: PositionerContainer
     methods:
     - name: getPosition
-      timer: 0.1
+      timer: 0.2
     properties:
     - name: position
-      timer: 0.1
+      timer: 0.2
     - name: current
-      timer: 0.1
+      timer: 0.2
   TestNamespace/Positioner03:
     startup_delay: %d
     container: PositionerContainer
     properties:
     - name: current
-      timer: 0.1
+      timer: 0.2
 HTTP:
   baseurl: http://127.0.0.1
   port: 5000
 SCHEDULER:
   reschedule_error_interval: 0.4
   reschedule_interval: 0.2
+  dbfiller_cycle: 1
+DATABASE: testing
+RUN_ON_MANAGER_HOST: True
 """ % (startup_delay, startup_delay)
 
 
@@ -60,7 +63,7 @@ def test_startup_delay(Publisher, redis_client, logger):
         message = redis_client.hget('TestNamespace/Positioner03/current', 'error')
         assert message.endswith('startup in progress')
 
-        time.sleep(startup_delay*1.5)  # Wait for the startup to terminate
+        time.sleep(startup_delay*5)  # Wait for the startup to terminate
 
         message = redis_client.hget('TestNamespace/Positioner00/position', 'error')
         assert not message
@@ -165,8 +168,6 @@ def test_some_components_not_active_at_startup(Publisher, redis_client):
     finally:
         suricate.component.Component.unavailables = []
         reload(configuration)
-
-
 
 
 if __name__ == '__main__':

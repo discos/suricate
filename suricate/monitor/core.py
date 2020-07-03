@@ -1,6 +1,6 @@
 import sys
 import logging
-import datetime
+from datetime import datetime
 from os.path import join
 
 import redis
@@ -8,7 +8,7 @@ import json
 from apscheduler import events
 
 from suricate.monitor.schedulers import Scheduler
-from suricate.configuration import config
+from suricate.configuration import config, dt_format
 from suricate.errors import (
     CannotGetComponentError,
     ComponentAttributeError,
@@ -225,6 +225,7 @@ class Publisher(object):
     def add_errors_listener(cls):
         cls.s.add_listener(cls.errors_listener, events.EVENT_JOB_ERROR)
 
+
     @staticmethod
     def errors_listener(event):
         job_id = event.job_id
@@ -248,6 +249,9 @@ class Publisher(object):
                     seconds=config['SCHEDULER']['reschedule_error_interval']
                 )
 
+            if not hasattr(job, 'args'):
+                return
+
             channel, old_component_ref, attribute, timer, units, description  = job.args
             import suricate.component
             # If the component is available, we pass its reference to the job
@@ -266,16 +270,19 @@ class Publisher(object):
             # TODO: manage the unexpected exception
             pass
 
+
     @classmethod
     def start(cls):
         cls.s.start()
+
 
     @classmethod
     def shutdown(cls):
         for job in cls.s.get_jobs():
             job.remove()
-        cls.s.shutdown(wait=False)
+        cls.s.shutdown(wait=True)
         cls.s = Scheduler()
+
 
     def _set_attr_error(
             self,
@@ -291,7 +298,7 @@ class Publisher(object):
             'timer': timer,
             'units': units,
             'description': description,
-            'timestamp': str(datetime.datetime.utcnow())
+            'timestamp': datetime.utcnow().strftime(dt_format)
         }
         job_id = '%s/%s' % (component_name, attribute)
         if not r.hmset(job_id, data_dict):

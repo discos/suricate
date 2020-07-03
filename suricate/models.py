@@ -1,5 +1,5 @@
-from . import db
-from ..configuration import dt_format
+from suricate.configuration import dt_format
+from suricate.api import db
 
 
 class Command(db.Model):
@@ -42,9 +42,35 @@ class Command(db.Model):
         return obj_dict
 
 
+class Attribute(db.Model):
+    __tablename__ = 'attributes'
+
+    id = db.Column(db.String(128), primary_key=True)
+    name = db.Column(db.String(64))
+    units = db.Column(db.String(32))
+    timestamp = db.Column(db.DateTime)
+    timer = db.Column(db.Float)
+    description = db.Column(db.String(128))
+    value = db.Column(db.String(256))
+    error = db.Column(db.String(128), default='')
+
+    def __repr__(self):
+        return '<Attribute {}>'.format(self.id)
+
+    def get_timestamp_str(self, dt_format=dt_format):
+        return self.timestamp.strftime(dt_format)
+
+    @property
+    def serialize(self):
+        obj_dict = dict(self.__dict__)
+        del obj_dict['_sa_instance_state']
+        obj_dict['timestamp'] = self.get_timestamp_str()
+        return obj_dict
+
+
 # from flask import current_app
 # from sqlalchemy import create_engine
-# # db_uri = current_app.config.get('SQLALCHEMY_DATABASE_URI')
-# db_uri = 'sqlite://'
+# db_uri = current_app.config.get('SQLALCHEMY_DATABASE_URI')
 # engine = create_engine(db_uri)
 # Command.metadata.create_all(engine)
+# Attribute.metadata.create_all(engine)

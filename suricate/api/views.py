@@ -1,16 +1,16 @@
 from datetime import datetime
 from flask import current_app, jsonify
-from . import db
-from .main import main
-from .tasks import command as task
-from .models import Command
-from ..configuration import dt_format
+from suricate.api import db
+from suricate.api.main import main
+from suricate.api.tasks import command as task
+from suricate.models import Command
+from suricate.configuration import dt_format
 
 
 @main.route('/cmd/<command>', methods=['POST'])
 def post_command(command):
     stime = datetime.utcnow()
-    stimestr = stime.strftime("%Y-%m-%d~%H:%M:%S.%f")
+    stimestr = stime.strftime(dt_format)
     job_id = '{}_{}'.format(command, stimestr)
     cmd = Command(
         id=job_id,
@@ -119,5 +119,3 @@ def get_commands_from_datetimex_to_datetimey(dtx, dty):
         return jsonify(response)
     else:
         return jsonify([c.serialize for c in cmds])
-
-

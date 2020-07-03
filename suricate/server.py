@@ -7,13 +7,15 @@ import socket
 import logging
 from flask import jsonify, abort, request
 from flask_migrate import Migrate
-from configuration import config
-from monitor.core import Publisher
-from api import tasks, create_app, db
-from api.main import main
-from api.models import Command
+from suricate.configuration import config
+from suricate.monitor.core import Publisher
+from suricate.api import tasks, create_app, db
+from suricate.api.main import main
+from suricate.models import Command, Attribute
+from suricate.dbfiller import DBFiller
 
 publisher = None
+dbfiller = DBFiller
 logger = logging.getLogger('suricate')
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 migrate = Migrate(app, db)
@@ -101,8 +103,9 @@ def stop():  # pragma: no cover
         if publisher:
             publisher.shutdown()
             logger.info('all scheduled jobs have been closed')
-        else:
-            logger.error('there is no reference to the publisher')
+        if dbfiller:
+            dbfiller.shutdown()
+            logger.info('dbfiller job has been closed')
     return 'Server stopped :-)'
 
 
@@ -119,6 +122,16 @@ def stop_publisher():
         publisher.shutdown()
 
 
+def start_dbfiller():
+    global dbfiller
+    dbfiller.start()
+
+
+def stop_dbfiller():
+    if dbfiller is not None:
+        dbfiller.shutdown()
+
+
 def start_webserver():
     try:
         app.run(debug=False)
@@ -131,8 +144,9 @@ def start(components=None):
     logger.info('suricate server is starting...')
     start_publisher(components)
     start_webserver()
+    start_dbfiller()
 
 
 @app.shell_context_processor
 def make_shell_context():
-    return dict(db=db, Command=Command)
+    return dict(db=db, Command=Command, Attribute=Attribute)
