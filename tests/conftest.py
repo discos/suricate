@@ -16,7 +16,7 @@ import suricate.services
 from suricate.errors import CannotGetComponentError
 from suricate.configuration import formatter, dt_format
 from suricate.monitor.core import Publisher as Publisher_
-from suricate.dbfiller import DBFiller as DBFiller_
+from suricate.dbfiller import DBFiller
 from suricate.monitor.schedulers import Scheduler
 from suricate.server import start_publisher, stop_publisher
 
@@ -118,15 +118,15 @@ def Publisher(request):
 
 
 @pytest.fixture()
-def DBFiller(request):
+def dbfiller(request):
 
     def shutdown():
-        DBFiller_.shutdown()
+        DBFiller.shutdown()
         print '\nShutting down the dbfiller...'
         time.sleep(1)
 
     request.addfinalizer(shutdown)
-    return DBFiller_
+    return DBFiller()
 
 
 class RedisPubSub(object):

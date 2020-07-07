@@ -46,12 +46,12 @@ class Attribute(db.Model):
     __tablename__ = 'attributes'
 
     id = db.Column(db.String(128), primary_key=True)
-    name = db.Column(db.String(64))
-    units = db.Column(db.String(32))
-    timestamp = db.Column(db.DateTime)
-    timer = db.Column(db.Float)
-    description = db.Column(db.String(128))
+    name = db.Column(db.String(64), nullable=False)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    timer = db.Column(db.Float, nullable=False)
     value = db.Column(db.String(256))
+    description = db.Column(db.String(128))
+    units = db.Column(db.String(32))
     error = db.Column(db.String(128), default='')
 
     def __repr__(self):

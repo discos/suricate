@@ -7,6 +7,7 @@ import redis
 import sqlalchemy as db
 
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import IntegrityError
 from suricate.models import Attribute
 from suricate.api.config import api_config
 from suricate.configuration import config, dt_format
@@ -61,10 +62,14 @@ class DBFiller(object):
                     value=data['value'],
                     error=data['error'],
                 )
-                session = Session()
-                session.add(attr)
-                session.commit()
-                session.close()
+                try:
+                    session = Session()
+                    session.add(attr)
+                    session.commit()
+                except IntegrityError:
+                    continue
+                finally:
+                    session.close()
 
             time.sleep(config['SCHEDULER']['dbfiller_cycle'])
             if r.get('__dbfiller_stop') == 'yes':
