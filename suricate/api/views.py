@@ -3,7 +3,7 @@ from flask import current_app, jsonify
 from suricate.api import db
 from suricate.api.main import main
 from suricate.api.tasks import command as task
-from suricate.models import Command
+from suricate.models import Command, Attribute
 from suricate.configuration import dt_format
 
 
@@ -119,3 +119,76 @@ def get_commands_from_datetimex_to_datetimey(dtx, dty):
         return jsonify(response)
     else:
         return jsonify([c.serialize for c in cmds])
+
+
+@main.route('/attr/<system>/<component>/<name>/<int:N>', methods=['GET'])
+def get_last_attribute_values(system, component, name, N):
+    """Returns the last N commands"""
+    key = '{}/{}/{}'.format(system, component, name)
+    query = Attribute.query.order_by(Attribute.timestamp.desc())
+    attrs = query.limit(N).all()
+    if not attrs:
+        response = {
+            'status_code': 404,
+            'error_message': "empty attribute history"
+        }
+        return jsonify(response)
+    else:
+        return jsonify([a.serialize for a in attrs])
+
+
+@main.route('/attr/<system>/<component>/<name>', methods=['GET'])
+def get_last_default_attribute_values(system, component, name):
+    """Returns the last N=10 values"""
+    return get_last_attribute_values(system, component, name, 10)
+
+
+@main.route('/attr/<system>/<component>/<name>/from/<dtx>', methods=['GET'])
+def get_attribute_from_datetimex(system, component, name, dtx):
+    """Return all attributes values from datetime dtx until now"""
+    try:
+        dtx = datetime.strptime(dtx, dt_format)
+        query = Attribute.query.order_by(Attribute.timestamp.desc())
+        attrs = query.filter(Attribute.timestamp >= dtx).all()
+    except ValueError:
+        response = {
+            'status_code': 400,  # Bad request
+            'error_message': 'invalid datetime format',
+        }
+        return jsonify(response)
+    if not attrs:
+        response = {
+            'status_code': 404,
+            'error_message': "empty attribute history"
+        }
+        return jsonify(response)
+    else:
+        return jsonify([a.serialize for a in attrs])
+
+
+@main.route('/attr/<system>/<component>/<name>/from/<dtx>/to/<dty>', methods=['GET'])
+def get_attribute_from_datetimex_to_datetimey(system, component, name, dtx, dty):
+    """Returns all attribute values from datetime dtx to dty"""
+    try:
+        dtx = datetime.strptime(dtx, dt_format)
+        dty = datetime.strptime(dty, dt_format)
+        query = Attribute.query.order_by(Attribute.timestamp.desc())
+        fquery = query.filter(
+            Attribute.timestamp >= dtx,
+            Attribute.timestamp <= dty,
+        )
+        attrs = fquery.all()
+    except ValueError:
+        response = {
+            'status_code': 400,  # Bad request
+            'error_message': 'invalid datetime format',
+        }
+        return jsonify(response)
+    if not attrs:
+        response = {
+            'status_code': 404,
+            'error_message': "empty attribute history"
+        }
+        return jsonify(response)
+    else:
+        return jsonify([a.serialize for a in attrs])

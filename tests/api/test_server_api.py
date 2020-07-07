@@ -2,21 +2,32 @@ import time
 from datetime import datetime
 from flask import json, jsonify
 import pytest
-from suricate.configuration import dt_format
+from suricate.configuration import dt_format, config
 
 
 BASE_URL = '/publisher/api/v0.1'
 
-DATA = {
-    'component': 'TestNamespace/Positioner',
-    'startup_delay': 0,
-    'container': 'PositionerContainer',
-    'attribute': 'position',
-    'description': 'a brief description',
-    'units': 'mm',
-    'timer': 0.1,
-    'type': 'property',
-}
+DATA = dict(
+    component='TestNamespace/Positioner',
+    startup_delay=0,
+    container='PositionerContainer',
+    attribute='position',
+    description='a brief description',
+    units='mm',
+    timer=0.1,
+    type='property',
+)
+
+
+ATTRIBUTE = dict(
+    units='Kelvin',
+    timer=0.1,
+    timestamp=datetime.utcnow().strftime(dt_format),
+    description='A dummy attribute',
+    value='100',
+    error='',
+)
+
 
 
 jobs_from_data = {
@@ -196,6 +207,14 @@ def test_get_commands_from_invalid_datetimex(client):
     assert response['error_message'] == 'invalid datetime format'
 
 
+def test_empty_commands_history_from_datetimex(client):
+    dtx = datetime.utcnow().strftime(dt_format)
+    raw_response = client.get('/cmds/from/%s' % dtx)
+    response = raw_response.get_json()
+    assert response['status_code'] == 404
+    assert response['error_message'] == 'empty command history'
+
+
 def test_get_commands_from_datetimex_to_datetimey(client):
     """Get all commands from datetime dtx to dty"""
     client.post('/cmd/command_1')
@@ -224,8 +243,160 @@ def test_get_commands_from_invalid_datetimex_to_datetimey(client):
     assert response['error_message'] == 'invalid datetime format'
 
 
+def test_empty_commands_history_from_datetimex_to_datetimey(client):
+    dtx = datetime.utcnow().strftime(dt_format)
+    dty = datetime.utcnow().strftime(dt_format)
+    raw_response = client.get('/cmds/from/%s/to/%s' % (dtx, dty))
+    response = raw_response.get_json()
+    assert response['status_code'] == 404
+    assert response['error_message'] == 'empty command history'
+
+
 def test_command_not_executed(client):
     """What heppens when the scheduler is not available?"""
+
+
+def test_get_last_attributes(client, dbfiller, redis_client):
+    """Get the last N values of Positioner00/current."""
+    key = 'SYSTEM/Component/name'
+    N = 5
+    dbfiller.start()
+    for i in range(N):
+        ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
+        redis_client.hmset(key, ATTRIBUTE)
+        time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
+    raw_response = client.get('/attr/%s/%d' % (key, N))
+    response = raw_response.get_json()
+    assert len(response) == N
+    assert response[0]['value'] == ATTRIBUTE['value']
+    assert response[0]['timestamp'] > response[N-1]['timestamp']
+    raw_response = client.get('/attr/%s/%d' % (key, N-1))
+    response = raw_response.get_json()
+    assert len(response) == (N - 1)
+
+
+def test_get_last_default_attribute(client, dbfiller, redis_client):
+    """Without N, GET /attr returns the last 10 values"""
+    key = 'SYSTEM/Component/name'
+    dbfiller.start()
+    for i in range(15):
+        ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
+        redis_client.hmset(key, ATTRIBUTE)
+        time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
+    raw_response = client.get('/attr/%s' % key)
+    response = raw_response.get_json()
+    assert len(response) == 10
+
+
+def test_empty_attribute_history(client):
+    raw_response = client.get('/attr/sys/comp/namefoo')
+    response = raw_response.get_json()
+    assert response['status_code'] == 404
+    assert response['error_message'] == 'empty attribute history'
+
+
+def test_get_attribute_from_datetimex(client, dbfiller, redis_client):
+    """Get all attribute values from datetime dtx until now"""
+    key = 'SYSTEM/Component/name'
+    M = 2
+    N = 3
+    dbfiller.start()
+
+    # Add M attribute values before datetime dtx
+    for i in range(M):
+        ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
+        redis_client.hmset(key, ATTRIBUTE)
+        time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
+
+    # Add N attribute values after datetime dtx
+    dtx = datetime.utcnow().strftime(dt_format)
+    for i in range(N):
+        ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
+        redis_client.hmset(key, ATTRIBUTE)
+        time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
+
+    raw_response = client.get('/attr/%s' % key)
+    response = raw_response.get_json()
+    assert len(response) == (M + N)
+    raw_response = client.get('/attr/%s/from/%s' % (key, dtx))
+    response = raw_response.get_json()
+    assert len(response) == N
+    assert response[0]['timestamp'] > response[N-1]['timestamp']
+
+
+def test_get_attributes_from_invalid_datetimex(client):
+    """Test invalid datetime format in GET /attr/.../from/dtx"""
+    key = 'SYSTEM/Component/name'
+    raw_response = client.get('/attr/%s/from/wrong_dtx' % key)
+    response = raw_response.get_json()
+    assert response['status_code'] == 400
+    assert response['error_message'] == 'invalid datetime format'
+
+
+def test_empty_attribute_history_from_datetimex(client):
+    key = 'sys/comp/namefoo'
+    dtx = datetime.utcnow().strftime(dt_format)
+    raw_response = client.get('/attr/%s/from/%s' % (key, dtx))
+    response = raw_response.get_json()
+    assert response['status_code'] == 404
+    assert response['error_message'] == 'empty attribute history'
+
+
+def test_get_attribute_from_datetimex_to_datetimey(client, dbfiller, redis_client):
+    """Get all attributes from datetime dtx to dty"""
+    key = 'SYSTEM/Component/name'
+    M = 2
+    N = 3
+    K = 2
+    dbfiller.start()
+
+    # Add M attribute values before datetime dtx
+    for i in range(M):
+        ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
+        redis_client.hmset(key, ATTRIBUTE)
+        time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
+
+    # Add N attribute values after datetime dtx
+    dtx = datetime.utcnow().strftime(dt_format)
+    for i in range(N):
+        ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
+        redis_client.hmset(key, ATTRIBUTE)
+        time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
+
+    # Add K attribute values after datetime dty
+    dty = datetime.utcnow().strftime(dt_format)
+    for i in range(K):
+        ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
+        redis_client.hmset(key, ATTRIBUTE)
+        time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
+
+    raw_response = client.get('/attr/%s' % key)
+    response = raw_response.get_json()
+    assert len(response) == (M + N + K)
+    raw_response = client.get('/attr/%s/from/%s/to/%s' % (key, dtx, dty))
+    response = raw_response.get_json()
+    assert len(response) == N
+    assert response[0]['timestamp'] > response[N-1]['timestamp']
+
+
+def test_get_attribute_from_invalid_datetimex_to_datetimey(client):
+    """Test invalid datetime format in GET /attr/.../from/dtx/to/dty"""
+    key = 'SYSTEM/Component/name'
+    raw_response = client.get('/attr/%s/from/wrong_dtx/to/wrong_dty' % key)
+    response = raw_response.get_json()
+    assert response['status_code'] == 400
+    assert response['error_message'] == 'invalid datetime format'
+
+
+def test_empty_attribute_history_from_datetimex_to_datetimey(client):
+    key = 'sys/comp/namefoo'
+    dtx = datetime.utcnow().strftime(dt_format)
+    dty = datetime.utcnow().strftime(dt_format)
+    raw_response = client.get('/attr/%s/from/%s/to/%s' % (key, dtx, dty))
+    response = raw_response.get_json()
+    assert response['status_code'] == 404
+    assert response['error_message'] == 'empty attribute history'
+
 
 
 if __name__ == '__main__':
