@@ -15,9 +15,9 @@ from suricate.models import Command, Attribute
 from suricate.dbfiller import DBFiller
 
 publisher = None
-dbfiller = DBFiller
+dbfiller = DBFiller()
 logger = logging.getLogger('suricate')
-app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+app = create_app(config['DATABASE'])
 migrate = Migrate(app, db)
 
 
@@ -143,8 +143,8 @@ def start_webserver():
 def start(components=None):
     logger.info('suricate server is starting...')
     start_publisher(components)
-    start_webserver()
     start_dbfiller()
+    start_webserver()
 
 
 @app.shell_context_processor

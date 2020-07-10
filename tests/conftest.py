@@ -120,13 +120,15 @@ def Publisher(request):
 @pytest.fixture()
 def dbfiller(request):
 
+    dbf = DBFiller()
+
     def shutdown():
-        DBFiller.shutdown()
+        dbf.shutdown()
         print '\nShutting down the dbfiller...'
         time.sleep(1)
 
     request.addfinalizer(shutdown)
-    return DBFiller()
+    return dbf
 
 
 class RedisPubSub(object):

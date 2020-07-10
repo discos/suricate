@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import current_app, jsonify
+from sqlalchemy import desc
 from suricate.api import db
 from suricate.api.main import main
 from suricate.api.tasks import command as task
@@ -125,8 +126,9 @@ def get_commands_from_datetimex_to_datetimey(dtx, dty):
 def get_last_attribute_values(system, component, name, N):
     """Returns the last N commands"""
     key = '{}/{}/{}'.format(system, component, name)
-    query = Attribute.query.order_by(Attribute.timestamp.desc())
-    attrs = query.limit(N).all()
+    attrs = Attribute.query.filter(Attribute.name==key).\
+                      order_by(desc(Attribute.timestamp)).\
+                      limit(N).all()
     if not attrs:
         response = {
             'status_code': 404,
@@ -146,10 +148,13 @@ def get_last_default_attribute_values(system, component, name):
 @main.route('/attr/<system>/<component>/<name>/from/<dtx>', methods=['GET'])
 def get_attribute_from_datetimex(system, component, name, dtx):
     """Return all attributes values from datetime dtx until now"""
+    key = '{}/{}/{}'.format(system, component, name)
     try:
         dtx = datetime.strptime(dtx, dt_format)
-        query = Attribute.query.order_by(Attribute.timestamp.desc())
-        attrs = query.filter(Attribute.timestamp >= dtx).all()
+        attrs = Attribute.query.filter(
+                    Attribute.name==key,
+                    Attribute.timestamp >= dtx,
+                ).order_by(Attribute.timestamp.desc()).all()
     except ValueError:
         response = {
             'status_code': 400,  # Bad request
@@ -169,15 +174,15 @@ def get_attribute_from_datetimex(system, component, name, dtx):
 @main.route('/attr/<system>/<component>/<name>/from/<dtx>/to/<dty>', methods=['GET'])
 def get_attribute_from_datetimex_to_datetimey(system, component, name, dtx, dty):
     """Returns all attribute values from datetime dtx to dty"""
+    key = '{}/{}/{}'.format(system, component, name)
     try:
         dtx = datetime.strptime(dtx, dt_format)
         dty = datetime.strptime(dty, dt_format)
-        query = Attribute.query.order_by(Attribute.timestamp.desc())
-        fquery = query.filter(
-            Attribute.timestamp >= dtx,
-            Attribute.timestamp <= dty,
-        )
-        attrs = fquery.all()
+        attrs = Attribute.query.filter(
+                    Attribute.name==key,
+                    Attribute.timestamp >= dtx,
+                    Attribute.timestamp <= dty,
+                ).order_by(Attribute.timestamp.desc()).all()
     except ValueError:
         response = {
             'status_code': 400,  # Bad request

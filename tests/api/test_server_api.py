@@ -258,19 +258,22 @@ def test_command_not_executed(client):
 
 def test_get_last_attributes(client, dbfiller, redis_client):
     """Get the last N values of Positioner00/current."""
-    key = 'SYSTEM/Component/name'
+    key1 = 'SYSTEM/Component/name1'
+    key2 = 'SYSTEM/Component/name2'
     N = 5
     dbfiller.start()
     for i in range(N):
         ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
-        redis_client.hmset(key, ATTRIBUTE)
+        redis_client.hmset(key1, ATTRIBUTE)
+        redis_client.hmset(key2, ATTRIBUTE)
         time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
-    raw_response = client.get('/attr/%s/%d' % (key, N))
+    raw_response = client.get('/attr/%s/%d' % (key1, N))
     response = raw_response.get_json()
     assert len(response) == N
+    assert response[0]['name'] == key1
     assert response[0]['value'] == ATTRIBUTE['value']
     assert response[0]['timestamp'] > response[N-1]['timestamp']
-    raw_response = client.get('/attr/%s/%d' % (key, N-1))
+    raw_response = client.get('/attr/%s/%d' % (key2, N-1))
     response = raw_response.get_json()
     assert len(response) == (N - 1)
 
