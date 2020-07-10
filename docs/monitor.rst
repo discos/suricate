@@ -1,8 +1,8 @@
-.. _user-guide:
+.. _monitor:
 
-**********
-User Guide
-**********
+**********************
+Control system monitor
+**********************
 
 .. topic:: Preface
 

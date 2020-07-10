@@ -1,8 +1,8 @@
 .. _admin-guide:
 
-***********************************
-Suricate System Administrator Guide
-***********************************
+**************************
+System Administrator Guide
+**************************
 
 .. topic:: Preface
 
