@@ -7,14 +7,18 @@ from pytz import utc
 
 import pytest
 import redis
+import rq
+from flask import current_app
 from flask.testing import FlaskClient
+from suricate.api import create_app, db
 
 import suricate.services
-from suricate.core import Publisher as Publisher_
-from suricate.schedulers import Scheduler
 from suricate.errors import CannotGetComponentError
-from suricate.server import app, start_publisher, stop_publisher
-from suricate.configuration import formatter
+from suricate.configuration import formatter, dt_format
+from suricate.monitor.core import Publisher as Publisher_
+from suricate.dbfiller import DBFiller
+from suricate.monitor.schedulers import Scheduler
+from suricate.server import start_publisher, stop_publisher
 
 from apscheduler.executors.pool import ProcessPoolExecutor, ThreadPoolExecutor
 from apscheduler.schedulers import SchedulerNotRunningError
@@ -76,14 +80,22 @@ def client():
             super(self.__class__, self).__init__(*args, **kwargs)
 
         def __enter__(self):
+            db.create_all()
             start_publisher()
             super(self.__class__, self).__enter__()
             return self
 
         def __exit__(self, exc_type, exc_value, tb):
             stop_publisher()
+            db.session.commit()
+            db.session.remove()
+            db.drop_all()
+            db.create_all()
             super(self.__class__, self).__exit__(exc_type, exc_value, tb)
 
+    app = create_app('testing')
+    app_context = app.app_context()
+    app_context.push()
     app.test_client_class = AppClient
     with app.test_client() as test_client:
         test_client.testing = True
@@ -96,11 +108,27 @@ def Publisher(request):
     def shutdown():
         try:
             Publisher_.shutdown()
+            print '\nShutting down the scheduler...'
+            time.sleep(1)
         except SchedulerNotRunningError:
             pass
 
     request.addfinalizer(shutdown)
     return Publisher_
+
+
+@pytest.fixture()
+def dbfiller(request):
+
+    dbf = DBFiller()
+
+    def shutdown():
+        dbf.shutdown()
+        print '\nShutting down the dbfiller...'
+        time.sleep(1)
+
+    request.addfinalizer(shutdown)
+    return dbf
 
 
 class RedisPubSub(object):
@@ -118,8 +146,8 @@ class RedisPubSub(object):
         """Get a message from a redis channel"""
         if channel not in self._pubsub.patterns:
             self._pubsub.psubscribe(channel)
-        max_time = datetime.now() + timedelta(seconds=timeout)
-        while datetime.now() < max_time:
+        max_time = datetime.utcnow() + timedelta(seconds=timeout)
+        while datetime.utcnow() < max_time:
             message = self._pubsub.get_message()
             if message and message['type'] == 'pmessage':
                 return message  # From str to dict
@@ -192,7 +220,10 @@ class MockComponent(object):
         self.startup_delay = int(startup_delay)
         startup_time = datetime.utcnow() + timedelta(seconds=self.startup_delay)
         r = redis.StrictRedis()
-        r.set('__%s/startup_time' % self.name, str(startup_time))
+        r.set(
+            '__%s/startup_time' % self.name,
+            startup_time.strftime(dt_format),
+        )
         for property_ in MockComponent.properties.items():
             self.set_property(*property_)
 
@@ -240,7 +271,22 @@ class MockComponent(object):
         else:
             return self._property_value(self._get_seq)
 
-    def set_property(self, name, value, error_code=0, timestamp=0):
+    def command(self, line):
+        cmd = line.strip()
+        if cmd == 'getTpi':
+            return True, 'getTpi\\\n00) 800.3\n01) 750.7'
+        else:
+            if '=' in cmd:
+                cmd = cmd.split('=')[0]
+            return False, '%s? ...' % cmd
+
+    def set_property(
+            self,
+            name,
+            value,
+            error_code=0,
+            timestamp=138129971470735140L,
+        ):
         completion = Completion(error_code, timestamp)
         property_ = Property(name, value, completion)
         setattr(self, '_get_%s' % name, property_)
@@ -272,7 +318,7 @@ class Property(object):
 
 
 class Completion(object):
-    def __init__(self, code=0, timestamp=0):
+    def __init__(self, code=0, timestamp=138129971470735140L):
         self.code = code
         self.timeStamp = timestamp
 
@@ -364,8 +410,8 @@ def scheduler(request):
     def wait_until_executed(job, n=5):
         """Wait until the job is executed or n*job.trigger.interval.seconds"""
         timeout = n*job.trigger.interval.seconds
-        max_time = datetime.now() + timedelta(seconds=timeout)
-        while datetime.now() < max_time:
+        max_time = datetime.utcnow() + timedelta(seconds=timeout)
+        while datetime.utcnow() < max_time:
             if job.pending:
                 time.sleep(job.trigger.interval.seconds)
 

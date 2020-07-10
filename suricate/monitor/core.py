@@ -1,14 +1,14 @@
 import sys
 import logging
-import datetime
+from datetime import datetime
 from os.path import join
 
 import redis
 import json
 from apscheduler import events
 
-from suricate.schedulers import Scheduler
-from suricate.configuration import config
+from suricate.monitor.schedulers import Scheduler
+from suricate.configuration import config, dt_format
 from suricate.errors import (
     CannotGetComponentError,
     ComponentAttributeError,
@@ -92,11 +92,12 @@ class Publisher(object):
             try:
                 if not suricate.services.is_manager_online():
                     r.hmset('components', {component_name: 'unavailable'})
+                    key = '__manager/error'
                     error_message = 'ACS not running'
                 else:
+                    key = '__%s/error' % component_name
                     error_message = 'cannot get component %s' % component_name
 
-                key = '__%s/error' % component_name
                 c = suricate.component.Component(
                         component_name,
                         container_name,
@@ -104,22 +105,25 @@ class Publisher(object):
                 )
                 # Remove the component from the unavailable dictionary
                 self.unavailable_components.pop(component_name, None)
-                r.delete(key)
+                r.delete('__manager/error')
+                r.delete('__%s/error' % component_name)
             except CannotGetComponentError:
                 self.unavailable_components[component_name] = targets
-                with suricate.component.Component.lock:
+                with suricate.services.logging_lock:
                     if r.get(key) != error_message:
                         logger.error(error_message)
                     r.set(key, error_message)
 
             for prop in properties:
                 attr_name = prop['name']
+                timer = prop['timer']
                 units = prop.get('units', '')
                 description = prop.get('description', '')
                 if component_name in self.unavailable_components:
                     self._set_attr_error(
                         component_name,
                         attr_name,
+                        timer,
                         units,
                         description,
                         error_message
@@ -129,7 +133,7 @@ class Publisher(object):
                         pjobs_args.append((
                             c,
                             attr_name,
-                            prop['timer'],
+                            timer,
                             units,
                             description
                         ))
@@ -138,12 +142,14 @@ class Publisher(object):
 
             for method in methods:
                 attr_name = method['name']
+                timer = method['timer']
                 units = method.get('units', '')
                 description = method.get('description', '')
                 if component_name in self.unavailable_components:
                     self._set_attr_error(
                         component_name,
                         attr_name,
+                        timer,
                         units,
                         description,
                         error_message
@@ -153,7 +159,7 @@ class Publisher(object):
                         mjobs_args.append((
                             c,
                             attr_name,
-                            method['timer'],
+                            timer,
                             units,
                             description
                         ))
@@ -219,6 +225,7 @@ class Publisher(object):
     def add_errors_listener(cls):
         cls.s.add_listener(cls.errors_listener, events.EVENT_JOB_ERROR)
 
+
     @staticmethod
     def errors_listener(event):
         job_id = event.job_id
@@ -242,7 +249,10 @@ class Publisher(object):
                     seconds=config['SCHEDULER']['reschedule_error_interval']
                 )
 
-            channel, old_component_ref, attribute, units, description  = job.args
+            if not hasattr(job, 'args'):
+                return
+
+            channel, old_component_ref, attribute, timer, units, description  = job.args
             import suricate.component
             # If the component is available, we pass its reference to the job
             # and we restore the original job heartbeat
@@ -252,7 +262,7 @@ class Publisher(object):
                     old_component_ref.container,
                     old_component_ref.startup_delay
                 )
-                args = channel, component_ref, attribute, units, description
+                args = channel, component_ref, attribute, timer, units, description
                 Publisher.s.modify_job(job_id, args=args)
             except CannotGetComponentError:
                 pass  # Do nothing
@@ -260,30 +270,35 @@ class Publisher(object):
             # TODO: manage the unexpected exception
             pass
 
+
     @classmethod
     def start(cls):
         cls.s.start()
+
 
     @classmethod
     def shutdown(cls):
         for job in cls.s.get_jobs():
             job.remove()
-        cls.s.shutdown(wait=False)
+        cls.s.shutdown(wait=True)
         cls.s = Scheduler()
+
 
     def _set_attr_error(
             self,
             component_name,
             attribute,
+            timer,
             units,
             description,
             message):
         data_dict = {
             'error': message,
             'value': '',
+            'timer': timer,
             'units': units,
             'description': description,
-            'timestamp': str(datetime.datetime.utcnow())
+            'timestamp': datetime.utcnow().strftime(dt_format)
         }
         job_id = '%s/%s' % (component_name, attribute)
         if not r.hmset(job_id, data_dict):

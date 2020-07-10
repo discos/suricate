@@ -1,21 +1,27 @@
 #! /usr/bin/env python
-from __future__ import with_statement, print_function
+from __future__ import with_statement
 
-import logging
-import time
+import os
 import sys
 import socket
-from flask import Flask, jsonify, abort, request
-from suricate.core import Publisher
-from suricate.errors import CannotGetComponentError
+import logging
+from flask import jsonify, abort, request
+from flask_migrate import Migrate
 from suricate.configuration import config
+from suricate.monitor.core import Publisher
+from suricate.api import tasks, create_app, db
+from suricate.api.main import main
+from suricate.models import Command, Attribute
+from suricate.dbfiller import DBFiller
 
-
-app = Flask(__name__)
 publisher = None
+dbfiller = DBFiller()
 logger = logging.getLogger('suricate')
+app = create_app(config['DATABASE'])
+migrate = Migrate(app, db)
 
-@app.route('/publisher/api/v0.1/jobs', methods=['GET'])
+
+@main.route('/publisher/api/v0.1/jobs', methods=['GET'])
 def get_jobs():
     jobs = []
     for j in publisher.s.get_jobs():
@@ -24,7 +30,7 @@ def get_jobs():
     return jsonify({'jobs': jobs})
 
 
-@app.route('/publisher/api/v0.1/jobs', methods=['POST'])
+@main.route('/publisher/api/v0.1/jobs', methods=['POST'])
 def create_job():
     if not request.json:
         abort(400)
@@ -34,8 +40,8 @@ def create_job():
         component = request.json.get('component')
         attribute = request.json.get('attribute')
         timer = request.json.get('timer')
-        description = request.json.get('description', '')
         units = request.json.get('units', '')
+        description = request.json.get('description', '')
         type_ = request.json.get('type', 'property')
         types = 'properties' if type_ == 'property' else 'methods'
 
@@ -78,12 +84,12 @@ def create_job():
         ), 201
 
 
-@app.route('/publisher/api/v0.1/config', methods=['GET'])
+@main.route('/publisher/api/v0.1/config', methods=['GET'])
 def get_config():
     return jsonify(config)
 
 
-@app.route('/publisher/api/v0.1/stop', methods=['POST'])
+@main.route('/publisher/api/v0.1/stop', methods=['POST'])
 def stop():  # pragma: no cover
     try:
         app_shutdown = request.environ.get('werkzeug.server.shutdown')
@@ -97,8 +103,9 @@ def stop():  # pragma: no cover
         if publisher:
             publisher.shutdown()
             logger.info('all scheduled jobs have been closed')
-        else:
-            logger.error('there is no reference to the publisher')
+        if dbfiller:
+            dbfiller.shutdown()
+            logger.info('dbfiller job has been closed')
     return 'Server stopped :-)'
 
 
@@ -115,6 +122,16 @@ def stop_publisher():
         publisher.shutdown()
 
 
+def start_dbfiller():
+    global dbfiller
+    dbfiller.start()
+
+
+def stop_dbfiller():
+    if dbfiller is not None:
+        dbfiller.shutdown()
+
+
 def start_webserver():
     try:
         app.run(debug=False)
@@ -124,5 +141,12 @@ def start_webserver():
 
 
 def start(components=None):
+    logger.info('suricate server is starting...')
     start_publisher(components)
+    start_dbfiller()
     start_webserver()
+
+
+@app.shell_context_processor
+def make_shell_context():
+    return dict(db=db, Command=Command, Attribute=Attribute)
