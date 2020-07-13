@@ -81,6 +81,5 @@ class DBFiller(object):
         p.daemon = False
         p.start()
 
-    @classmethod
-    def shutdown(cls):
+    def shutdown(self):
         r.set('__dbfiller_stop', 'yes')
