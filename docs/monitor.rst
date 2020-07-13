@@ -4,41 +4,34 @@
 Control system monitor
 **********************
 
-.. topic:: Preface
+There are two ways to get the antenna parameters: by using
+the HTTP REST API, as explained in chapter :ref:`api`, and
+by using a Redis client, as discussed in this chapter.
+The Redis client allows you to get the parameters
+as quickly as possible, while the HTTP API has a lower time
+resolution but allows you to look at the history of the
+attribute, asking for the last ``N`` values, for all
+values after datetime ``x`` or between datetime
+``x`` and datetime ``y``.
 
-   There are two ways to get the antenna parameters: by using a Redis
-   client and by a HTTP REST API.  This documentation only mentions the
-   former one, because the HTTP API is still under development.
+.. note:: Suricate is composed by a monitor, a database filler
+   and a server. The *monitor* collects all attributes information
+   from the control system and stores them on a Redis database.
+   The *database filler* reads the attributes from Redis and stores
+   them on a persistent database. When the user performs a request
+   by means of the HTTP REST API, the *server* executes a query to
+   the persistent database and returns the response. The user, as
+   explained in this chapter, can also read the attributes information
+   by reading directly from the Redis in memory database.
 
-
-How to get the antenna parameters
-=================================
-The :download:`SRT configuration file <../templates/srt.yaml>` contains all
-parameters you can get. Have a look at its first 20 lines:
-
-.. literalinclude:: ../templates/srt.yaml
-   :language: yaml
-   :lines: 1-20
-   :linenos:
-
-Basically there is a list of *components*, and in the previous lines you only
-see the ``ANTENNA/Boss`` one.  Each component has some parameters (*properties*
-or *methods*) that you can ask for. They are identified by the lable
-``name``, it means, regarding to the previous lines, you can get the following
-``ANTENNA/Boss`` parameters: ``rawAzimuth``, ``rawElevation``, ``observedAzimuth``,
-``observedElevation``.
-
-To get them you need:
-
-#. a Redis client installed on your machine
-#. a way to use your client in order to get the antenna parameters
-
+If you want to get the antenna parameters from the
+Redis database, you need a Redis client installed on your machine.
 
 
 Install a Redis client
 ----------------------
 In this section we will briefly see how to install one of them for Python
-and C, but if you do not use that languages, visit the
+and C, but if you do not use these languages, visit the
 `official Redis webpage <https://redis.io/clients>`__ to get
 the right client for your operating system and programming language.
 
@@ -106,14 +99,12 @@ Let's see how to get the ``rawAzimuth`` from a Python shell:
    {
      'units': 'radians', 'timestamp': '2019-12-18 12:52:04.206445',
      'description': 'raw azimuth (encoder value), without any correction',
-     'value': '0.602314332058', 'error': ''
+     'value': '0.602314332058', 'error': '', 'timer': '2.0'
    }
 
-As you can see, to get a parameter you use a key made by the
-component name (``ANTENNA/Boss``) and the parameter name
-(``rawAzimuth``): ``ANTENNA/Boss/rawAzimuth``.  The result of the
-request contains the value of the property, its units, description
-and timestamp.  In case of error there is an error message, and the
+The format is the same as you see in previous chapter: ``SYSTEM/Component/name``.
+The result of the request contains the attribute value, its units, description,
+timer and timestamp.  In case of error there is an error message, and the
 ``value`` is an empty string:
 
 .. code-block:: python
@@ -122,7 +113,8 @@ and timestamp.  In case of error there is an error message, and the
    {
      'units': 'radians', 'timestamp': '2019-12-18 12:55:13.197819',
      'description': 'raw azimuth (encoder value), without any correction',
-     'value': '', 'error': 'component ANTENNA/Boss not available'
+     'value': '', 'error': 'component ANTENNA/Boss not available',
+     'timer': '2.0'
    }
 
 
@@ -138,7 +130,7 @@ Here is how to get a particular field:
    >>> result['description']
    'raw azimuth (encoder value), without any correction'
 
-Another way is to use the ``hget()``, giving the field name
+Another way is to use ``hget()``, giving the field name
 as a second argument:
 
 .. code-block:: python
@@ -208,6 +200,7 @@ program, then you get the following output:
    * description: raw azimuth (encoder value), without any correction
    * error:
    * units: radians
+   * timer: 2.0
    * timestamp: 2019-12-18 16:19:50.042722
    * value: 0.469729642021
 
@@ -223,9 +216,9 @@ We saw how to ask for antenna parameters in a *request-response* manner.
 Using that pattern you have to take care of the result, because you
 can get the same value for different requests.
 For intance, if you look at the :download:`SRT configuration file
-<../templates/srt.yaml>` you see that ``rawAzimuth`` has a sampling time of 400ms.
-That is why if you ask for the parameter faster than 400ms you get the same result
-for different requests:
+<../templates/srt.yaml>` you see that ``rawAzimuth`` has a sampling time of 2 seconds.
+That is why if you ask for the parameter to fast, for instance, once per second,
+you get the same result for different requests:
 
 .. code-block:: python
 
@@ -233,18 +226,18 @@ for different requests:
    >>> import redis
    >>> r = redis.StrictRedis(host='192.168.200.203', port=6379)
    ...     print(r.hgetall('ANTENNA/Boss/rawAzimuth')['timestamp'])
-   ...     time.sleep(0.2)  # 200ms
+   ...     time.sleep(0.9)  # 900ms
    ...
    2019-12-20 12:11:48.443357
-   2019-12-20 12:11:48.842924
-   2019-12-20 12:11:48.842924
-   2019-12-20 12:11:49.246206
-   2019-12-20 12:11:49.246206
+   2019-12-20 12:11:49.842924
+   2019-12-20 12:11:49.842924
+   2019-12-20 12:11:50.446206
+   2019-12-20 12:11:50.446206
 
 As you can see by looking at these timestamps, the second result is
 the same as the third, and the forth is the same as the fifth. It is
 not a big issue, because you can discard the result in case its
-timestamp is the same as the previous response. But there is
+timestamp is the same as the previous one. But there is
 another way: the *public-subscribe* pattern.  In that case you
 subscribe to a channel and wait for new data.
 Let'see how to do it by examples, using the Python client.
@@ -282,7 +275,7 @@ means they contain the antenna parameter:
      u'data': '{
        "description": "raw azimuth (encoder value), without any correction",
        "error": "", "units": "radians", "timestamp": "2019-12-20 14:43:16.262544",
-       "value": "3.97375753112"
+       "value": "3.97375753112", "timer": "2.0"
      }'
    }
 
@@ -300,11 +293,11 @@ in the *request-response* pattern:
     ...         value = data.get('value')
     ...         print(timestamp, value)
     ...
-    (u'2019-12-20 15:04:23.648343', u'4.07524413623')
+    (u'2019-12-20 15:04:22.148343', u'4.07524413623')
     (u'2019-12-20 15:04:24.043550', u'4.07527853477')
-    (u'2019-12-20 15:04:24.465494', u'4.07530617372')
-    (u'2019-12-20 15:04:24.843325', u'4.07533925004')
-    (u'2019-12-20 15:04:25.246359', u'4.07536964412')
+    (u'2019-12-20 15:04:26.465494', u'4.07530617372')
+    (u'2019-12-20 15:04:28.843325', u'4.07533925004')
+    (u'2019-12-20 15:04:30.956359', u'4.07536964412')
 
 .. note:: The antenna parameter is stored as a json string in the
    ``data`` field of the item.  I used ``json.loads()`` in order
@@ -361,6 +354,6 @@ case we are listening to all channels starting with ``ANTENNA/Boss``:
    ('ANTENNA/Boss/observedAzimuth', u'0.800308445826')
                            ...
 
-.. note:: In the last example (glob syntax) We subcribed to the channels
-   using ``pubsub.psubscribe()``  and not ``pubsub.subscribe()``.
-   We also wait for the type ``pmessage`` and not ``message``.
+.. note:: In the last example (glob syntax) we subcribed to the channels
+   using ``pubsub.psubscribe()``  and not ``pubsub.subscribe()``, and
+   we waited for the type ``pmessage``, not ``message``.
