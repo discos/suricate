@@ -45,9 +45,13 @@ point:
    $ sudo chkconfig redis on
    $ sudo service redis restart
 
+Start the Redis queue. It is used to send the commands to DISCOS::
 
-Run Suricate from remote
-------------------------
+   $ rqworker -P ~/suricate/suricate discos-api
+
+
+Remote configuration
+--------------------
 In case Suricate has not been installed on the machine running
 the manager, you need to export the manager reference. On the
 Suricate machine, open */discos-sw/config/misc/bash_profile* and
@@ -88,8 +92,8 @@ Now login to the manager host via SSH and answer ``yes``:
 You are now ready to install and use Suricate.
 
 
-Suricate
---------
+Install Suricate
+----------------
 To install Suricate clone the repository and use ``pip``:
 
 .. code-block:: shell
@@ -113,7 +117,28 @@ to configure it.  To install the SRT configuration:
 This command copies the SRT configuration to *~/.suricate/config/config.yaml*.
 If you want to add or change some antenna parameters, change that file.
 
-Now you are ready to start Suricate:
+
+Create the database
+-------------------
+
+.. todo:: All these steps must be deployed automatically. To be done.
+
+Create the database tables::
+
+   $ cd suricate/suricate
+   $ source .flaskenv
+   $ flask db init
+
+Every time a table changes::
+
+   $ flask db migrate -m "Task table"
+   $ flask db upgrade
+
+
+Run Suricate
+------------
+
+You are ready to start Suricate:
 
 .. code-block:: shell
 
