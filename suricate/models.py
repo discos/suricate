@@ -23,6 +23,9 @@ class Command(db.Model):
     result = db.Column(db.String(128), default='unknown')
     # How long the task has been executed?
     seconds = db.Column(db.Float, default=0.0)
+    # The error message, in case the command has not been
+    # delivered to the Scheduler
+    error = db.Column(db.String(32), default='')
 
     def __repr__(self):
         return '<Command {}>'.format(self.id)

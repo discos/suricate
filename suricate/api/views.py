@@ -23,6 +23,7 @@ def post_command(command):
         success=False,
         result='unknown',
         seconds=0.0,
+        error='',
     )
     # The commit clears cmd.__dict__, that is
     # why I create the response before the commit.
