@@ -2,6 +2,7 @@ import time
 from datetime import datetime
 from flask import json, jsonify
 import pytest
+import suricate
 from suricate.configuration import dt_format, config
 
 
@@ -252,8 +253,60 @@ def test_empty_commands_history_from_datetimex_to_datetimey(client):
     assert response['error_message'] == 'empty command history'
 
 
-def test_command_not_executed(client):
-    """What heppens when the scheduler is not available?"""
+def test_scheduler_not_available(client):
+    """The component is not available."""
+    try:
+        suricate.component.Component.unavailables = ['MANAGEMENT/Gavino']
+        raw_response = client.post('/cmd/foo')
+        response = raw_response.get_json()
+        cmd_id = response['id']
+        raw_response = client.get('/cmd/%s' % cmd_id)
+        time.sleep(0.01)
+        response = raw_response.get_json()
+        assert response['delivered'] == True
+        assert response['complete'] == True
+        assert response['success'] == False
+        assert response['result'] == 'unknown'
+        assert response['error'] == 'DISCOS Scheduler not available'
+    finally:
+        suricate.component.Component.unavailables = []
+
+
+def test_manager_offline(client):
+    try:
+        suricate.services.is_manager_online = lambda: False
+        raw_response = client.post('/cmd/foo')
+        response = raw_response.get_json()
+        cmd_id = response['id']
+        raw_response = client.get('/cmd/%s' % cmd_id)
+        time.sleep(0.01)
+        response = raw_response.get_json()
+        assert response['delivered'] == True
+        assert response['complete'] == False
+        assert response['success'] == False
+        assert response['result'] == 'unknown'
+        assert response['error'] == 'ACS not running'
+    finally:
+        suricate.services.is_manager_online = lambda: True
+
+
+def test_container_offline(client):
+    try:
+        suricate.services.is_manager_online = lambda: True
+        suricate.services.is_container_online = lambda x: False
+        raw_response = client.post('/cmd/foo')
+        response = raw_response.get_json()
+        cmd_id = response['id']
+        raw_response = client.get('/cmd/%s' % cmd_id)
+        time.sleep(0.01)
+        response = raw_response.get_json()
+        assert response['delivered'] == True
+        assert response['complete'] == False
+        assert response['success'] == False
+        assert response['result'] == 'unknown'
+        assert response['error'] == 'ManagementContainer not running'
+    finally:
+        suricate.services.is_container_online = lambda x: True
 
 
 def test_get_last_attributes(client, dbfiller, redis_client):
@@ -399,7 +452,6 @@ def test_empty_attribute_history_from_datetimex_to_datetimey(client):
     response = raw_response.get_json()
     assert response['status_code'] == 404
     assert response['error_message'] == 'empty attribute history'
-
 
 
 if __name__ == '__main__':

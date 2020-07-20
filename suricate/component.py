@@ -48,7 +48,7 @@ class Component(object):
             with suricate.services.logging_lock:
                 self.release()
                 if not suricate.services.is_container_online(self.container):
-                    raise CannotGetComponentError('%s container not running' % self.name)
+                    raise CannotGetComponentError('%s not running' % self.name)
                 else:
                     Client = suricate.services.get_client_class()
                     client = Client(self.name)
