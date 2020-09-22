@@ -5,25 +5,94 @@ COMPONENTS:
     container: AntennaBossContainer
     properties:
     - name: rawAzimuth
-      timer: 2.0
+      timer: 0.8
       units: radians
       description: "commanded azimuth (encoder value), without any correction"
     - name: rawElevation
-      timer: 2.0
+      timer: 0.8
       units: radians
       description: "commanded elevation (encoder value), without any correction"
     - name: observedAzimuth
-      timer: 3.0
+      timer: 1.0
       units: radians
       description: "current azimuth with refraction and pointing model applied"
     - name: observedElevation
-      timer: 3.0
+      timer: 1.0
       units: radians
       description: "current elevation with refraction and pointing model applied"
     - name: status
       timer: 2.0
       units: none
       description: "MNG_OK or MNG_WARNING or MNG_FAILURE"
+
+
+MANAGEMENT/Gavino:
+    startup_delay: 10
+    container: ManagementContainer
+    properties:
+    - name: currentBackend
+      timer: 10
+      units: none
+      description: "currently used backend"
+    - name: currentDevice
+      timer: 10
+      units: none
+      description: "device id currently in use"
+    - name: currentRecorder
+      timer: 10
+      units: none
+      description: "currently used data recorder (i.e. FitsZilla)"
+    - name: projectCode
+      timer: 10
+      units: none
+      description: "currently running project code"
+    - name: restFrequency
+      timer: 2
+      units: MHz
+      description: "rest frequency configured for each section of the backend"
+    - name: scanID
+      timer: 10
+      units: none
+      description: "scan identifier currently played by the scheduler"
+    - name: scheduleName
+      timer: 15
+      units: none
+      description: "schedule file name that the scheduler is executing"
+    - name: subScanID
+      timer: 2
+      units: none
+      description: "schedule file name that the scheduler is executing"
+    - name: tracking
+      timer: 2
+      units: none
+      description: "summary of tracking and status attributes of all subsystems:
+      MNG_TRUE means that all subsystems are working and tracking properly"
+
+
+  RECEIVERS/Boss:
+    startup_delay: 10
+    container: ReceiversContainer
+    properties:
+    - name: actualSetup
+      timer: 10
+      units: none
+      description: "setup code: KKG, CCB, LLP, ..."
+    - name: bandWidth
+      timer: 10
+      units: MHz
+      description: "a sequence of bandwidth values, one per channel"
+    - name: initialFrequency
+      timer: 10
+      units: MHz
+      description: "a sequence of frequencies values, one per channel"
+    - name: LO
+      timer: 10
+      units: MHz
+      description: "a sequence of LO frequencies values, one per channel"
+    - name: mode
+      timer: 10
+      units: none
+      description: "label indicating the operating mode: VLBI, SINGLEDISH, ..."
 
 
   RECEIVERS/SRT7GHzReceiver:
