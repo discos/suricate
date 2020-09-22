@@ -26,7 +26,7 @@ COMPONENTS:
       description: "MNG_OK or MNG_WARNING or MNG_FAILURE"
 
 
-MANAGEMENT/Gavino:
+  MANAGEMENT/Gavino:
     startup_delay: 10
     container: ManagementContainer
     properties:
