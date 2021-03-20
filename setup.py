@@ -52,7 +52,7 @@ setup(
         'redis==3.3.8',
         'apscheduler==3.6.1',
         'MarkupSafe==1.1.1',
-        'Jinja2==2.11.1',
+        'Jinja2==2.11.3',
         'Flask==1.1.1',
         'itsdangerous==1.1.0',
         'Flask-SQLAlchemy==2.4.3',
