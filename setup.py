@@ -57,7 +57,7 @@ setup(
         'itsdangerous==1.1.0',
         'Flask-SQLAlchemy==2.4.3',
         'Flask-Migrate==2.5.3',
-        'pyyaml==5.1',
+        'pyyaml==5.4',
         'rq==1.3.0',
         'python-dotenv',
         'requests',
