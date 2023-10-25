@@ -1,4 +1,4 @@
-from __future__ import with_statement
+
 import os
 import sys
 import logging
@@ -87,7 +87,7 @@ try:
         config = yaml.safe_load(stream)
         if not config:
             config = default_config
-except Exception, ex:
+except Exception as ex:
     config = default_config
     logger = logging.getLogger('suricate')
     logger.warning('cannot read %s: loading default config' % config_file)

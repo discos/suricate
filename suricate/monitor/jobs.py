@@ -77,7 +77,7 @@ def acs_publisher(channel, component, attribute, timer, units='', description=''
                 r.hmset('components', {component.name: 'available'})
                 r.delete('__%s/info' % component.name)
             r.delete('__%s/error' % component.name)
-    except CannotGetComponentError, ex:
+    except CannotGetComponentError as ex:
         print(ex)
         if not suricate.services.is_manager_online():
             error_message = 'ACS not running'
@@ -101,7 +101,7 @@ def acs_publisher(channel, component, attribute, timer, units='', description=''
         key = '__%s/error' % component.name
         r.hmset('components', {component.name: 'unavailable'})
         raise ComponentAttributeError(error_message)
-    except Exception, ex:
+    except Exception as ex:
         logger.debug(str(ex))
         if not suricate.services.is_manager_online():
             error_message = 'ACS not running'

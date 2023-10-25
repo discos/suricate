@@ -1,5 +1,6 @@
 import pytest
 from mock import patch, mock_open
+import importlib
 
 user_config = """
 HTTP:
@@ -20,7 +21,7 @@ def test_configuration_file_exists():
                 "suricate.configuration.open",
                 mock_open(read_data=user_config)) as f:
 
-            reload(configuration)
+            importlib.reload(configuration)
             config = configuration.config
             assert config['HTTP']['baseurl'] != default_baseurl
             assert config['HTTP']['baseurl'] == 'pippo'
@@ -28,7 +29,7 @@ def test_configuration_file_exists():
             assert config['HTTP']['port'] == 7000
             f.assert_called_with(configuration.config_file)
     finally:
-        reload(configuration)
+        importlib.reload(configuration)
 
 
 def test_wrong_configuration_file():
@@ -43,13 +44,13 @@ def test_wrong_configuration_file():
                 "suricate.configuration.open",
                 mock_open(read_data='')) as f:
 
-            reload(configuration)
+            importlib.reload(configuration)
             config = configuration.config
             assert config['HTTP']['baseurl'] == default_baseurl
             assert config['HTTP']['port'] == default_port
             f.assert_called_with(configuration.config_file)
     finally:
-        reload(configuration)
+        importlib.reload(configuration)
 
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ from suricate.configuration import dt_format
 r = redis.StrictRedis()
 # Remove old status keys from the DB
 for key in r.scan_iter("*"):
-    if key.startswith('__'):
+    if key.startswith(b'__'):
         r.delete(key)
 
 
@@ -59,7 +59,7 @@ class Component(object):
                         '__%s/startup_time' % self.name,
                         startup_time.strftime(dt_format),
                     )
-        except Exception, ex:
+        except Exception as ex:
             # I check the name of the class because I can not catch the
             # proper exception. Actually I can not catch it when executing
             # the tests online, where there is either no ACS no CORBA.

@@ -3,6 +3,7 @@ import time
 import json
 import suricate.component
 from mock import patch, mock_open
+import importlib
 
 
 def get_user_config(startup_delay=0):
@@ -46,7 +47,7 @@ def test_startup_delay(Publisher, redis_client, logger):
         from suricate import configuration
         func = "suricate.configuration.open"
         with patch(func, mock_open(read_data=user_config)) as f:
-            reload(configuration)
+            importlib.reload(configuration)
             f.assert_called_with(configuration.config_file)
             from suricate.configuration import config
 
@@ -82,7 +83,7 @@ def test_startup_delay(Publisher, redis_client, logger):
         assert 'is online' in lines[3]  # Second component online
 
     finally:
-        reload(configuration)
+        importlib.reload(configuration)
 
 
 def test_all_components_not_active_at_startup(Publisher, redis_client):
@@ -93,7 +94,7 @@ def test_all_components_not_active_at_startup(Publisher, redis_client):
         from suricate import configuration
         func = "suricate.configuration.open"
         with patch(func, mock_open(read_data=user_config)) as f:
-            reload(configuration)
+            importlib.reload(configuration)
             f.assert_called_with(configuration.config_file)
             from suricate.configuration import config
 
@@ -125,7 +126,7 @@ def test_all_components_not_active_at_startup(Publisher, redis_client):
         assert not message
     finally:
         suricate.component.Component.unavailables = []
-        reload(configuration)
+        importlib.reload(configuration)
 
 
 def test_some_components_not_active_at_startup(Publisher, redis_client):
@@ -136,7 +137,7 @@ def test_some_components_not_active_at_startup(Publisher, redis_client):
         from suricate import configuration
         func = "suricate.configuration.open"
         with patch(func, mock_open(read_data=user_config)) as f:
-            reload(configuration)
+            importlib.reload(configuration)
             f.assert_called_with(configuration.config_file)
             from suricate.configuration import config
 
@@ -167,7 +168,7 @@ def test_some_components_not_active_at_startup(Publisher, redis_client):
         assert not message
     finally:
         suricate.component.Component.unavailables = []
-        reload(configuration)
+        importlib.reload(configuration)
 
 
 if __name__ == '__main__':

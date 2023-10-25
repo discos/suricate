@@ -72,7 +72,7 @@ class Publisher(object):
         pjobs_args = []  # Properties list
         mjobs_args = []  # Methods list
         import suricate.component
-        for component_name, targets in config.items():
+        for component_name, targets in list(config.items()):
             # Set the default redis values
             properties = targets.get('properties', [])
             methods = targets.get('methods', [])
@@ -175,7 +175,7 @@ class Publisher(object):
 
     def rescheduler(self):
         # Check if unavailable components are now available
-        for comp, status in r.hgetall('components').items():
+        for comp, status in list(r.hgetall('components').items()):
             if status == 'available':
                 self.unavailable_components.pop(comp, None)
 
@@ -202,7 +202,7 @@ class Publisher(object):
         unavailable_comps = set()
         for comp in self.unavailable_components:
             unavailable_comps.add(comp)
-        for comp, status in r.hgetall('components').items():
+        for comp, status in list(r.hgetall('components').items()):
             if status == 'unavailable':
                 unavailable_comps.add(comp)
             elif comp in unavailable_comps:

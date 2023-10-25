@@ -3,6 +3,7 @@ import time
 import json
 import suricate.component
 from mock import patch, mock_open
+import importlib
 
 
 user_config = """
@@ -48,7 +49,7 @@ def test_all_components_unavailable(Publisher, redis_client):
         from suricate import configuration
         func = "suricate.configuration.open"
         with patch(func, mock_open(read_data=user_config)) as f:
-            reload(configuration)
+            importlib.reload(configuration)
             f.assert_called_with(configuration.config_file)
             from suricate.configuration import config
 
@@ -67,7 +68,7 @@ def test_all_components_unavailable(Publisher, redis_client):
         assert components['TestNamespace/Positioner03'] == 'unavailable'
     finally:
         suricate.component.Component.unavailables = []
-        reload(configuration)
+        importlib.reload(configuration)
 
 
 def test_all_components_available(Publisher, redis_client):
@@ -75,7 +76,7 @@ def test_all_components_available(Publisher, redis_client):
         from suricate import configuration
         func = "suricate.configuration.open"
         with patch(func, mock_open(read_data=user_config)) as f:
-            reload(configuration)
+            importlib.reload(configuration)
             f.assert_called_with(configuration.config_file)
             from suricate.configuration import config
 
@@ -91,7 +92,7 @@ def test_all_components_available(Publisher, redis_client):
         assert components['TestNamespace/Positioner03'] == 'available'
     finally:
         suricate.component.Component.unavailables = []
-        reload(configuration)
+        importlib.reload(configuration)
 
 
 def test_some_components_unavailable(Publisher, redis_client):
@@ -99,7 +100,7 @@ def test_some_components_unavailable(Publisher, redis_client):
         from suricate import configuration
         func = "suricate.configuration.open"
         with patch(func, mock_open(read_data=user_config)) as f:
-            reload(configuration)
+            importlib.reload(configuration)
             f.assert_called_with(configuration.config_file)
             from suricate.configuration import config
 
@@ -139,7 +140,7 @@ def test_some_components_unavailable(Publisher, redis_client):
         assert components['TestNamespace/Positioner03'] == 'available'
     finally:
         suricate.component.Component.unavailables = []
-        reload(configuration)
+        importlib.reload(configuration)
 
 
 if __name__ == '__main__':

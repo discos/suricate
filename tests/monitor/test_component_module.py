@@ -6,6 +6,7 @@ import suricate.services
 import suricate.component
 from suricate.configuration import config
 from suricate.errors import CannotGetComponentError 
+import importlib
 
 
 COMP_NAME = 'TestNamespace/Positioner00'
@@ -15,7 +16,7 @@ suricate.services.is_container_online = lambda x: True
 
 def test_manager_offline():
     # suricate.component has been moked, reload the original one
-    reload(suricate.component)
+    importlib.reload(suricate.component)
     try:
         suricate.services.is_manager_online = lambda: False
         with pytest.raises(CannotGetComponentError):
@@ -26,7 +27,7 @@ def test_manager_offline():
 
 def test_component_unavailable():
     # suricate.component has been moked, reload the original one
-    reload(suricate.component)
+    importlib.reload(suricate.component)
     try:
         suricate.component.Component.unavailables.append('TestNamespace/Positioner00')
         with pytest.raises(CannotGetComponentError):
@@ -38,7 +39,7 @@ def test_component_unavailable():
 def test_container_offline():
     """The container is offline, raise CannotGetComponentError"""
     # suricate.component has been moked, reload the original one
-    reload(suricate.component)
+    importlib.reload(suricate.component)
     try:
         suricate.services.is_container_online = lambda x: False
         with pytest.raises(CannotGetComponentError):
@@ -50,7 +51,7 @@ def test_container_offline():
 def test_get_component():
     # suricate.component has been moked, reload the original one
     # Real component, mocked client
-    reload(suricate.component)
+    importlib.reload(suricate.component)
     try:
         Client = suricate.services.get_client_class()
         conftest.MockACSClient.set_exc_name('CannotGetComponent')
@@ -67,7 +68,7 @@ def test_get_component():
 def test_no_permission_ex():
     # suricate.component has been moked, reload the original one
     # Real component, mocked client
-    reload(suricate.component)
+    importlib.reload(suricate.component)
     try:
         Client = suricate.services.get_client_class()
         conftest.MockACSClient.set_exc_name('NoPermissionEx')
@@ -84,7 +85,7 @@ def test_no_permission_ex():
 def test_comm_failure_manager_online():
     # suricate.component has been moked, reload the original one
     # Real component, mocked client
-    reload(suricate.component)
+    importlib.reload(suricate.component)
     try:
         Client = suricate.services.get_client_class()
         conftest.MockACSClient.set_exc_name('COMM_FAILURE')
@@ -101,7 +102,7 @@ def test_comm_failure_manager_online():
 def test_comm_failure_manager_offline():
     # suricate.component has been moked, reload the original one
     # Real component, mocked client
-    reload(suricate.component)
+    importlib.reload(suricate.component)
     try:
         Client = suricate.services.get_client_class()
         conftest.MockACSClient.set_exc_name('COMM_FAILURE')
@@ -120,7 +121,7 @@ def test_comm_failure_manager_offline():
 def test_unexpected_exception_manager_online():
     # suricate.component has been moked, reload the original one
     # Real component, mocked client
-    reload(suricate.component)
+    importlib.reload(suricate.component)
     try:
         Client = suricate.services.get_client_class()
         conftest.MockACSClient.set_exc_name('unexpected')
@@ -136,7 +137,7 @@ def test_unexpected_exception_manager_online():
 
 def test_proxy_attribute():
     # suricate.component has been moked, reload the original one
-    reload(suricate.component)
+    importlib.reload(suricate.component)
     my_object = 'a string'
     p = suricate.component.Proxy('text', my_object)
     assert p.upper() == 'TEXT'
@@ -144,7 +145,7 @@ def test_proxy_attribute():
 
 def test_proxy_call():
     # suricate.component has been moked, reload the original one
-    reload(suricate.component)
+    importlib.reload(suricate.component)
     my_object = 'a string'
     p = suricate.component.Proxy('text', my_object)
     with pytest.raises(CannotGetComponentError) as exc:

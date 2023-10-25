@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-from __future__ import with_statement
+
 
 import os
 import sys
@@ -135,7 +135,7 @@ def stop_dbfiller():
 def start_webserver():
     try:
         app.run(debug=False)
-    except socket.error, ex:
+    except socket.error as ex:
         logger.error(ex)
         sys.exit(1)
 

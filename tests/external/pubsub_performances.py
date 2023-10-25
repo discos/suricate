@@ -11,7 +11,7 @@ in execution, using:
    - total_time=5
 
 """
-from __future__ import print_function
+
 import datetime
 import logging
 import time
