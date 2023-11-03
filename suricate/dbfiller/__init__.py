@@ -34,11 +34,11 @@ class DBFiller(object):
 
         while True:
             for key in r.scan_iter("*"):
-                if key.startswith('_'):
+                if key.startswith(b'_'):
                     continue
-                elif ':' in key or 'healthy_job' in key:
+                elif b':' in key or b'healthy_job' in key:
                     continue
-                elif key.count('/') != 2:
+                elif key.count(b'/') != 2:
                     # Every attribute key has 2 slashes
                     # I.e. ANTENNA/Boss/rawAzimuth
                     continue

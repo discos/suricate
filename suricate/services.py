@@ -57,7 +57,7 @@ def is_container_online(name):
 
 
 def is_manager_online():
-    return 'maciManagerJ' in ps_output('maciManager')
+    return b'maciManagerJ' in ps_output(b'maciManager')
 
 
 def get_client_class():
