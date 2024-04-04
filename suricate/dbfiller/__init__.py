@@ -71,7 +71,10 @@ class DBFiller(object):
                 finally:
                     session.close()
 
-            time.sleep(config['SCHEDULER']['dbfiller_cycle'])
+            try:
+                time.sleep(config['SCHEDULER']['dbfiller_cycle'])
+            except KeyboardInterrupt:
+                break
             if r.get('__dbfiller_stop') == 'yes':
                 break
 

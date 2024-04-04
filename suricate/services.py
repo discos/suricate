@@ -53,11 +53,11 @@ def ps_output(keyword):
     
 
 def is_container_online(name):
-    return name in ps_output('StartContainer')
+    return name.encode('latin-1') in ps_output('StartContainer')
 
 
 def is_manager_online():
-    return b'maciManagerJ' in ps_output(b'maciManager')
+    return b'maciManagerJ' in ps_output('maciManager')
 
 
 def get_client_class():

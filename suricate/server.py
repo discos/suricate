@@ -5,6 +5,7 @@ import os
 import sys
 import socket
 import logging
+logging._srcfile = None
 from flask import jsonify, abort, request
 from flask_migrate import Migrate
 from suricate.configuration import config
@@ -13,12 +14,6 @@ from suricate.api import tasks, create_app, db
 from suricate.api.main import main
 from suricate.models import Command, Attribute
 from suricate.dbfiller import DBFiller
-
-publisher = None
-dbfiller = DBFiller()
-logger = logging.getLogger('suricate')
-app = create_app(config['DATABASE'])
-migrate = Migrate(app, db)
 
 
 @main.route('/publisher/api/v0.1/jobs', methods=['GET'])
@@ -145,6 +140,13 @@ def start(components=None):
     start_publisher(components)
     start_dbfiller()
     start_webserver()
+
+
+publisher = None
+dbfiller = DBFiller()
+logger = logging.getLogger('suricate')
+app = create_app(config['DATABASE'])
+migrate = Migrate(app, db)
 
 
 @app.shell_context_processor

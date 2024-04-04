@@ -38,7 +38,7 @@ def acs_publisher(channel, component, attribute, timer, units='', description=''
         with suricate.services.logging_lock:
             startup_time = r.get('__%s/startup_time' % component.name)
             if startup_time:
-                t = datetime.strptime(startup_time, dt_format)
+                t = datetime.strptime(startup_time.decode(), dt_format)
                 if datetime.utcnow() <= t:
                     message = '%s not ready: startup in progress' % component.name
                     data_dict.update({'error': message})
