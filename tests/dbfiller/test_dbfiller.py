@@ -18,7 +18,7 @@ def test_key_starts_unserscore(client, dbfiller, redis_client):
     """Do not add a key if it starts with underscore"""
     key = '__SYSTEM/Component/name'
     attribute['timestamp'] = datetime.utcnow().strftime(dt_format)
-    redis_client.hmset(key, attribute)
+    redis_client.hset(key, mapping=attribute)
     redis_client.set('__dbfiller_stop', 'yes')
     dbfiller.dbfiller()
     result = Attribute.query.filter(Attribute.name == key).all()
@@ -29,7 +29,7 @@ def test_colon_in_key(client, dbfiller, redis_client):
     """Do not add the attribute if the key contains :"""
     key = 'SYSTEM/Component/name:'
     attribute['timestamp'] = datetime.utcnow().strftime(dt_format)
-    redis_client.hmset(key, attribute)
+    redis_client.hset(key, mapping=attribute)
     redis_client.set('__dbfiller_stop', 'yes')
     dbfiller.dbfiller()
     result = Attribute.query.filter(Attribute.name == key).all()
@@ -40,7 +40,7 @@ def test_healthy_job_in_key(client, dbfiller, redis_client):
     """Do not add the attribute if the key contains `healthy_job`"""
     key = 'healthy_job_something'
     attribute['timestamp'] = datetime.utcnow().strftime(dt_format)
-    redis_client.hmset(key, attribute)
+    redis_client.hset(key, mapping=attribute)
     redis_client.set('__dbfiller_stop', 'yes')
     dbfiller.dbfiller()
     result = Attribute.query.filter(Attribute.name == key).all()
@@ -51,7 +51,7 @@ def test_three_slash_characters_in_key(client, dbfiller, redis_client):
     """Do not add the attribute if the key does not contains exactly two /"""
     key = 'SYSTEM/Component/name/foo'
     attribute['timestamp'] = datetime.utcnow().strftime(dt_format)
-    redis_client.hmset(key, attribute)
+    redis_client.hset(key, mapping=attribute)
     redis_client.set('__dbfiller_stop', 'yes')
     dbfiller.dbfiller()
     result = Attribute.query.filter(Attribute.name == key).all()
@@ -63,7 +63,7 @@ def test_do_not_store_errors(client, dbfiller, redis_client):
     key = 'SYSTEM/Component/name'
     attribute['timestamp'] = datetime.utcnow().strftime(dt_format)
     attribute['error'] = 'an error message'
-    redis_client.hmset(key, attribute)
+    redis_client.hset(key, mapping=attribute)
     redis_client.set('__dbfiller_stop', 'yes')
     dbfiller.dbfiller()
     result = Attribute.query.filter(Attribute.name == key).all()
@@ -76,7 +76,7 @@ def test_no_timestamp_in_data(client, dbfiller, redis_client):
     key = 'SYSTEM/Component/name'
     if 'timestamp' in attribute:
         del attribute['timestamp']
-    redis_client.hmset(key, attribute)
+    redis_client.hset(key, mapping=attribute)
     redis_client.set('__dbfiller_stop', 'yes')
     dbfiller.dbfiller()
     result = Attribute.query.filter(Attribute.name == key).all()
@@ -87,7 +87,7 @@ def test_store_attribute(client, dbfiller, redis_client):
     """Store the attribute to db"""
     key = 'SYSTEM/Component/name'
     attribute['timestamp'] = datetime.utcnow().strftime(dt_format)
-    redis_client.hmset(key, attribute)
+    redis_client.hset(key, mapping=attribute)
     redis_client.set('__dbfiller_stop', 'yes')
     dbfiller.dbfiller()
     result = Attribute.query.filter(Attribute.name == key).first()
@@ -98,7 +98,7 @@ def test_store_attribute_by_process(client, dbfiller, redis_client):
     """Start the process and verify it stores only one attribute"""
     key = 'SYSTEM/Component/name'
     attribute['timestamp'] = datetime.utcnow().strftime(dt_format)
-    redis_client.hmset(key, attribute)
+    redis_client.hset(key, mapping=attribute)
     dbfiller.start()
     # Wait a little bit, to be sure the process has the
     # chance to store more than one attribute

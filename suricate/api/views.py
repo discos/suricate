@@ -40,7 +40,7 @@ def post_command(command):
 
 @main.route('/cmd/<cmd_id>', methods=['GET'])
 def get_command(cmd_id):
-    cmd = Command.query.get(cmd_id)
+    cmd = db.session.get(Command, cmd_id)
     if not cmd:
         response = {
             'status_code': 404,

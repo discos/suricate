@@ -12,7 +12,7 @@ def command(line, cmd_id):
     import suricate.services
     container = 'ManagementContainer'
     try:
-        cmd = Command.query.get(cmd_id)
+        cmd = db.session.get(Command, cmd_id)
         if not suricate.services.is_manager_online():
             cmd.success = False
             cmd.complete = False

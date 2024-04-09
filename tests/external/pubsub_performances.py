@@ -23,7 +23,7 @@ logging.basicConfig()
 
 
 def publisher(channel):
-    r = redis.StrictRedis()
+    r = redis.StrictRedis(decode_responses=True)
     r.publish(channel, 'from publisher...')
 
 
@@ -37,7 +37,7 @@ def get_from(func, channel, delta_time, total_time):
             trigger='interval',
             seconds=delta_time)
 
-        r = redis.StrictRedis()
+        r = redis.StrictRedis(decode_responses=True)
         pubsub = r.pubsub()
         pubsub.subscribe('test-channel')
         scheduler.start()

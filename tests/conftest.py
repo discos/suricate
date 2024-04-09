@@ -51,10 +51,10 @@ def mock_objects(request, monkeypatch):
 
 @pytest.fixture(autouse=True)
 def logger(request):
-    r = redis.StrictRedis()
+    r = redis.StrictRedis(decode_responses=True)
     # Log messages start with ___ : remove them
     for key in r.scan_iter("*"):
-        if key.startswith(b'__'):
+        if key.startswith('__'):
             r.delete(key)
     f = NamedTemporaryFile()
     file_handler = logging.FileHandler(f.name, 'w')
@@ -107,8 +107,8 @@ def Publisher(request):
 
     def shutdown():
         try:
-            Publisher_.shutdown()
             print('\nShutting down the scheduler...')
+            Publisher_.shutdown()
             time.sleep(1)
         except SchedulerNotRunningError:
             pass
@@ -123,8 +123,8 @@ def dbfiller(request):
     dbf = DBFiller()
 
     def shutdown():
-        dbf.shutdown()
         print('\nShutting down the dbfiller...')
+        dbf.shutdown()
         time.sleep(1)
 
     request.addfinalizer(shutdown)
@@ -135,7 +135,7 @@ class RedisPubSub(object):
     """Delegate to a redis pubsub channel"""
 
     def __init__(self):
-        self._redis = redis.StrictRedis()
+        self._redis = redis.StrictRedis(decode_responses=True)
         self._redis.flushall()
         self._pubsub = self._redis.pubsub()
 
@@ -219,7 +219,7 @@ class MockComponent(object):
         self.container = container
         self.startup_delay = int(startup_delay)
         startup_time = datetime.utcnow() + timedelta(seconds=self.startup_delay)
-        r = redis.StrictRedis()
+        r = redis.StrictRedis(decode_responses=True)
         r.set(
             '__%s/startup_time' % self.name,
             startup_time.strftime(dt_format),
@@ -384,7 +384,7 @@ def pubsub(request):
 
 @pytest.fixture()
 def redis_client(request):
-    r = redis.StrictRedis()
+    r = redis.StrictRedis(decode_responses=True)
 
     def close_redis_client():
         r.flushall()

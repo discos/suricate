@@ -17,7 +17,7 @@ from suricate.errors import (
 import suricate.services
 
 logger = logging.getLogger('suricate')
-r = redis.StrictRedis()
+r = redis.StrictRedis(decode_responses=True)
 
 
 class Publisher(object):
@@ -91,7 +91,7 @@ class Publisher(object):
                 sys.exit(0)
             try:
                 if not suricate.services.is_manager_online():
-                    r.hmset('components', {component_name: 'unavailable'})
+                    r.hset('components', mapping={component_name: 'unavailable'})
                     key = '__manager/error'
                     error_message = 'ACS not running'
                 else:
@@ -212,9 +212,9 @@ class Publisher(object):
         all_comps = unavailable_comps | scheduled_comps
         for comp in all_comps:
             if comp in unavailable_comps:
-                r.hmset('components', {comp: 'unavailable'})
+                r.hset('components', mapping={comp: 'unavailable'})
             else:
-                r.hmset('components', {comp: 'available'})
+                r.hset('components', mapping={comp: 'available'})
 
 
     def get_jobs(self):
@@ -278,9 +278,8 @@ class Publisher(object):
 
     @classmethod
     def shutdown(cls):
-        for job in cls.s.get_jobs():
-            job.remove()
-        cls.s.shutdown(wait=True)
+        cls.s.remove_all_jobs()
+        cls.s.shutdown(wait=False)
         cls.s = Scheduler()
 
 
@@ -301,6 +300,5 @@ class Publisher(object):
             'timestamp': datetime.utcnow().strftime(dt_format)
         }
         job_id = '%s/%s' % (component_name, attribute)
-        if not r.hmset(job_id, data_dict):
-            logger.error('cannot write on redis: "%s"' % message)
+        r.hset(job_id, mapping=data_dict)
         r.publish(job_id, json.dumps(data_dict))

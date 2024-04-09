@@ -14,7 +14,7 @@ from suricate.configuration import config, dt_format
 
 
 logger = logging.getLogger('suricate')
-r = redis.StrictRedis()
+r = redis.StrictRedis(decode_responses=True)
 
 stop_key = '__dbfiller_stop'
 
@@ -34,11 +34,11 @@ class DBFiller(object):
 
         while True:
             for key in r.scan_iter("*"):
-                if key.startswith(b'_'):
+                if key.startswith('_'):
                     continue
-                elif b':' in key or b'healthy_job' in key:
+                elif ':' in key or 'healthy_job' in key:
                     continue
-                elif key.count(b'/') != 2:
+                elif key.count('/') != 2:
                     # Every attribute key has 2 slashes
                     # I.e. ANTENNA/Boss/rawAzimuth
                     continue

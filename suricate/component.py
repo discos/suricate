@@ -5,10 +5,10 @@ from suricate.errors import CannotGetComponentError
 from suricate.configuration import dt_format
 
 
-r = redis.StrictRedis()
+r = redis.StrictRedis(decode_responses=True)
 # Remove old status keys from the DB
 for key in r.scan_iter("*"):
-    if key.startswith(b'__'):
+    if key.startswith('__'):
         r.delete(key)
 
 

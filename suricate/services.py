@@ -11,7 +11,7 @@ import redis
 RUN_ON_MANAGER_HOST = True
 
 logging_lock = threading.Lock()
-r = redis.StrictRedis()
+r = redis.StrictRedis(decode_responses=True)
 
 
 def ps_output(keyword):

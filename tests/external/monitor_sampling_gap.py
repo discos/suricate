@@ -17,13 +17,15 @@ parser.add_argument(
     '-a',
     '--attribute',
     type=str,
-    help='Attribute to be monitored'
+    help='Attribute to be monitored',
+    required=True
 )
 parser.add_argument(
     '-t',
     '--timer',
     type=int,
-    help='Suricate sampling time of the attribute'
+    help='Suricate sampling time of the attribute',
+    required=True
 )
 args = parser.parse_args()
 
@@ -35,7 +37,7 @@ logging.basicConfig(
 )
 
 time_step = 10  # seconds
-r = redis.StrictRedis(host='192.168.200.203', port=6379)
+r = redis.StrictRedis(host='127.0.0.1', port=6379)
 
 t0 = datetime.now()
 prev_t = None
