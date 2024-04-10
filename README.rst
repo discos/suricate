@@ -2,11 +2,15 @@
 Suricate
 ********
 
-.. image:: https://travis-ci.org/discos/suricate.svg?branch=master
-   :target: https://travis-ci.org/discos/suricate
+.. image:: https://github.com/discos/suricate/actions/workflows/ci_tests.yml/badge.svg
+   :target: https://github.com/discos/suricate/actions/workflows/ci_tests.yml
 
-.. image:: https://coveralls.io/repos/github/discos/suricate/badge.svg?branch=master
-   :target: https://coveralls.io/github/discos/suricate?branch=master
+.. image:: https://codecov.io/gh/discos/suricate/graph/badge.svg?token=m57Tx3fO3O 
+   :target: https://codecov.io/gh/discos/suricate
+
+.. image:: https://www.codefactor.io/repository/github/discos/suricate/badge
+   :target: https://www.codefactor.io/repository/github/discos/suricate
+
 
 Suricate allows GUIs, RFI checkers, receiver monitors, backends and meteo services
 to know some antenna parameters like the current azimuth and elevation, device
