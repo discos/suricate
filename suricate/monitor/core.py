@@ -1,10 +1,9 @@
 import sys
 import logging
 from datetime import datetime
-from os.path import join
 
-import redis
 import json
+import redis
 from apscheduler import events
 
 from suricate.monitor.schedulers import Scheduler
@@ -14,13 +13,12 @@ from suricate.errors import (
     ComponentAttributeError,
     ACSNotRunningError,
 )
-import suricate.services
 
 logger = logging.getLogger('suricate')
 r = redis.StrictRedis(decode_responses=True)
 
 
-class Publisher(object):
+class Publisher:
 
     s = Scheduler()
 
@@ -30,9 +28,12 @@ class Publisher(object):
         if len(args) == 0:
             pass
         elif len(args) == 1:  # The argument must be a dictionary (JSON format)
-           self.add_jobs(*args)
+            self.add_jobs(*args)
         else:
-            logger.error('Publisher takes 0 or 1 argument, %d given' % len(args))
+            logger.error(
+                'Publisher takes 0 or 1 argument, %d given',
+                len(args)
+            )
 
         Publisher.add_errors_listener()
         self.s.add_job(
@@ -43,7 +44,7 @@ class Publisher(object):
             seconds=config['SCHEDULER']['reschedule_interval']
         )
 
-    def add_jobs(self, config):
+    def add_jobs(self, _config):
         """
         {
             "TestNamespace/Positioner": {
@@ -68,45 +69,54 @@ class Publisher(object):
             }
         }
         """
-        # list of tuples [(component, attribute_name, timer, units, description), ...]
+        # list of tuples
+        # [(component, attribute_name, timer, units, description), ...]
         pjobs_args = []  # Properties list
         mjobs_args = []  # Methods list
         import suricate.component
-        for component_name, targets in list(config.items()):
+        for component_name, targets in list(_config.items()):
             # Set the default redis values
             properties = targets.get('properties', [])
             methods = targets.get('methods', [])
             startup_delay = targets.get('startup_delay')
             if startup_delay is None:
-                logger.error('no startup_delay specified for %s' % component_name)
+                logger.error(
+                    'no startup_delay specified for %s',
+                    component_name
+                )
                 sys.exit(0)
             try:
                 startup_delay = int(startup_delay)
             except ValueError:
-                logger.error('cannot convert startup_delay %ss to int' % startup_delay)
+                logger.error(
+                    'cannot convert startup_delay %s to int',
+                    startup_delay
+                )
                 sys.exit(0)
             container_name = targets.get('container')
             if container_name is None:
-                logger.error('no container specified for %s' % component_name)
+                logger.error('no container specified for %s', component_name)
                 sys.exit(0)
+            if not suricate.services.is_manager_online():
+                r.hset(
+                    'components',
+                    mapping={component_name: 'unavailable'}
+                )
+                key = '__manager/error'
+                error_message = 'ACS not running'
+            else:
+                key = f'__{component_name}/error'
+                error_message = f'cannot get component {component_name}'
             try:
-                if not suricate.services.is_manager_online():
-                    r.hset('components', mapping={component_name: 'unavailable'})
-                    key = '__manager/error'
-                    error_message = 'ACS not running'
-                else:
-                    key = '__%s/error' % component_name
-                    error_message = 'cannot get component %s' % component_name
-
                 c = suricate.component.Component(
-                        component_name,
-                        container_name,
-                        startup_delay
+                    component_name,
+                    container_name,
+                    startup_delay
                 )
                 # Remove the component from the unavailable dictionary
                 self.unavailable_components.pop(component_name, None)
                 r.delete('__manager/error')
-                r.delete('__%s/error' % component_name)
+                r.delete(f'__{component_name}/error')
             except CannotGetComponentError:
                 self.unavailable_components[component_name] = targets
                 with suricate.services.logging_lock:
@@ -129,7 +139,7 @@ class Publisher(object):
                         error_message
                     )
                 else:
-                    if hasattr(c, '_get_%s' % attr_name):
+                    if hasattr(c, f'_get_{attr_name}'):
                         pjobs_args.append((
                             c,
                             attr_name,
@@ -138,7 +148,11 @@ class Publisher(object):
                             description
                         ))
                     else:
-                        logger.error('%s has not property %s' % (c.name, attr_name))
+                        logger.error(
+                            '%s has not property %s',
+                            c.name,
+                            attr_name
+                        )
 
             for method in methods:
                 attr_name = method['name']
@@ -164,14 +178,13 @@ class Publisher(object):
                             description
                         ))
                     else:
-                        logger.error('%s has not method %s' % (c.name, attr_name))
+                        logger.error('%s has not method %s', c.name, attr_name)
 
         for arg in pjobs_args:
             self.s.add_attribute_job(*arg)
 
         for met in mjobs_args:
             self.s.add_attribute_job(*met)
-
 
     def rescheduler(self):
         # Check if unavailable components are now available
@@ -187,8 +200,8 @@ class Publisher(object):
             if job.id.count('/') == 2:
                 component_name = '/'.join(job.id.split('/')[:2])
                 scheduled_comps.add(component_name)
-            error_job_key = 'error_job:%s' % job.id
-            healthy_job_key = 'healthy_job:%s' % job.id
+            error_job_key = f'error_job:{job.id}'
+            healthy_job_key = f'healthy_job:{job.id}'
             interval_time = r.get(error_job_key)
             if interval_time and r.get(healthy_job_key):
                 r.delete(error_job_key)
@@ -207,7 +220,6 @@ class Publisher(object):
                 unavailable_comps.add(comp)
             elif comp in unavailable_comps:
                 unavailable_comps.remove(comp)
-                
 
         all_comps = unavailable_comps | scheduled_comps
         for comp in all_comps:
@@ -216,32 +228,35 @@ class Publisher(object):
             else:
                 r.hset('components', mapping={comp: 'available'})
 
-
     def get_jobs(self):
         return self.s.get_jobs()
-
 
     @classmethod
     def add_errors_listener(cls):
         cls.s.add_listener(cls.errors_listener, events.EVENT_JOB_ERROR)
 
-
     @staticmethod
     def errors_listener(event):
         job_id = event.job_id
-        healthy_job_key = 'healthy_job:%s' % job_id
+        healthy_job_key = f'healthy_job:{job_id}'
         r.delete(healthy_job_key)
         if isinstance(
-                event.exception,
-                (CannotGetComponentError, ComponentAttributeError, ACSNotRunningError)):
+            event.exception,
+            (
+                CannotGetComponentError,
+                ComponentAttributeError,
+                ACSNotRunningError
+            )
+        ):
             job = Publisher.s.get_job(job_id)
-            error_job_key = 'error_job:%s' % job_id
+            error_job_key = f'error_job:{job_id}'
             if not r.get(error_job_key) and job:
                 # Save job.seconds, because we will temporarily change it
-                sec, mic = job.trigger.interval.seconds, job.trigger.interval.microseconds
+                sec = job.trigger.interval.seconds
+                mic = job.trigger.interval.microseconds
                 interval = sec + mic / (1.0 * 10 ** 6)
                 if not r.set(error_job_key, interval):
-                    logger.error('cannot set %s' % error_job_key)
+                    logger.error('cannot set %s', error_job_key)
                 # Slowdown the job, until the component comes available
                 Publisher.s.reschedule_job(
                     job_id,
@@ -252,7 +267,12 @@ class Publisher(object):
             if not hasattr(job, 'args'):
                 return
 
-            channel, old_component_ref, attribute, timer, units, description  = job.args
+            channel = job.args[0]
+            old_component_ref = job.args[1]
+            attribute = job.args[2]
+            timer = job.args[3]
+            units = job.args[4]
+            description = job.args[5]
             import suricate.component
             # If the component is available, we pass its reference to the job
             # and we restore the original job heartbeat
@@ -262,7 +282,14 @@ class Publisher(object):
                     old_component_ref.container,
                     old_component_ref.startup_delay
                 )
-                args = channel, component_ref, attribute, timer, units, description
+                args = (
+                    channel,
+                    component_ref,
+                    attribute,
+                    timer,
+                    units,
+                    description
+                )
                 Publisher.s.modify_job(job_id, args=args)
             except CannotGetComponentError:
                 pass  # Do nothing
@@ -270,18 +297,15 @@ class Publisher(object):
             # TODO: manage the unexpected exception
             pass
 
-
     @classmethod
     def start(cls):
         cls.s.start()
-
 
     @classmethod
     def shutdown(cls):
         cls.s.remove_all_jobs()
         cls.s.shutdown(wait=False)
         cls.s = Scheduler()
-
 
     def _set_attr_error(
             self,
@@ -299,6 +323,6 @@ class Publisher(object):
             'description': description,
             'timestamp': datetime.utcnow().strftime(dt_format)
         }
-        job_id = '%s/%s' % (component_name, attribute)
+        job_id = f'{component_name}/{attribute}'
         r.hset(job_id, mapping=data_dict)
         r.publish(job_id, json.dumps(data_dict))

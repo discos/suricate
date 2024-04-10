@@ -3,7 +3,6 @@
 import os
 from shutil import copyfile
 from setuptools import setup, find_packages
-from setuptools.command.install import install
 
 from suricate.paths import (
     suricate_dir,
@@ -24,9 +23,9 @@ directories = (
 for d in directories:
     try:
         os.mkdir(d)
-        print('Directory %s created' % d)
-    except OSError as ex:
-        pass # Directory already exists
+        print(f'Directory {d} created')
+    except OSError:
+        pass  # Directory already exists
 
 
 for file_name in os.listdir('templates'):

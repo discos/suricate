@@ -28,13 +28,13 @@ class Command(db.Model):
     error = db.Column(db.String(32), default='')
 
     def __repr__(self):
-        return '<Command {}>'.format(self.id)
+        return f'<Command {self.id}>'
 
-    def get_stime(self, dt_format=dt_format):
-        return self.stime.strftime(dt_format)
+    def get_stime(self, _dt_format=dt_format):
+        return self.stime.strftime(_dt_format)
 
-    def get_etime(self, dt_format=dt_format):
-        return self.etime.strftime(dt_format)
+    def get_etime(self, _dt_format=dt_format):
+        return self.etime.strftime(_dt_format)
 
     @property
     def serialize(self):
@@ -58,10 +58,10 @@ class Attribute(db.Model):
     error = db.Column(db.String(128), default='')
 
     def __repr__(self):
-        return '<Attribute {}>'.format(self.id)
+        return f'<Attribute {self.id}>'
 
-    def get_timestamp_str(self, dt_format=dt_format):
-        return self.timestamp.strftime(dt_format)
+    def get_timestamp_str(self, _dt_format=dt_format):
+        return self.timestamp.strftime(_dt_format)
 
     @property
     def serialize(self):

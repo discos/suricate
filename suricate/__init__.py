@@ -8,7 +8,8 @@ version_info_t = namedtuple(
 SERIES = 'DEV'
 VERSION = version_info_t(0, 1, 0, 'a1', '')
 
-__version__ = '{0.major}.{0.minor}.{0.micro}{0.releaselevel}'.format(VERSION)
+__version__ = \
+    f'{VERSION.major}.{VERSION.minor}.{VERSION.micro}{VERSION.releaselevel}'
 __author__ = 'Marco Buttu'
 __contact__ = 'marco.buttu@inaf.it'
 __homepage__ = 'https://suricate.readthedocs.io'

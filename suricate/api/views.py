@@ -12,7 +12,7 @@ from suricate.configuration import dt_format
 def post_command(command):
     stime = datetime.utcnow()
     stimestr = stime.strftime(dt_format)
-    job_id = '{}_{}'.format(command, stimestr)
+    job_id = f'{command}_{stimestr}'
     cmd = Command(
         id=job_id,
         command=command,
@@ -30,11 +30,7 @@ def post_command(command):
     response = cmd.serialize
     db.session.add(cmd)
     db.session.commit()
-    job = current_app.task_queue.enqueue(
-        task,
-        args=(command, job_id),
-        job_id=job_id,
-    )
+    current_app.task_queue.enqueue(task, args=(command, job_id), job_id=job_id)
     return jsonify(response)
 
 
@@ -44,11 +40,10 @@ def get_command(cmd_id):
     if not cmd:
         response = {
             'status_code': 404,
-            'error_message': "'%s' not found in database" % cmd_id,
+            'error_message': f"'{cmd_id}' not found in database",
         }
         return jsonify(response)
-    else:
-        return jsonify(cmd.serialize)
+    return jsonify(cmd.serialize)
 
 
 @main.route('/cmds/<int:N>', methods=['GET'])
@@ -62,8 +57,7 @@ def get_last_commands(N):
             'error_message': "empty command history"
         }
         return jsonify(response)
-    else:
-        return jsonify([c.serialize for c in cmds])
+    return jsonify([c.serialize for c in cmds])
 
 
 @main.route('/cmds', methods=['GET'])
@@ -91,8 +85,7 @@ def get_commands_from_datetimex(dtx):
             'error_message': "empty command history"
         }
         return jsonify(response)
-    else:
-        return jsonify([c.serialize for c in cmds])
+    return jsonify([c.serialize for c in cmds])
 
 
 @main.route('/cmds/from/<dtx>/to/<dty>', methods=['GET'])
@@ -119,25 +112,22 @@ def get_commands_from_datetimex_to_datetimey(dtx, dty):
             'error_message': "empty command history"
         }
         return jsonify(response)
-    else:
-        return jsonify([c.serialize for c in cmds])
+    return jsonify([c.serialize for c in cmds])
 
 
 @main.route('/attr/<system>/<component>/<name>/<int:N>', methods=['GET'])
 def get_last_attribute_values(system, component, name, N):
     """Returns the last N commands"""
-    key = '{}/{}/{}'.format(system, component, name)
-    attrs = Attribute.query.filter(Attribute.name==key).\
-                      order_by(desc(Attribute.timestamp)).\
-                      limit(N).all()
+    key = f'{system}/{component}/{name}'
+    attrs = Attribute.query.filter(Attribute.name == key)
+    attrs = attrs.order_by(desc(Attribute.timestamp)).limit(N).all()
     if not attrs:
         response = {
             'status_code': 404,
             'error_message': "empty attribute history"
         }
         return jsonify(response)
-    else:
-        return jsonify([a.serialize for a in attrs])
+    return jsonify([a.serialize for a in attrs])
 
 
 @main.route('/attr/<system>/<component>/<name>', methods=['GET'])
@@ -149,13 +139,13 @@ def get_last_default_attribute_values(system, component, name):
 @main.route('/attr/<system>/<component>/<name>/from/<dtx>', methods=['GET'])
 def get_attribute_from_datetimex(system, component, name, dtx):
     """Return all attributes values from datetime dtx until now"""
-    key = '{}/{}/{}'.format(system, component, name)
+    key = f'{system}/{component}/{name}'
     try:
         dtx = datetime.strptime(dtx, dt_format)
         attrs = Attribute.query.filter(
-                    Attribute.name==key,
-                    Attribute.timestamp >= dtx,
-                ).order_by(Attribute.timestamp.desc()).all()
+            Attribute.name == key,
+            Attribute.timestamp >= dtx,
+        ).order_by(Attribute.timestamp.desc()).all()
     except ValueError:
         response = {
             'status_code': 400,  # Bad request
@@ -168,22 +158,30 @@ def get_attribute_from_datetimex(system, component, name, dtx):
             'error_message': "empty attribute history"
         }
         return jsonify(response)
-    else:
-        return jsonify([a.serialize for a in attrs])
+    return jsonify([a.serialize for a in attrs])
 
 
-@main.route('/attr/<system>/<component>/<name>/from/<dtx>/to/<dty>', methods=['GET'])
-def get_attribute_from_datetimex_to_datetimey(system, component, name, dtx, dty):
+@main.route(
+    '/attr/<system>/<component>/<name>/from/<dtx>/to/<dty>',
+    methods=['GET']
+)
+def get_attribute_from_datetimex_to_datetimey(
+    system,
+    component,
+    name,
+    dtx,
+    dty
+):
     """Returns all attribute values from datetime dtx to dty"""
-    key = '{}/{}/{}'.format(system, component, name)
+    key = f'{system}/{component}/{name}'
     try:
         dtx = datetime.strptime(dtx, dt_format)
         dty = datetime.strptime(dty, dt_format)
         attrs = Attribute.query.filter(
-                    Attribute.name==key,
-                    Attribute.timestamp >= dtx,
-                    Attribute.timestamp <= dty,
-                ).order_by(Attribute.timestamp.desc()).all()
+            Attribute.name == key,
+            Attribute.timestamp >= dtx,
+            Attribute.timestamp <= dty,
+        ).order_by(Attribute.timestamp.desc()).all()
     except ValueError:
         response = {
             'status_code': 400,  # Bad request
@@ -196,5 +194,4 @@ def get_attribute_from_datetimex_to_datetimey(system, component, name, dtx, dty)
             'error_message': "empty attribute history"
         }
         return jsonify(response)
-    else:
-        return jsonify([a.serialize for a in attrs])
+    return jsonify([a.serialize for a in attrs])

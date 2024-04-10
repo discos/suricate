@@ -27,7 +27,7 @@ def test_configuration_file_exists():
             assert config['HTTP']['baseurl'] == 'pippo'
             assert config['HTTP']['port'] != default_port
             assert config['HTTP']['port'] == 7000
-            f.assert_called_with(configuration.config_file)
+            f.assert_called_with(configuration.config_file, encoding='utf-8')
     finally:
         importlib.reload(configuration)
 
@@ -48,7 +48,7 @@ def test_wrong_configuration_file():
             config = configuration.config
             assert config['HTTP']['baseurl'] == default_baseurl
             assert config['HTTP']['port'] == default_port
-            f.assert_called_with(configuration.config_file)
+            f.assert_called_with(configuration.config_file, encoding='utf-8')
     finally:
         importlib.reload(configuration)
 

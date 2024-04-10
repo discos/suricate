@@ -21,14 +21,15 @@ class ACSScheduler(BackgroundScheduler):
         job_id = '/'.join([component_ref.name, attr])
         channel = channel if channel else job_id
         r = redis.StrictRedis(decode_responses=True)
-        error_job_key = 'error_job:%s' % channel
+        error_job_key = f'error_job:{channel}'
         r.delete(error_job_key)
-        return super(ACSScheduler, self).add_job(
+        return super().add_job(
             func=publisher,
             args=(channel, component_ref, attr, timer, units, description),
             id=job_id,
             trigger='interval',
-            seconds=timer)
+            seconds=timer
+        )
 
 
 # TODO: check the configuration and bind the right scheduler

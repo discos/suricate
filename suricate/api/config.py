@@ -1,12 +1,13 @@
 import os
-from suricate.paths import  database_dir
+from suricate.paths import database_dir
 
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'HardToGuessString'
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.googlemail.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', '587'))
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
+    MAIL_USE_TLS = \
+        os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     SURICATE_ADMIN = os.environ.get('SURICATE_ADMIN')

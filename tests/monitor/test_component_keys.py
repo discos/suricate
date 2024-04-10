@@ -50,7 +50,7 @@ def test_all_components_unavailable(Publisher, redis_client):
         func = "suricate.configuration.open"
         with patch(func, mock_open(read_data=user_config)) as f:
             importlib.reload(configuration)
-            f.assert_called_with(configuration.config_file)
+            f.assert_called_with(configuration.config_file, encoding='utf-8')
             from suricate.configuration import config
 
         # Components not available before starting the scheduler
@@ -77,7 +77,7 @@ def test_all_components_available(Publisher, redis_client):
         func = "suricate.configuration.open"
         with patch(func, mock_open(read_data=user_config)) as f:
             importlib.reload(configuration)
-            f.assert_called_with(configuration.config_file)
+            f.assert_called_with(configuration.config_file, encoding='utf-8')
             from suricate.configuration import config
 
         p = Publisher(config['COMPONENTS'])
@@ -101,7 +101,7 @@ def test_some_components_unavailable(Publisher, redis_client):
         func = "suricate.configuration.open"
         with patch(func, mock_open(read_data=user_config)) as f:
             importlib.reload(configuration)
-            f.assert_called_with(configuration.config_file)
+            f.assert_called_with(configuration.config_file, encoding='utf-8')
             from suricate.configuration import config
 
         # Components not available before starting the scheduler
