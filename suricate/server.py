@@ -126,7 +126,11 @@ def stop_dbfiller():
 
 def start_webserver():
     try:
-        app.run(debug=False)
+        app.run(
+            host=config['HTTP']['baseurl'],
+            port=int(config['HTTP']['port']),
+            debug=False
+        )
     except socket.error as ex:
         logger.error(ex)
         sys.exit(1)

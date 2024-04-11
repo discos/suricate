@@ -35,7 +35,7 @@ COMPONENTS:
     - name: current
       timer: 0.2
 HTTP:
-  baseurl: http://127.0.0.1
+  baseurl: 127.0.0.1
   port: 5000
 SCHEDULER:
   reschedule_error_interval: 0.4
