@@ -45,7 +45,7 @@ default_config = {
 
     'HTTP': {
         'port': 5000,  # Web app port
-        'baseurl': 'http://127.0.0.1',  # Web app URL
+        'baseurl': '0.0.0.0',  # Web app URL
     },
 
     'DATABASE': 'testing',
