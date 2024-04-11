@@ -2,13 +2,9 @@ import json
 import logging
 from datetime import datetime
 import redis
-import sqlalchemy as db
-from sqlalchemy.orm import sessionmaker
 
 import suricate.services
-from suricate.models import Attribute
-from suricate.api.config import api_config
-from suricate.configuration import config, dt_format
+from suricate.configuration import dt_format
 from suricate.errors import (
     CannotGetComponentError,
     ComponentAttributeError,
@@ -17,10 +13,17 @@ from suricate.errors import (
 
 
 logger = logging.getLogger('suricate')
-r = redis.StrictRedis()
+r = redis.StrictRedis(decode_responses=True)
 
 
-def acs_publisher(channel, component, attribute, timer, units='', description=''):
+def acs_publisher(
+    channel,
+    component,
+    attribute,
+    timer,
+    units='',
+    description=''
+):
     """Get the component reference and a property as a dict object."""
     data_dict = {
         'value': '',
@@ -36,14 +39,18 @@ def acs_publisher(channel, component, attribute, timer, units='', description=''
             raise CannotGetComponentError()
 
         with suricate.services.logging_lock:
-            startup_time = r.get('__%s/startup_time' % component.name)
+            startup_time = r.get(f'__{component.name}/startup_time')
             if startup_time:
                 t = datetime.strptime(startup_time, dt_format)
                 if datetime.utcnow() <= t:
-                    message = '%s not ready: startup in progress' % component.name
+                    message = \
+                        f'{component.name} not ready: startup in progress'
                     data_dict.update({'error': message})
-                    r.hmset('components', {component.name: 'unavailable'})
-                    key = '__%s/info' % component.name
+                    r.hset(
+                        'components',
+                        mapping={component.name: 'unavailable'}
+                    )
+                    key = f'__{component.name}/info'
                     if r.get(key) != message:
                         logger.info(message)
                     r.set(key, message)
@@ -69,55 +76,55 @@ def acs_publisher(channel, component, attribute, timer, units='', description=''
         # Update the components redis key
         with suricate.services.logging_lock:
             if r.hget('components', component.name) != 'available':
-                message = 'OK - component %s is online' % component.name
-                key = '__%s/info' % component.name
+                message = f'OK - component {component.name} is online'
+                key = f'__{component.name}/info'
                 if r.get(key) != message:
                     logger.info(message)
                 r.set(key, message)
-                r.hmset('components', {component.name: 'available'})
-                r.delete('__%s/info' % component.name)
-            r.delete('__%s/error' % component.name)
-    except CannotGetComponentError, ex:
+                r.hset('components', mapping={component.name: 'available'})
+                r.delete(f'__{component.name}/info')
+            r.delete(f'__{component.name}/error')
+    except CannotGetComponentError as ex:
         print(ex)
         if not suricate.services.is_manager_online():
             error_message = 'ACS not running'
             key = '__manager/error'
             Exc = ACSNotRunningError
             with suricate.services.logging_lock:
-                r.delete('__%s/error' % component.name)
+                r.delete(f'__{component.name}/error')
         else:
-            error_message = 'cannot get component %s' % component.name
-            key = '__%s/error' % component.name
+            error_message = f'cannot get component {component.name}'
+            key = f'__{component.name}/error'
             Exc = CannotGetComponentError
             with suricate.services.logging_lock:
                 r.delete('__manager/error')
         data_dict.update({'error': error_message})
-        r.hmset('components', {component.name: 'unavailable'})
-        raise Exc(error_message)
-    except AttributeError:
-        error_message = 'cannot get attribute %s from %s' % (
-                attribute, component.name)
+        r.hset('components', mapping={component.name: 'unavailable'})
+        raise Exc(error_message) from ex
+    except AttributeError as ex:
+        error_message = \
+            f'cannot get attribute {attribute} from {component.name}'
         data_dict.update({'error': error_message})
-        key = '__%s/error' % component.name
-        r.hmset('components', {component.name: 'unavailable'})
-        raise ComponentAttributeError(error_message)
-    except Exception, ex:
+        key = f'__{component.name}/error'
+        r.hset('components', mapping={component.name: 'unavailable'})
+        raise ComponentAttributeError(error_message) from ex
+    except Exception as ex:
         logger.debug(str(ex))
         if not suricate.services.is_manager_online():
             error_message = 'ACS not running'
             key = '__manager/error'
             Exc = ACSNotRunningError
             with suricate.services.logging_lock:
-                r.delete('__%s/error' % component.name)
+                r.delete(f'__{component.name}/error')
         else:
-            error_message = 'cannot get component %s' % component.name
-            key = '__%s/error' % component.name
+            error_message = f'cannot get component {component.name}'
+            key = f'__{component.name}/error'
             Exc = CannotGetComponentError
             with suricate.services.logging_lock:
                 r.delete('__manager/error')
         data_dict.update({'error': error_message})
-        r.hmset('components', {component.name: 'unavailable'})
-        raise Exc(error_message)
+        r.hset('components', mapping={component.name: 'unavailable'})
+        raise Exc(error_message) from ex
     finally:
         if error_message:
             with suricate.services.logging_lock:
@@ -125,9 +132,8 @@ def acs_publisher(channel, component, attribute, timer, units='', description=''
                     logger.error(error_message)
                 r.set(key, error_message)
 
-        if not r.hmset(channel, data_dict):
-            logger.error('cannot write data on redis for %s' % channel)
+        r.hset(channel, mapping=data_dict)
         r.publish(channel, json.dumps(data_dict))
-        healthy_job_key = 'healthy_job:%s' % channel
+        healthy_job_key = f'healthy_job:{channel}'
         if not r.set(healthy_job_key, 1):
-            logger.error('cannot set %s' % healthy_job_key)
+            logger.error('cannot set %s', healthy_job_key)

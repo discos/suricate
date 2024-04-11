@@ -1,9 +1,8 @@
-from __future__ import print_function
+
 
 import os
 from shutil import copyfile
 from setuptools import setup, find_packages
-from setuptools.command.install import install
 
 from suricate.paths import (
     suricate_dir,
@@ -24,9 +23,9 @@ directories = (
 for d in directories:
     try:
         os.mkdir(d)
-        print('Directory %s created' % d)
-    except OSError, ex:
-        pass # Directory already exists
+        print(f'Directory {d} created')
+    except OSError:
+        pass  # Directory already exists
 
 
 for file_name in os.listdir('templates'):
@@ -49,22 +48,22 @@ setup(
     scripts=['scripts/suricate-server', 'scripts/suricate-config'],
     platforms='all',
     install_requires=[
-        'redis==3.3.8',
-        'apscheduler==3.6.1',
-        'MarkupSafe==1.1.1',
-        'Jinja2==2.11.1',
-        'Flask==1.1.1',
-        'itsdangerous==1.1.0',
-        'Flask-SQLAlchemy==2.4.3',
-        'Flask-Migrate==2.5.3',
-        'pyyaml==5.1',
-        'rq==1.3.0',
+        'redis',
+        'apscheduler',
+        'MarkupSafe',
+        'Jinja2',
+        'Flask',
+        'itsdangerous',
+        'Flask-SQLAlchemy',
+        'Flask-Migrate',
+        'pyyaml',
+        'rq',
         'python-dotenv',
         'requests',
     ],
     classifiers=[
         'Intended Audience :: Alma Common Software users',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.9',
     ],
 )

@@ -1,8 +1,8 @@
 #!/bin/bash
 
 rm -f .coverage
-# coverage run --source suricate -m py.test --capture=no $1
-coverage run --source suricate -m py.test $1
+# coverage run --source suricate -m pytest --capture=no $1
+coverage run --source suricate -m pytest $1
 
 if [ "$1" == "--acs" ]
 then

@@ -12,7 +12,7 @@ def command(line, cmd_id):
     import suricate.services
     container = 'ManagementContainer'
     try:
-        cmd = Command.query.get(cmd_id)
+        cmd = db.session.get(Command, cmd_id)
         if not suricate.services.is_manager_online():
             cmd.success = False
             cmd.complete = False
@@ -20,7 +20,7 @@ def command(line, cmd_id):
         elif not suricate.services.is_container_online(container):
             cmd.success = False
             cmd.complete = False
-            cmd.error = '%s not running' % container
+            cmd.error = f'{container} not running'
         else:
             scheduler = suricate.component.Component(
                 name='MANAGEMENT/Gavino',
@@ -37,7 +37,7 @@ def command(line, cmd_id):
         cmd.complete = True
         cmd.error = 'DISCOS Scheduler not available'
     except AttributeError:
-        logger.error("'%s' not found in database" % cmd_id)
+        logger.error("'%s' not found in database", cmd_id)
     finally:
         if cmd:
             cmd.delivered = True

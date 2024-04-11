@@ -16,12 +16,8 @@ Suricate requires `Redis <https://redis.io/>`_. Additional requirements are
 listed in the Suricate's *setup.py* file: we do not care about them because
 they will be automatically installed during the Suricate installation.
 
-.. note:: Suricate works with Python 2.7, the same version of the latest
+.. note:: Suricate works with Python 3.9.4, the same version of the running
    `ACS <http://www.eso.org/~almamgr/AlmaAcs/index.html>`_ framework.
-   Python 2.7 is not supported anymore and maybe at some point we will not be
-   able to find the Python 2.7 Suricate dependencies online.  That is why we
-   put all of them on a private `DISCOS GitHub repository
-   <https://github.com/discos/dependencies/tree/suricate>`_.
 
 Redis
 -----
@@ -94,20 +90,17 @@ You are now ready to install and use Suricate.
 
 Install Suricate
 ----------------
-To install Suricate clone the repository and use ``pip``:
+To install Suricate, clone the repository as ``discos`` user and use ``pip``:
 
 .. code-block:: shell
 
-   $ sudo ln -s /alma/ACS-FEB2017/Python/bin/python /bin/python
-   $ sudo ln -s /alma/ACS-FEB2017/Python/bin/pip /bin/pip
-   $ git clone https://github.com/marco-buttu/suricate.git
+   $ git clone https://github.com/discos/suricate.git
    $ cd suricate
-   $ sudo -u discos pip install .
-   $ sudo cp startup/suricate-server /etc/rc.d/init.d/
-   $ sudo chkconfig --add suricate-server
-   $ sudo chkconfig suricate-server on
+   $ pip install .
+   $ sudo cp startup/suricate.service /lib/systemd/system/
+   $ sudo systemctl daemon-reload
 
-At this point Suricate is a startup service.  Before starting we need
+At this point Suricate can be executed as a service.  Before starting we need
 to configure it.  To install the SRT configuration:
 
 .. code-block:: bash
@@ -142,17 +135,21 @@ You are ready to start Suricate:
 
 .. code-block:: shell
 
-   $ sudo service suricate-server start
+   $ sudo systemctl start suricate.service
 
 To know its status and stop it:
 
 .. code-block:: shell
 
-   $ sudo service suricate-server status
-   suricate-server is running
-   $ sudo service suricate-server stop
-   $ sudo service suricate-server status
-   suricate-server is NOT running
+   $ sudo systemctl status suricate.service
+   [...]
+      Active: active (running) since [...]
+   [...]
+   $ sudo systemctl stop suricate.service
+   $ sudo systemctl status suricate.service
+   [...]
+      Active: inactive (dead)
+   [...]
 
 To uninstall Suricate:
 
@@ -163,8 +160,19 @@ To uninstall Suricate:
 
 Logging
 =======
-There are three log files you have to take care of:
+There are two log files you have to take care of:
 
 * *~/.suricate/logs/suricate.log*: user log file, with main information
 * *~/.suricate/logs/apscheduler.log*: apscheduler debug file
-* */tmp/suricate_service_dbg.log*: service log file
+
+along with the service output:
+
+.. code-block:: shell
+
+   $ sudo systemctl status suricate.service
+   [...]
+   Apr 04 14:12:20 manager.development.inaf.it bash[1910]: 04-Apr-24 14:12:20 | INFO | OK - component ANTENNA/Boss is online
+   Apr 04 14:12:20 manager.development.inaf.it bash[1910]: 04-Apr-24 14:12:20 | INFO | OK - component ANTENNA/Boss is online
+   Apr 04 14:12:21 manager.development.inaf.it bash[1910]: 04-Apr-24 14:12:21 | INFO | OK - component ANTENNA/Boss is online
+   Apr 04 14:12:21 manager.development.inaf.it bash[1910]: 04-Apr-24 14:12:21 | INFO | OK - component ANTENNA/Boss is online
+   [...]

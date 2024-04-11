@@ -1,6 +1,3 @@
-[run]
-include=*suricate/*
-
 [report]
 omit=*suricate/services.py
 exclude_lines =

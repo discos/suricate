@@ -1,14 +1,14 @@
-from __future__ import with_statement
+
 import os
 import sys
 import logging
 import yaml
 
-from suricate.paths import  config_file, log_dir
+from suricate.paths import config_file, log_dir
 
 
 # --- DEFAULT CONFIGURATION PARAMETERS
-default_config = { 
+default_config = {
     'COMPONENTS': {
         "TestNamespace/Positioner00": {
             'startup_delay': 0,
@@ -34,13 +34,13 @@ default_config = {
             "properties": [
                 {"name": "current", "timer": 0.2}
             ],
-        } 
+        }
     },
 
     'SCHEDULER': {
         'reschedule_interval': 1,  # Seconds
         'reschedule_error_interval': 2,  # Seconds
-        'dbfiller_cycle': 1, # Seconds
+        'dbfiller_cycle': 1,  # Seconds
     },
 
     'HTTP': {
@@ -83,11 +83,11 @@ logging.getLogger('suricate').setLevel(logging.INFO)
 
 
 try:
-    with open(config_file) as stream:
+    with open(config_file, encoding='utf-8') as stream:
         config = yaml.safe_load(stream)
         if not config:
             config = default_config
-except Exception, ex:
+except:
     config = default_config
     logger = logging.getLogger('suricate')
-    logger.warning('cannot read %s: loading default config' % config_file)
+    logger.warning('cannot read %s: loading default config', config_file)

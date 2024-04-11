@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function
+
 import os
 import sys
 import socket
@@ -30,7 +30,7 @@ try:
     COMPONENTS = config['COMPONENTS']
     PORT = config['HTTP']['port']
     BASEURL = config['HTTP']['baseurl']
-except KeyError, ex:
+except KeyError as ex:
     print('ERROR: can not load %s from configuration' % str(ex))
     sys.exit(1)
 except Exception:

@@ -75,14 +75,18 @@ def test_create_jobs_invalid_json(client):
 
 
 def test_create_jobs_empty_json(client):
-    response = client.post('%s/jobs' % BASE_URL, data={})
+    response = client.post(
+        '%s/jobs' % BASE_URL,
+        data={},
+        headers=HEADERS
+    )
     assert response.status_code == 400
 
 
 def test_stop(client, monkeypatch):
     monkeypatch.setattr('suricate.server.publisher.shutdown', lambda: None)
     response = client.post('%s/stop' % BASE_URL)
-    assert response.get_data() == 'Server stopped :-)'
+    assert response.get_data() == b'Server stopped :-)'
 
 
 def test_get_configuration(client):
@@ -317,8 +321,8 @@ def test_get_last_attributes(client, dbfiller, redis_client):
     dbfiller.start()
     for i in range(N):
         ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
-        redis_client.hmset(key1, ATTRIBUTE)
-        redis_client.hmset(key2, ATTRIBUTE)
+        redis_client.hset(key1, mapping=ATTRIBUTE)
+        redis_client.hset(key2, mapping=ATTRIBUTE)
         time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
     raw_response = client.get('/attr/%s/%d' % (key1, N))
     response = raw_response.get_json()
@@ -337,7 +341,7 @@ def test_get_last_default_attribute(client, dbfiller, redis_client):
     dbfiller.start()
     for i in range(15):
         ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
-        redis_client.hmset(key, ATTRIBUTE)
+        redis_client.hset(key, mapping=ATTRIBUTE)
         time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
     raw_response = client.get('/attr/%s' % key)
     response = raw_response.get_json()
@@ -361,14 +365,14 @@ def test_get_attribute_from_datetimex(client, dbfiller, redis_client):
     # Add M attribute values before datetime dtx
     for i in range(M):
         ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
-        redis_client.hmset(key, ATTRIBUTE)
+        redis_client.hset(key, mapping=ATTRIBUTE)
         time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
 
     # Add N attribute values after datetime dtx
     dtx = datetime.utcnow().strftime(dt_format)
     for i in range(N):
         ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
-        redis_client.hmset(key, ATTRIBUTE)
+        redis_client.hset(key, mapping=ATTRIBUTE)
         time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
 
     raw_response = client.get('/attr/%s' % key)
@@ -409,21 +413,21 @@ def test_get_attribute_from_datetimex_to_datetimey(client, dbfiller, redis_clien
     # Add M attribute values before datetime dtx
     for i in range(M):
         ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
-        redis_client.hmset(key, ATTRIBUTE)
+        redis_client.hset(key, mapping=ATTRIBUTE)
         time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
 
     # Add N attribute values after datetime dtx
     dtx = datetime.utcnow().strftime(dt_format)
     for i in range(N):
         ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
-        redis_client.hmset(key, ATTRIBUTE)
+        redis_client.hset(key, mapping=ATTRIBUTE)
         time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
 
     # Add K attribute values after datetime dty
     dty = datetime.utcnow().strftime(dt_format)
     for i in range(K):
         ATTRIBUTE['timestamp'] = datetime.utcnow().strftime(dt_format)
-        redis_client.hmset(key, ATTRIBUTE)
+        redis_client.hset(key, mapping=ATTRIBUTE)
         time.sleep(config['SCHEDULER']['dbfiller_cycle']*2)
 
     raw_response = client.get('/attr/%s' % key)

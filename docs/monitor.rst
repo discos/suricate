@@ -44,15 +44,6 @@ To install it by ``pip``, simply:
 
    $ pip install redis
 
-If you do not have ``pip``, then download the source files from the
-`redis-py webpage <https://pypi.org/project/redis/>`__, extract them,
-move to the source file directory and execute:
-
-.. code-block:: shell
-
-   $ python setup.py install
-
-
 C Programming Language
 ~~~~~~~~~~~~~~~~~~~~~~
 The official C client is available on the `Hiredis GitHub page
@@ -94,7 +85,7 @@ Let's see how to get the ``rawAzimuth`` from a Python shell:
 .. code-block:: python
 
    >>> from redis import StrictRedis # Import the redis client
-   >>> r = StrictRedis(host='192.168.200.203', port=6379)  # Connect to server
+   >>> r = StrictRedis(host='192.168.200.203', port=6379, decode_responses=True)  # Connect to server
    >>> r.hgetall('ANTENNA/Boss/rawAzimuth')  # Ask for the rawAzimuth parameter
    {
      'units': 'radians', 'timestamp': '2019-12-18 12:52:04.206445',
@@ -210,8 +201,8 @@ For more information about the Redis C client please scroll down the
 `C client website page <https://github.com/redis/hiredis>`__.
 
 
-Public and subscribe
-====================
+Publish and subscribe
+=====================
 We saw how to ask for antenna parameters in a *request-response* manner.
 Using that pattern you have to take care of the result, because you
 can get the same value for different requests.
@@ -224,9 +215,9 @@ you get the same result for different requests:
 
    >>> import time
    >>> import redis
-   >>> r = redis.StrictRedis(host='192.168.200.203', port=6379)
-   ...     print(r.hgetall('ANTENNA/Boss/rawAzimuth')['timestamp'])
-   ...     time.sleep(0.9)  # 900ms
+   >>> r = redis.StrictRedis(host='192.168.200.203', port=6379, decode_responses=True)
+   ... print(r.hgetall('ANTENNA/Boss/rawAzimuth')['timestamp'])
+   ... time.sleep(0.9)  # 900ms
    ...
    2019-12-20 12:11:48.443357
    2019-12-20 12:11:49.842924
@@ -238,7 +229,7 @@ As you can see by looking at these timestamps, the second result is
 the same as the third, and the forth is the same as the fifth. It is
 not a big issue, because you can discard the result in case its
 timestamp is the same as the previous one. But there is
-another way: the *public-subscribe* pattern.  In that case you
+another way: the *publish-subscribe* pattern.  In that case you
 subscribe to a channel and wait for new data.
 Let'see how to do it by examples, using the Python client.
 
@@ -248,7 +239,7 @@ to the ``ANTENNA/Boss/rawAzimuth`` channel:
 .. code-block:: python
 
    >>> import redis
-   >>> r = redis.StrictRedis(host='192.168.200.203', port=6379)
+   >>> r = redis.StrictRedis(host='192.168.200.203', port=6379, decode_responses=True)
    >>> pubsub = r.pubsub()
    >>> pubsub.subscribe('ANTENNA/Boss/rawAzimuth')
 

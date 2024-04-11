@@ -1,7 +1,4 @@
 #! /usr/bin/env python
-from __future__ import with_statement
-
-import os
 import sys
 import socket
 import logging
@@ -9,16 +6,11 @@ from flask import jsonify, abort, request
 from flask_migrate import Migrate
 from suricate.configuration import config
 from suricate.monitor.core import Publisher
-from suricate.api import tasks, create_app, db
+from suricate.api import create_app, db
 from suricate.api.main import main
 from suricate.models import Command, Attribute
 from suricate.dbfiller import DBFiller
-
-publisher = None
-dbfiller = DBFiller()
-logger = logging.getLogger('suricate')
-app = create_app(config['DATABASE'])
-migrate = Migrate(app, db)
+logging._srcfile = None
 
 
 @main.route('/publisher/api/v0.1/jobs', methods=['GET'])
@@ -45,17 +37,16 @@ def create_job():
         type_ = request.json.get('type', 'property')
         types = 'properties' if type_ == 'property' else 'methods'
 
-    if not (component or not attribute or not timer or not container or not
-            startup_delay
-    ):
-        logger.error('specify component, container, attribute, timer and '
-                     'startup_delay')
+    if None in [component, container, attribute, timer, startup_delay]:
+        logger.error(
+            'specify component, container, attribute, timer and startup_delay'
+        )
         abort(400)
     else:
         try:
             timer = float(timer)
         except (TypeError, ValueError):
-            logger.error('cannot convert %s to float' % timer)
+            logger.error('cannot convert %s to float', timer)
             abort(400)
 
     job = {
@@ -73,15 +64,17 @@ def create_job():
         }
     }
     publisher.add_jobs(job)  # TODO: catch the exception in case of invalid job
-    return jsonify({
+    return jsonify(
+        {
             'component': component,
             'container': container,
             'startup_delay': startup_delay,
             'attribute': attribute,
             'description': description,
             'units': units,
-            'timer': timer}
-        ), 201
+            'timer': timer
+        }
+    ), 201
 
 
 @main.route('/publisher/api/v0.1/config', methods=['GET'])
@@ -123,7 +116,6 @@ def stop_publisher():
 
 
 def start_dbfiller():
-    global dbfiller
     dbfiller.start()
 
 
@@ -135,7 +127,7 @@ def stop_dbfiller():
 def start_webserver():
     try:
         app.run(debug=False)
-    except socket.error, ex:
+    except socket.error as ex:
         logger.error(ex)
         sys.exit(1)
 
@@ -147,6 +139,13 @@ def start(components=None):
     start_webserver()
 
 
+publisher = None
+dbfiller = DBFiller()
+logger = logging.getLogger('suricate')
+app = create_app(config['DATABASE'])
+migrate = Migrate(app, db)
+
+
 @app.shell_context_processor
 def make_shell_context():
-    return dict(db=db, Command=Command, Attribute=Attribute)
+    return {'db': db, 'Command': Command, 'Attribute': Attribute}

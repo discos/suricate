@@ -1,0 +1,45 @@
+name: CI Tests
+
+on:
+  - push
+  - pull_request
+  - workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version: ['3.9.4']
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        check-latest: true
+    - name: Install dependencies
+      run: |
+        sudo apt install redis -y
+        python -m pip install -r requirements.txt
+        python -m pip install -r testing_requirements.txt
+        pip install .
+    - name: Configure the environment
+      run: |
+        sudo systemctl start redis
+        source .flaskenv
+        flask db init
+      working-directory: ./suricate
+    - name: Run the unit tests
+      run: |
+        coverage run --source suricate -m pytest
+        coverage xml
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: discos/suricate
+    - name: Run the Python linter
+      run: |
+        prospector

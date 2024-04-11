@@ -14,11 +14,12 @@ from suricate.configuration import config, dt_format
 
 
 logger = logging.getLogger('suricate')
-r = redis.StrictRedis()
+r = redis.StrictRedis(decode_responses=True)
 
 stop_key = '__dbfiller_stop'
 
-class DBFiller(object):
+
+class DBFiller:
 
     def __init__(self):
         r.set('__dbfiller_stop', 'no')
@@ -36,24 +37,23 @@ class DBFiller(object):
             for key in r.scan_iter("*"):
                 if key.startswith('_'):
                     continue
-                elif ':' in key or 'healthy_job' in key:
+                if ':' in key or 'healthy_job' in key:
                     continue
-                elif key.count('/') != 2:
+                if key.count('/') != 2:
                     # Every attribute key has 2 slashes
                     # I.e. ANTENNA/Boss/rawAzimuth
                     continue
-                else:
-                    data = r.hgetall(key)
-                    if  not isinstance(data, dict) and 'error' not in data:
-                        continue
-                    if 'timestamp' not in data:
-                        continue
-                    if data['error']:
-                        continue  # Do not store error messages
-    
+                data = r.hgetall(key)
+                if not isinstance(data, dict) and 'error' not in data:
+                    continue
+                if 'timestamp' not in data:
+                    continue
+                if data['error']:
+                    continue  # Do not store error messages
+
                 timestamp = datetime.strptime(data['timestamp'], dt_format)
                 attr = Attribute(
-                    id='{} @ {}'.format(key, data['timestamp']),
+                    id=f'{key} @ {data["timestamp"]}',
                     name=key,
                     units=data['units'],
                     timestamp=timestamp,
@@ -71,7 +71,10 @@ class DBFiller(object):
                 finally:
                     session.close()
 
-            time.sleep(config['SCHEDULER']['dbfiller_cycle'])
+            try:
+                time.sleep(config['SCHEDULER']['dbfiller_cycle'])
+            except KeyboardInterrupt:
+                break
             if r.get('__dbfiller_stop') == 'yes':
                 break
 

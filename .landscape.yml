@@ -2,21 +2,40 @@ strictness: veryhigh
 
 test-warnings: true
 
-autodetect: yes
+autodetect: true
 
 ignore-paths:
     - doc
-    - tests/acsenv
+    - build
+    - tests
+    - suricate/migrations
 
 pylint:
-    disable:
-        - invalid-name
-        - bare-except
-        - R0914
-        - R0903
-        - W0212
-        - W0704
-        - W0603
+  disable:
+    - invalid-name
+    - bare-except
+    - import-outside-toplevel
+    - too-many-arguments
+    - too-many-branches
+    - too-many-statements
+    - cyclic-import
+    - useless-suppression
+    - R0914
+    - R0903
+    - W0212
+    - W0704
+    - W0603
+
+pycodestyle:
+  disable:
+    - E402
+    - E722
+    - N803
+    - N806
+
+mccabe:
+  disable:
+    - MC0001
 
 python-targets:
-    - 2
+  - 3

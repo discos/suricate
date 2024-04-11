@@ -1,0 +1,12 @@
+redis
+apscheduler
+MarkupSafe
+Jinja2
+Flask
+itsdangerous
+Flask-SQLAlchemy
+Flask-Migrate
+pyyaml
+rq
+python-dotenv
+requests

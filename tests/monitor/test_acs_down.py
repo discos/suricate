@@ -26,7 +26,7 @@ def test_startup(Publisher, redis_client):
         assert value == ''
         components = redis_client.hgetall('components')
         assert len(components) == 2
-        for component, status in components.items():
+        for component, status in list(components.items()):
             assert status == 'unavailable'
     finally:
         suricate.services.is_manager_online = lambda: True
@@ -46,7 +46,7 @@ def test_after_startup(Publisher, redis_client):
         assert message == ''
         components = redis_client.hgetall('components')
         assert len(components) == 2
-        for component, status in components.items():
+        for component, status in list(components.items()):
             assert status == 'available'
 
         # ACS not running
@@ -62,7 +62,7 @@ def test_after_startup(Publisher, redis_client):
         assert message == 'ACS not running'
         components = redis_client.hgetall('components')
         assert len(components) == 2
-        for component, status in components.items():
+        for component, status in list(components.items()):
             assert status == 'unavailable'
 
         # ACS running again
@@ -77,7 +77,7 @@ def test_after_startup(Publisher, redis_client):
         assert message == ''
         components = redis_client.hgetall('components')
         assert len(components) == 2
-        for component, status in components.items():
+        for component, status in list(components.items()):
             assert status == 'available'
     finally:
         suricate.component.Component.unavailables = []

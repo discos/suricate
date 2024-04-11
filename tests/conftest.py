@@ -34,9 +34,9 @@ def pytest_addoption(parser):
 
 def pytest_cmdline_main(config):
     if config.getoption('--acs'):
-        print '\nRunning the test with ACS'
+        print('\nRunning the test with ACS')
     else:
-        print '\nRunning the test with mock components'
+        print('\nRunning the test with mock components')
 
 
 @pytest.fixture(autouse=True)
@@ -51,7 +51,7 @@ def mock_objects(request, monkeypatch):
 
 @pytest.fixture(autouse=True)
 def logger(request):
-    r = redis.StrictRedis()
+    r = redis.StrictRedis(decode_responses=True)
     # Log messages start with ___ : remove them
     for key in r.scan_iter("*"):
         if key.startswith('__'):
@@ -107,8 +107,8 @@ def Publisher(request):
 
     def shutdown():
         try:
+            print('\nShutting down the scheduler...')
             Publisher_.shutdown()
-            print '\nShutting down the scheduler...'
             time.sleep(1)
         except SchedulerNotRunningError:
             pass
@@ -123,8 +123,8 @@ def dbfiller(request):
     dbf = DBFiller()
 
     def shutdown():
+        print('\nShutting down the dbfiller...')
         dbf.shutdown()
-        print '\nShutting down the dbfiller...'
         time.sleep(1)
 
     request.addfinalizer(shutdown)
@@ -135,7 +135,7 @@ class RedisPubSub(object):
     """Delegate to a redis pubsub channel"""
 
     def __init__(self):
-        self._redis = redis.StrictRedis()
+        self._redis = redis.StrictRedis(decode_responses=True)
         self._redis.flushall()
         self._pubsub = self._redis.pubsub()
 
@@ -219,12 +219,12 @@ class MockComponent(object):
         self.container = container
         self.startup_delay = int(startup_delay)
         startup_time = datetime.utcnow() + timedelta(seconds=self.startup_delay)
-        r = redis.StrictRedis()
+        r = redis.StrictRedis(decode_responses=True)
         r.set(
             '__%s/startup_time' % self.name,
             startup_time.strftime(dt_format),
         )
-        for property_ in MockComponent.properties.items():
+        for property_ in list(MockComponent.properties.items()):
             self.set_property(*property_)
 
     def release(self):
@@ -285,7 +285,7 @@ class MockComponent(object):
             name,
             value,
             error_code=0,
-            timestamp=138129971470735140L,
+            timestamp=138129971470735140,
         ):
         completion = Completion(error_code, timestamp)
         property_ = Property(name, value, completion)
@@ -318,7 +318,7 @@ class Property(object):
 
 
 class Completion(object):
-    def __init__(self, code=0, timestamp=138129971470735140L):
+    def __init__(self, code=0, timestamp=138129971470735140):
         self.code = code
         self.timeStamp = timestamp
 
@@ -384,7 +384,7 @@ def pubsub(request):
 
 @pytest.fixture()
 def redis_client(request):
-    r = redis.StrictRedis()
+    r = redis.StrictRedis(decode_responses=True)
 
     def close_redis_client():
         r.flushall()
