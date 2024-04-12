@@ -85,29 +85,42 @@ def test_no_timestamp_in_data(client, dbfiller, redis_client):
 
 def test_store_attribute(client, dbfiller, redis_client):
     """Store the attribute to db"""
-    key = 'SYSTEM/Component/name'
+    system = 'SYSTEM/Component'
+    name = 'name'
+    key = f'{system}/{name}'
     attribute['timestamp'] = datetime.utcnow().strftime(dt_format)
     redis_client.hset(key, mapping=attribute)
     redis_client.set('__dbfiller_stop', 'yes')
     dbfiller.dbfiller()
-    result = Attribute.query.filter(Attribute.name == key).first()
+    result = Attribute.query.filter(
+        Attribute.system == system,
+        Attribute.name == name
+    ).first()
     assert result.timer == attribute['timer']
 
 
 def test_store_attribute_by_process(client, dbfiller, redis_client):
     """Start the process and verify it stores only one attribute"""
-    key = 'SYSTEM/Component/name'
+    system = 'SYSTEM/Component'
+    name = 'name'
+    key = f'{system}/{name}'
     attribute['timestamp'] = datetime.utcnow().strftime(dt_format)
     redis_client.hset(key, mapping=attribute)
     dbfiller.start()
     # Wait a little bit, to be sure the process has the
     # chance to store more than one attribute
     time.sleep(config['SCHEDULER']['dbfiller_cycle']*5)
-    query = Attribute.query.filter(Attribute.name == key).all()
+    query = Attribute.query.filter(
+        Attribute.system == system,
+        Attribute.name == name
+    ).all()
     # All items have different timestamp. It means in this case
     # there should be only one item stored on db
     assert len(query) == 1
-    dbattr = Attribute.query.filter(Attribute.name == key).first()
+    dbattr = Attribute.query.filter(
+        Attribute.system == system,
+        Attribute.name == name
+    ).first()
     assert dbattr.timer == attribute['timer']
 
 

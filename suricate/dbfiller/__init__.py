@@ -52,9 +52,11 @@ class DBFiller:
                     continue  # Do not store error messages
 
                 timestamp = datetime.strptime(data['timestamp'], dt_format)
+                system = key[:key.rfind('/')]
+                name = key[key.rfind('/') + 1:]
                 attr = Attribute(
-                    id=f'{key} @ {data["timestamp"]}',
-                    name=key,
+                    system=system,
+                    name=name,
                     units=data['units'],
                     timestamp=timestamp,
                     timer=data['timer'],
