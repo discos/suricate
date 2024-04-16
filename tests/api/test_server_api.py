@@ -327,7 +327,8 @@ def test_get_last_attributes(client, dbfiller, redis_client):
     raw_response = client.get('/attr/%s/%d' % (key1, N))
     response = raw_response.get_json()
     assert len(response) == N
-    assert response[0]['name'] == key1
+    assert response[0]['system'] == 'SYSTEM/Component'
+    assert response[0]['name'] == 'name1'
     assert response[0]['value'] == ATTRIBUTE['value']
     assert response[0]['timestamp'] > response[N-1]['timestamp']
     raw_response = client.get('/attr/%s/%d' % (key2, N-1))

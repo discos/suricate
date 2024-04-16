@@ -118,8 +118,10 @@ def get_commands_from_datetimex_to_datetimey(dtx, dty):
 @main.route('/attr/<system>/<component>/<name>/<int:N>', methods=['GET'])
 def get_last_attribute_values(system, component, name, N):
     """Returns the last N commands"""
-    key = f'{system}/{component}/{name}'
-    attrs = Attribute.query.filter(Attribute.name == key)
+    attrs = Attribute.query.filter(
+        Attribute.system == f'{system}/{component}',
+        Attribute.name == f'{name}'
+    )
     attrs = attrs.order_by(desc(Attribute.timestamp)).limit(N).all()
     if not attrs:
         response = {
@@ -139,11 +141,11 @@ def get_last_default_attribute_values(system, component, name):
 @main.route('/attr/<system>/<component>/<name>/from/<dtx>', methods=['GET'])
 def get_attribute_from_datetimex(system, component, name, dtx):
     """Return all attributes values from datetime dtx until now"""
-    key = f'{system}/{component}/{name}'
     try:
         dtx = datetime.strptime(dtx, dt_format)
         attrs = Attribute.query.filter(
-            Attribute.name == key,
+            Attribute.system == f'{system}/{component}',
+            Attribute.name == f'{name}',
             Attribute.timestamp >= dtx,
         ).order_by(Attribute.timestamp.desc()).all()
     except ValueError:
@@ -173,12 +175,12 @@ def get_attribute_from_datetimex_to_datetimey(
     dty
 ):
     """Returns all attribute values from datetime dtx to dty"""
-    key = f'{system}/{component}/{name}'
     try:
         dtx = datetime.strptime(dtx, dt_format)
         dty = datetime.strptime(dty, dt_format)
         attrs = Attribute.query.filter(
-            Attribute.name == key,
+            Attribute.system == f'{system}/{component}',
+            Attribute.name == f'{name}',
             Attribute.timestamp >= dtx,
             Attribute.timestamp <= dty,
         ).order_by(Attribute.timestamp.desc()).all()

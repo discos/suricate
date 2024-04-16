@@ -48,9 +48,9 @@ class Command(db.Model):
 class Attribute(db.Model):
     __tablename__ = 'attributes'
 
-    id = db.Column(db.String(128), primary_key=True)
-    name = db.Column(db.String(64), nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False)
+    system = db.Column(db.String(128), primary_key=True)
+    name = db.Column(db.String(128), primary_key=True)
+    timestamp = db.Column(db.DateTime, primary_key=True)
     timer = db.Column(db.Float, nullable=False)
     value = db.Column(db.String(256))
     description = db.Column(db.String(128))
@@ -58,7 +58,7 @@ class Attribute(db.Model):
     error = db.Column(db.String(128), default='')
 
     def __repr__(self):
-        return f'<Attribute {self.id}>'
+        return f'<Attribute {self.system}/{self.name} @ {self.timestamp}>'
 
     def get_timestamp_str(self, _dt_format=dt_format):
         return self.timestamp.strftime(_dt_format)
