@@ -57,7 +57,7 @@ setup(
         'Flask-SQLAlchemy',
         'Flask-Migrate',
         'pyyaml',
-        'rq',
+        'rq==1.16.2',
         'python-dotenv',
         'requests',
     ],
