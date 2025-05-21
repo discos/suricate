@@ -22,14 +22,33 @@ they will be automatically installed during the Suricate installation.
 Redis
 -----
 In this section we will see how to install and configure `Redis <https://redis.io/>`_
-on Linux CentOS.  If that is not your case, get the source code from the
-`Redis website <https://redis.io/download/>`_ and follow the documentation.
-
-On Linux CentOS:
+on Linux CentOS:
 
 .. code-block:: shell
 
-   sudo yum install redis
+   $ sudo yum remove redis
+   $ wget https://download.redis.io/releases/redis-7.0.15.tar.gz
+   $ tar xzf redis-7.0.15.tar.gz
+   $ cd redis-7.0.15/
+   $ make BUILD_WITH_LTO=no
+   $ make test
+   $ sudo make install
+
+Create the file */etc/systemd/system/redis.service* and write the following content::
+
+   [Unit]
+   Description=Redis In-Memory Data Store
+   After=network.target
+   
+   [Service]
+   ExecStart=/usr/local/bin/redis-server /etc/redis.conf
+   ExecStop=/usr/local/bin/redis-cli shutdown
+   Restart=always
+   User=redis
+   Group=redis
+   
+   [Install]
+   WantedBy=multi-user.target
 
 To bind Redis server to all ports, open */etc/redis.conf* and
 change the line ``bind 127.0.0.1`` to ``bind 0.0.0.0``.
@@ -40,11 +59,6 @@ point:
 
    $ sudo chkconfig redis on
    $ sudo service redis restart
-
-Start the Redis queue. It is used to send the commands to DISCOS::
-
-   $ rqworker -P ~/suricate/suricate discos-api
-
 
 Remote configuration
 --------------------
@@ -130,6 +144,11 @@ Every time a table changes::
 
 Run Suricate
 ------------
+
+If you want to send the commands to DISCOS, start the redis queue::
+
+   $ rqworker -P ~/suricate/suricate discos-api
+
 
 You are ready to start Suricate:
 
