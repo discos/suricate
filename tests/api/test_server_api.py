@@ -3,7 +3,8 @@ from datetime import datetime
 from flask import json, jsonify
 import pytest
 import suricate
-from suricate.configuration import dt_format, config
+from suricate.configuration import dt_format
+from suricate.configuration import default_config as config
 
 
 BASE_URL = '/publisher/api/v0.1'
