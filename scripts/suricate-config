@@ -13,7 +13,6 @@ from suricate.paths import (
 )
 
 
-
 parser = ArgumentParser()
 parser.add_argument(
     '-t',
@@ -25,17 +24,17 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-try:  
+try:
     os.mkdir(config_dir)
 except OSError:
     pass  # The directory already exists
 
 if args.template == 'default':
-    with io.open(config_file, 'w') as outfile:
+    with io.open(config_file, 'w', encoding='utf-8') as outfile:
         yaml.dump(default_config, outfile)
-    print('%s created!' % config_file)
+    print(f'{config_file} created!')
 else:
-    template = '%s.yaml' % args.template
+    template = f'{args.template}.yaml'
     source_file = os.path.join(template_dir, template)
     copyfile(source_file, config_file)
-    print('%s created from %s!' % (config_file, template))
+    print(f'{config_file} created from {template}!')

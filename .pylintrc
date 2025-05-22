@@ -1,0 +1,5 @@
+[MESSAGES CONTROL]
+disable=
+    too-many-positional-arguments,
+    broad-exception-caught,
+    possibly-used-before-assignment
