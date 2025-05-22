@@ -1,4 +1,5 @@
 import sys
+import time
 import logging
 from datetime import datetime
 
@@ -305,6 +306,7 @@ class Publisher:
     def shutdown(cls):
         cls.s.remove_all_jobs()
         cls.s.shutdown(wait=False)
+        time.sleep(0.2)
         cls.s = Scheduler()
 
     def _set_attr_error(
