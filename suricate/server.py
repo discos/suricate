@@ -24,6 +24,7 @@ def get_jobs():
 
 @main.route('/publisher/api/v0.1/jobs', methods=['POST'])
 def create_job():
+    startup_delay = container = component = attribute = timer = None
     if not request.json:
         abort(400)
     else:
@@ -37,7 +38,7 @@ def create_job():
         type_ = request.json.get('type', 'property')
         types = 'properties' if type_ == 'property' else 'methods'
 
-    if None in [component, container, attribute, timer, startup_delay]:
+    if None in [startup_delay, component, container, attribute, timer]:
         logger.error(
             'specify component, container, attribute, timer and startup_delay'
         )

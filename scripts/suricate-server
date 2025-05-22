@@ -1,18 +1,14 @@
 #!/usr/bin/env python
 
-import os
 import sys
 import socket
-import datetime
-import requests
-from subprocess import check_output, STDOUT
-from suricate import server
-from suricate.configuration import config
 from argparse import ArgumentParser, FileType
 
-import redis
+import requests
 import yaml
 
+from suricate import server
+from suricate.configuration import config
 
 parser = ArgumentParser(description='http://suricate.readthedocs.org/')
 parser.add_argument(
@@ -31,7 +27,7 @@ try:
     PORT = config['HTTP']['port']
     BASEURL = config['HTTP']['baseurl']
 except KeyError as ex:
-    print('ERROR: can not load %s from configuration' % str(ex))
+    print(f'ERROR: can not load {ex} from configuration')
     sys.exit(1)
 except Exception:
     print('ERROR: can not properly load the configuration')
@@ -55,10 +51,10 @@ elif args.action == 'stop' and args.no_components:
     print('ERROR: can not execute stop with no_components')
     sys.exit(1)
 else:
-    url = '%s:%d/publisher/api/v0.1/stop' % (BASEURL, PORT)
+    url = '{BASEURL}:{PORT}/publisher/api/v0.1/stop'
     msg = ''
     try:
-        requests.post(url)
+        requests.post(url, timeout=2)
         print('A "stop" request has been sent to the server')
     except requests.exceptions.ConnectionError:
         print('The server was already stopped...')
