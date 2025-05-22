@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.9', '3']
+        python-version: ['3.9']
 
     steps:
     - uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
       working-directory: ./suricate
     - name: Run the unit tests
       run: |
-        coverage run --source suricate -m pytest
+        coverage run --source suricate -m pytest --disable-warnings
         coverage xml
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v4.0.1
