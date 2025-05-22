@@ -10,5 +10,6 @@ Suricate
 
 Suricate allows GUIs, RFI checkers, receiver monitors, backends and meteo services
 to know some antenna parameters like the current azimuth and elevation, device
-temperatures, configurations, LO frequencies and so forth.
+temperatures, configurations, LO frequencies and so forth. It works even when ACS
+is not running and provides information about the status of the containers.
 To use Suricate look at the `documentation <https://suricate.readthedocs.io>`_.
