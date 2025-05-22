@@ -8,10 +8,6 @@ Suricate
 .. image:: https://codecov.io/gh/discos/suricate/graph/badge.svg?token=m57Tx3fO3O 
    :target: https://codecov.io/gh/discos/suricate
 
-.. image:: https://www.codefactor.io/repository/github/discos/suricate/badge
-   :target: https://www.codefactor.io/repository/github/discos/suricate
-
-
 Suricate allows GUIs, RFI checkers, receiver monitors, backends and meteo services
 to know some antenna parameters like the current azimuth and elevation, device
 temperatures, configurations, LO frequencies and so forth.
