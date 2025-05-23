@@ -115,7 +115,9 @@ To install Suricate, clone the repository as ``discos`` user and use ``pip``:
    $ sudo systemctl daemon-reload
 
 At this point Suricate can be executed as a service.  Before starting we need
-to configure it.  To install the SRT configuration:
+to configure it.  There are three configuration available: ``srt``, ``medicina``
+and ``noto``. For instance, if you want to load the SRT configuration, give it as a template
+argument:
 
 .. code-block:: bash
 
@@ -150,17 +152,17 @@ If you want to send the commands to DISCOS, start the redis queue::
    $ rqworker -P ~/suricate/suricate discos-api
 
 
-You are ready to start Suricate:
+Now you are ready to start Suricate:
 
 .. code-block:: shell
 
-   $ sudo systemctl start suricate.service
+   $ sudo service suricate start
 
-To know its status and stop it:
+If you want to know the status of Suricate:
 
 .. code-block:: shell
 
-   $ sudo systemctl status suricate.service
+   $ sudo service suricate status
    [...]
       Active: active (running) since [...]
    [...]
@@ -169,6 +171,12 @@ To know its status and stop it:
    [...]
       Active: inactive (dead)
    [...]
+
+If you want to stop it:
+
+.. code-block:: shell
+
+   $ sudo service suricate stop
 
 To uninstall Suricate:
 
