@@ -11,4 +11,4 @@ Flask-Migrate==4.1.0
 pyyaml==6.0.2
 rq==1.16.2
 python-dotenv==1.1.0
-requests==2.26.0
+requests==2.32.2
