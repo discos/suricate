@@ -51,7 +51,7 @@ elif args.action == 'stop' and args.no_components:
     print('ERROR: can not execute stop with no_components')
     sys.exit(1)
 else:
-    url = '{BASEURL}:{PORT}/publisher/api/v0.1/stop'
+    url = f'{BASEURL}:{PORT}/publisher/api/v0.1/stop'
     msg = ''
     try:
         requests.post(url, timeout=2)
