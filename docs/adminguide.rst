@@ -33,6 +33,8 @@ on Linux CentOS:
    $ make BUILD_WITH_LTO=no
    $ make test
    $ sudo make install
+   $ sudo cp redis.conf /etc
+   $ sudo adduser --system --no-create-home redis
 
 Create the file */etc/systemd/system/redis.service* and write the following content::
 
