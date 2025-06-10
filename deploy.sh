@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Ask the sudo password once
+Defaults timestamp_timeout=30
+sudo -v
+
 set -e  # Stop the script if any command fails
 
 # Go to the home directory
