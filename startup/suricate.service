@@ -7,3 +7,6 @@ ExecStart=/bin/bash -c 'source ~/.bashrc && suricate-server start'
 ExecStop=/bin/bash -c 'source ~/.bashrc && suricate-server stop'
 User=discos
 PIDFile=/var/run/suricate-server
+
+[Install]
+WantedBy=multi-user.target

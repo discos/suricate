@@ -5,10 +5,13 @@ set -e  # Stop the script if any command fails
 # Go to the home directory
 cd ~
 
-# Clone and install DISCoS master for SRT
-discos-get master -s SRT
-cd master-srt/SystemMake/
-make all install
+# Clone and install DISCOS master for SRT
+if [ ! -d master-srt ]; then
+  discos-get master -s SRT
+  source ~/.bashrc
+  cd master-srt/SystemMake/
+  make all install
+fi
 
 # Go back to home
 cd ~
@@ -21,11 +24,9 @@ fi
 # Extract and build Redis
 tar xzf redis-7.0.15.tar.gz
 cd redis-7.0.15/
+make clean
 make BUILD_WITH_LTO=no
 sudo make install
-
-# Copy the default configuration file to /etc
-sudo cp redis.conf /etc
 
 # Create the redis system user if it doesn't exist
 if ! id "redis" &>/dev/null; then
@@ -34,62 +35,38 @@ else
   echo "User 'redis' already exists, skipping creation."
 fi
 
-# Create the systemd service file for Redis
-sudo tee /etc/systemd/system/redis.service > /dev/null <<EOF
-[Unit]
-Description=Redis In-Memory Data Store
-After=network.target
-
-[Service]
-ExecStart=/usr/local/bin/redis-server /etc/redis.conf
-ExecStop=/usr/local/bin/redis-cli shutdown
-Restart=always
-User=redis
-Group=redis
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Reload systemd and enable Redis service
-sudo systemctl daemon-reexec
-sudo systemctl daemon-reload
-sudo systemctl enable redis
-sudo systemctl start redis
-
-# Register Redis with chkconfig and restart the service
-sudo chkconfig redis on
-sudo service redis restart
-
-# Go back to home
-cd ~
-
-# Clone Suricate repository
-git clone https://github.com/discos/suricate.git
-cd suricate
-
-# Install dependencies
+# Install and configure Suricate
+cd ~/suricate
 pip install -r requirements.txt
 pip install -r testing_requirements.txt
 pip install .
 
-# Generate Suricate configuration for SRT
+# Configure redis and Suricate
+cd ~/suricate
+sudo cp templates/redis.conf /etc/redis.conf
 suricate-config -t srt
 
-# Copy the Suricate systemd service file
+# Create the systemd service file for Redis and Suricate
+cd ~/suricate
+sudo cp startup/redis.service /etc/systemd/system/redis.service
 sudo cp startup/suricate.service /etc/systemd/system/suricate.service
 
-# Initialize the Suricate database
+# Initialize Suricate database
 cd ~/suricate/suricate
 source .flaskenv
-flask db init
+if [ ! -d migrations ]; then
+  flask db init
+fi
+
+# Reload systemd and enable Redis
+cd ~
+sudo systemctl daemon-reload
+sudo systemctl enable redis.service
+sudo systemctl enable suricate.service
+sudo reboot
 
 # Optional: start the RQ worker manually (commented)
 # rqworker -P suricate/ discos-api
-
-# Register Suricate with chkconfig and restart the service
-sudo chkconfig suricate on
-sudo service suricate restart
 
 # Start discos simulators
 # discos-simulators start
