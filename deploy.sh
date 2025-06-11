@@ -1,10 +1,11 @@
 #!/bin/bash
 
-# Ask the sudo password once
-Defaults timestamp_timeout=30
-sudo -v
-
 set -e  # Stop the script if any command fails
+
+# Every 5 minutes, set the sudo timeout (in background)
+sudo -v
+( while true; do sleep 300; sudo -n -v; done ) &
+SUDO_KEEP_ALIVE_PID=$!
 
 # Go to the home directory
 cd ~
@@ -39,35 +40,45 @@ else
   echo "User 'redis' already exists, skipping creation."
 fi
 
+# Configure redis
+cd ~/suricate
+sudo cp templates/redis.conf /etc/redis.conf
+
+# Create the systemd service file for Redis
+cd ~/suricate
+sudo cp startup/redis.service /etc/systemd/system/redis.service
+
+# Reload systemd and enable Redis
+sudo systemctl daemon-reload
+sudo systemctl enable redis.service
+sudo service redis start
+
 # Install and configure Suricate
 cd ~/suricate
 pip install -r requirements.txt
 pip install -r testing_requirements.txt
 pip install .
-
-# Configure redis and Suricate
-cd ~/suricate
-sudo cp templates/redis.conf /etc/redis.conf
 suricate-config -t srt
 
-# Create the systemd service file for Redis and Suricate
-cd ~/suricate
-sudo cp startup/redis.service /etc/systemd/system/redis.service
-sudo cp startup/suricate.service /etc/systemd/system/suricate.service
-
-# Initialize Suricate database
 cd ~/suricate/suricate
 source .flaskenv
 if [ ! -d migrations ]; then
   flask db init
 fi
 
-# Reload systemd and enable Redis
-cd ~
+# Reload systemd and enable Suricate
+cd ~/suricate
+sudo cp scripts/start_suricate.sh /usr/local/bin/start_suricate.sh
+sudo cp scripts/stop_suricate.sh /usr/local/bin/stop_suricate.sh
+sudo cp startup/suricate.service /etc/systemd/system/suricate.service
 sudo systemctl daemon-reload
-sudo systemctl enable redis.service
 sudo systemctl enable suricate.service
-sudo reboot
+
+# Install DISCOS simulators
+cd ~
+git clone https://github.com/discos/simulators.git
+cd simulators
+pip install .
 
 # Optional: start the RQ worker manually (commented)
 # rqworker -P suricate/ discos-api
@@ -77,3 +88,6 @@ sudo reboot
 
 # Start discos
 # discosup
+
+kill $SUDO_KEEP_ALIVE_PID
+sudo reboot
