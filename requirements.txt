@@ -2,7 +2,7 @@ setuptools
 redis==6.1.0
 tzlocal==4.3.1
 pytz==2020.4
-apscheduler==3.2.0
+apscheduler==3.11.0
 MarkupSafe==3.0.2
 Jinja2==3.1.6
 itsdangerous==2.2.0
