@@ -2,9 +2,9 @@
 
 set -e  # Stop the script if any command fails
 
-# Every 5 minutes, set the sudo timeout (in background)
+# Every 4 minutes, keep alive sudo (in background)
 sudo -v
-( while true; do sleep 300; sudo -n -v; done ) &
+( while true; do sleep 240; sudo -n -v; done ) &
 SUDO_KEEP_ALIVE_PID=$!
 
 # Go to the home directory
