@@ -132,7 +132,7 @@ COMPONENTS:
 
 HTTP:
   # Base URL and port of the API
-  baseurl: http://127.0.0.1
+  baseurl: 127.0.0.1
   port: 5000
 
 SCHEDULER:

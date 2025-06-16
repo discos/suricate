@@ -6,7 +6,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 ExecStart=/usr/local/bin/start_suricate.sh
-ExecStop=/usr/local/bin/start_suricate.sh
+ExecStop=/usr/local/bin/stop_suricate.sh
 User=discos
 PIDFile=/var/run/suricate-server
 

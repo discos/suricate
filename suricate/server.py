@@ -135,6 +135,7 @@ def start_webserver():
     except socket.error as ex:
         logger.error(ex)
         sys.exit(1)
+    logger.info('webserver started')
 
 
 def start(components=None):

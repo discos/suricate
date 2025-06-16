@@ -41,8 +41,12 @@ class Publisher:
             func=self.rescheduler,
             args=(),
             id='rescheduler',
+            replace_existing=True,
+            coalesce=True,
+            max_instances=1,
             trigger='interval',
             seconds=config['SCHEDULER']['reschedule_interval']
+
         )
 
     def add_jobs(self, _config):

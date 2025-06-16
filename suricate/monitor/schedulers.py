@@ -1,6 +1,8 @@
 import redis
 
+from pytz import utc
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.executors.pool import ProcessPoolExecutor, ThreadPoolExecutor
 from suricate.monitor import jobs
 
 
@@ -8,6 +10,23 @@ __all__ = ['Scheduler']
 
 
 class ACSScheduler(BackgroundScheduler):
+
+    def __init__(self, *args):
+        super().__init__(*args)
+        executors = {
+            'default': ThreadPoolExecutor(50),
+            'processpool': ProcessPoolExecutor(50)
+        }
+        job_defaults = {
+            'coalesce': False,
+            'max_instances': 1
+        }
+
+        self.configure(
+            executors=executors,
+            job_defaults=job_defaults,
+            timezone=utc
+        )
 
     def add_attribute_job(
             self,
