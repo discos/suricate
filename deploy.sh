@@ -1,6 +1,7 @@
 #!/bin/bash
 
-set -e  # Stop the script if any command fails
+# Stop the script if any command fails
+set -e
 
 # Every 4 minutes, keep alive sudo (in background)
 sudo -v
@@ -51,7 +52,7 @@ sudo cp templates/redis.conf /etc/redis.conf
 cd ~/suricate
 sudo cp startup/redis.service /etc/systemd/system/redis.service
 
-# Reload systemd and enable Redis
+# Reload systemd, enable and start Redis
 sudo systemctl daemon-reload
 sudo systemctl enable redis.service
 sudo service redis start
@@ -62,14 +63,13 @@ pip install -r requirements.txt
 pip install -r testing_requirements.txt
 pip install .
 suricate-config -t srt
-
 cd ~/suricate/suricate
 source .flaskenv
 if [ ! -d migrations ]; then
   flask db init
 fi
 
-# Reload systemd and enable Suricate
+# Configure systemd for Suricate
 cd ~/suricate
 sudo cp scripts/start_suricate.sh /usr/local/bin/start_suricate.sh
 sudo cp scripts/stop_suricate.sh /usr/local/bin/stop_suricate.sh
@@ -82,15 +82,6 @@ cd ~
 git clone https://github.com/discos/simulators.git
 cd simulators
 pip install .
-
-# Optional: start the RQ worker manually (commented)
-# rqworker -P suricate/ discos-api
-
-# Start discos simulators
-# discos-simulators start
-
-# Start discos
-# discosup
 
 kill $SUDO_KEEP_ALIVE_PID
 sudo reboot
