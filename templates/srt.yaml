@@ -131,7 +131,7 @@ COMPONENTS:
       description: "wind peak catched on the last 5 seconds"
 
 HTTP:
-  # Base URL and port of the API
+  # Base URL (without http://) and port of the API
   baseurl: 127.0.0.1
   port: 5000
 
