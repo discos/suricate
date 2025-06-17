@@ -1,5 +1,3 @@
-
-
 import os
 from shutil import copyfile
 from setuptools import setup, find_packages
@@ -27,12 +25,14 @@ for d in directories:
     except OSError:
         pass  # Directory already exists
 
-
 for file_name in os.listdir('templates'):
     source_file = os.path.join('templates', file_name)
     dest_file = os.path.join(template_dir, file_name)
     copyfile(source_file, dest_file)
 
+# Read requirements.txt
+with open('requirements.txt', encoding='utf-8') as f:
+    requirements = f.read().splitlines()
 
 setup(
     name='suricate',
@@ -47,20 +47,7 @@ setup(
     keywords='Alma Common Software property publisher',
     scripts=['scripts/suricate-server', 'scripts/suricate-config'],
     platforms='all',
-    install_requires=[
-        'redis',
-        'apscheduler',
-        'MarkupSafe',
-        'Jinja2',
-        'Flask',
-        'itsdangerous',
-        'Flask-SQLAlchemy',
-        'Flask-Migrate',
-        'pyyaml',
-        'rq==1.16.2',
-        'python-dotenv',
-        'requests',
-    ],
+    install_requires=requirements,
     classifiers=[
         'Intended Audience :: Alma Common Software users',
         'Operating System :: OS Independent',

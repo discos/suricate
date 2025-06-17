@@ -42,6 +42,9 @@ fi
 
 # Configure redis
 cd ~/suricate
+sudo mkdir -p /var/lib/redis
+sudo chown redis:redis /var/lib/redis
+sudo chmod 750 /var/lib/redis
 sudo cp templates/redis.conf /etc/redis.conf
 
 # Create the systemd service file for Redis

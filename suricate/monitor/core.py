@@ -5,7 +5,9 @@ from datetime import datetime
 
 import json
 import redis
+from pytz import utc
 from apscheduler import events
+from apscheduler.executors.pool import ProcessPoolExecutor, ThreadPoolExecutor
 
 from suricate.monitor.schedulers import Scheduler
 from suricate.configuration import config, dt_format
@@ -21,7 +23,17 @@ r = redis.StrictRedis(decode_responses=True)
 
 class Publisher:
 
-    s = Scheduler()
+    s = Scheduler(
+        executors={
+            'default': ThreadPoolExecutor(10),
+            'processpool': ProcessPoolExecutor(100),
+        },
+        job_defaults={
+            'coalesce': False,
+            'max_instances': 1,
+        },
+        timezone=utc,
+    )
 
     def __init__(self, *args):
         self.unavailable_components = {}
@@ -41,8 +53,12 @@ class Publisher:
             func=self.rescheduler,
             args=(),
             id='rescheduler',
+            replace_existing=True,
+            coalesce=True,
+            max_instances=1,
             trigger='interval',
             seconds=config['SCHEDULER']['reschedule_interval']
+
         )
 
     def add_jobs(self, _config):
@@ -307,7 +323,17 @@ class Publisher:
         cls.s.remove_all_jobs()
         cls.s.shutdown(wait=False)
         time.sleep(0.2)
-        cls.s = Scheduler()
+        cls.s = Scheduler(
+            executors={
+                'default': ThreadPoolExecutor(10),
+                'processpool': ProcessPoolExecutor(100),
+            },
+            job_defaults={
+                'coalesce': False,
+                'max_instances': 1,
+            },
+            timezone=utc,
+        )
 
     def _set_attr_error(
             self,
