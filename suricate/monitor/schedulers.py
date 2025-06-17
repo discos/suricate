@@ -1,6 +1,5 @@
 import redis
 
-from pytz import utc
 from apscheduler.schedulers.background import BackgroundScheduler
 from suricate.monitor import jobs
 

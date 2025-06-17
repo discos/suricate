@@ -33,6 +33,9 @@ for file_name in os.listdir('templates'):
     dest_file = os.path.join(template_dir, file_name)
     copyfile(source_file, dest_file)
 
+# Read requirements.txt
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
 
 setup(
     name='suricate',
@@ -47,20 +50,7 @@ setup(
     keywords='Alma Common Software property publisher',
     scripts=['scripts/suricate-server', 'scripts/suricate-config'],
     platforms='all',
-    install_requires=[
-        'redis',
-        'apscheduler',
-        'MarkupSafe',
-        'Jinja2',
-        'Flask',
-        'itsdangerous',
-        'Flask-SQLAlchemy',
-        'Flask-Migrate',
-        'pyyaml',
-        'rq==1.16.2',
-        'python-dotenv',
-        'requests',
-    ],
+    install_requires=requirements,
     classifiers=[
         'Intended Audience :: Alma Common Software users',
         'Operating System :: OS Independent',
