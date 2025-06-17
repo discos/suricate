@@ -25,6 +25,18 @@ COMPONENTS:
       units: none
       description: "MNG_OK or MNG_WARNING or MNG_FAILURE"
 
+  ANTENNA/Mount:
+    startup_delay: 10
+    container: AntennaContainer
+    properties:
+    - name: azimuth
+      timer: 2.0
+      units: degree
+      description: "azimuth (encoder value), without any correction"
+    - name: elevation
+      timer: 2.0
+      units: degree
+      description: "elevation (encoder value), without any correction"
 
   RECEIVERS/SRT7GHzReceiver:
     startup_delay: 10
@@ -132,7 +144,7 @@ COMPONENTS:
 
 HTTP:
   # Base URL (without http://) and port of the API
-  baseurl: 127.0.0.1
+  baseurl: 0.0.0.0
   port: 5000
 
 SCHEDULER:
