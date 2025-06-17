@@ -1,5 +1,3 @@
-
-
 import os
 from shutil import copyfile
 from setuptools import setup, find_packages
@@ -27,14 +25,13 @@ for d in directories:
     except OSError:
         pass  # Directory already exists
 
-
 for file_name in os.listdir('templates'):
     source_file = os.path.join('templates', file_name)
     dest_file = os.path.join(template_dir, file_name)
     copyfile(source_file, dest_file)
 
 # Read requirements.txt
-with open('requirements.txt') as f:
+with open('requirements.txt', encoding='utf-8') as f:
     requirements = f.read().splitlines()
 
 setup(

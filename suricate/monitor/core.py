@@ -2,10 +2,10 @@ import sys
 import time
 import logging
 from datetime import datetime
-from pytz import utc
 
 import json
 import redis
+from pytz import utc
 from apscheduler import events
 from apscheduler.executors.pool import ProcessPoolExecutor, ThreadPoolExecutor
 
@@ -24,11 +24,11 @@ r = redis.StrictRedis(decode_responses=True)
 class Publisher:
 
     s = Scheduler(
-        executors = {
+        executors={
             'default': ThreadPoolExecutor(10),
             'processpool': ProcessPoolExecutor(100),
         },
-        job_defaults = {
+        job_defaults={
             'coalesce': False,
             'max_instances': 1,
         },
@@ -324,17 +324,16 @@ class Publisher:
         cls.s.shutdown(wait=False)
         time.sleep(0.2)
         cls.s = Scheduler(
-            executors = {
+            executors={
                 'default': ThreadPoolExecutor(10),
                 'processpool': ProcessPoolExecutor(100),
             },
-            job_defaults = {
+            job_defaults={
                 'coalesce': False,
                 'max_instances': 1,
             },
             timezone=utc,
         )
-
 
     def _set_attr_error(
             self,
