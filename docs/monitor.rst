@@ -5,38 +5,36 @@ Control system monitor
 **********************
 
 There are two ways to get the antenna parameters: by using
-the HTTP REST API, as explained in chapter :ref:`api`, and
-by using a Redis client, as discussed in this chapter.
-The Redis client allows you to get the parameters
-as quickly as possible, while the HTTP API has a lower time
-resolution but allows you to look at the history of the
-attribute, asking for the last ``N`` values, for all
-values after datetime ``x`` or between datetime
-``x`` and datetime ``y``.
+the HTTP REST API, and by using a Redis client, as discussed
+in this chapter. The Redis client allows you to get the parameters
+as quickly as possible, while the HTTP API offers lower time
+resolution but allows you to access the history of an
+attribute, requesting the last ``N`` values, all values after
+datetime ``x``, or values between datetime ``x`` and datetime ``y``.
 
-.. note:: Suricate is composed by a monitor, a database filler
-   and a server. The *monitor* collects all attributes information
-   from the control system and stores them on a Redis database.
+.. note:: Suricate is composed of a monitor, a database filler,
+   and a server. The *monitor* collects all attribute information
+   from the control system and stores it in a Redis database.
    The *database filler* reads the attributes from Redis and stores
-   them on a persistent database. When the user performs a request
-   by means of the HTTP REST API, the *server* executes a query to
-   the persistent database and returns the response. The user, as
-   explained in this chapter, can also read the attributes information
-   by reading directly from the Redis in memory database.
+   them in a persistent database. When the user performs a request
+   through the HTTP REST API, the *server* executes a query on
+   the persistent database and returns the response. As explained
+   in this chapter, the user can also access the attribute information
+   directly from the in-memory Redis database.
 
-If you want to get the antenna parameters from the
-Redis database, you need a Redis client installed on your machine.
+If you want to get the antenna parameters from the Redis database, you
+need a Redis client installed on your machine.
 
 
 Install a Redis client
-----------------------
+======================
 In this section we will briefly see how to install one of them for Python
 and C, but if you do not use these languages, visit the
 `official Redis webpage <https://redis.io/clients>`__ to get
 the right client for your operating system and programming language.
 
 Python
-~~~~~~
+------
 The most used Python client is called `redis-py <https://pypi.org/project/redis/>`__.
 To install it by ``pip``, simply:
 
@@ -45,7 +43,7 @@ To install it by ``pip``, simply:
    $ pip install redis
 
 C Programming Language
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 The official C client is available on the `Hiredis GitHub page
 <https://github.com/redis/hiredis>`__. Clone it on your machine:
 
@@ -64,10 +62,9 @@ For instance, on Linux CentOS:
 
 
 Use your client to get the antenna parameters
----------------------------------------------
+=============================================
 To get the antenna parameters you have to connect your client
-to the Redis server.  Server IP and port are ``192.168.200.203``
-and ``6379``. That is not enough, because you need to understand
+to the Redis server. That is not enough, because you need to understand
 how your client works. These instructions should be
 provided by your Redis client documentation. Let's see two examples,
 using Python and C. Please read the :ref:`python_client` section
@@ -75,17 +72,16 @@ also if you want to use the C programming language, because the
 Python examples show you all information (the :ref:`c_client` section
 is just a short summary).
 
-
 .. _python_client:
 
 How to use the Python client
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 Let's see how to get the ``rawAzimuth`` from a Python shell:
 
 .. code-block:: python
 
    >>> from redis import StrictRedis # Import the redis client
-   >>> r = StrictRedis(host='192.168.200.203', port=6379, decode_responses=True)  # Connect to server
+   >>> r = StrictRedis(host='127.0.0.1', port=6379, decode_responses=True)
    >>> r.hgetall('ANTENNA/Boss/rawAzimuth')  # Ask for the rawAzimuth parameter
    {
      'units': 'radians', 'timestamp': '2019-12-18 12:52:04.206445',
@@ -108,7 +104,6 @@ timer and timestamp.  In case of error there is an error message, and the
      'timer': '2.0'
    }
 
-
 Here is how to get a particular field:
 
 .. code-block:: python
@@ -121,14 +116,13 @@ Here is how to get a particular field:
    >>> result['description']
    'raw azimuth (encoder value), without any correction'
 
-Another way is to use ``hget()``, giving the field name
-as a second argument:
+Another way to get a particular field is to use ``hget()``, giving
+the field name as a second argument:
 
 .. code-block:: python
 
    >>> r.hget('ANTENNA/Boss/rawAzimuth', 'value')
    '0.598923921358'
-
 
 .. note:: The Python ``hgetall()`` and ``hget()`` methods execute the
    Redis calls `HGETALL <https://redis.io/commands/hgetall>`__ and
@@ -151,7 +145,7 @@ strings. For instance, have a look at the current ``LO``
 value:
 
 .. code-block:: python
-   
+
    >>> lo = r.hget('RECEIVERS/Boss/LO', 'value')
    >>> lo
    '(5850.0, 5850.0)'
@@ -169,7 +163,7 @@ To get a tuple you do not need to parse the string. Just use
 .. _c_client:
 
 How to use the C client
-~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------
 To understand how to get the ``rawAzimuth`` parameter look at the
 most important lines of :download:`example.c <examples/example.c>`
 source file:
@@ -215,7 +209,7 @@ you get the same result for different requests:
 
    >>> import time
    >>> import redis
-   >>> r = redis.StrictRedis(host='192.168.200.203', port=6379, decode_responses=True)
+   >>> r = redis.StrictRedis()
    ... print(r.hgetall('ANTENNA/Boss/rawAzimuth')['timestamp'])
    ... time.sleep(0.9)  # 900ms
    ...
@@ -239,7 +233,7 @@ to the ``ANTENNA/Boss/rawAzimuth`` channel:
 .. code-block:: python
 
    >>> import redis
-   >>> r = redis.StrictRedis(host='192.168.200.203', port=6379, decode_responses=True)
+   >>> r = redis.StrictRedis()
    >>> pubsub = r.pubsub()
    >>> pubsub.subscribe('ANTENNA/Boss/rawAzimuth')
 

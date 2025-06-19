@@ -13,8 +13,8 @@ want and make it running on any operating system.
 How to get the antenna parameters
 =================================
 Suricate is configured by means of a configuration file. There are
-three templates, one for each telescope, and every template contains all
-parameters you can get for that telescope. Have a look at the first 20 lines
+three templates, one for each telescope, and every template contains
+some telescope parameters. Have a look at the first 20 lines
 of the :download:`SRT configuration file <../templates/srt.yaml>`:
 
 .. literalinclude:: ../templates/srt.yaml
@@ -28,56 +28,24 @@ They are identified by the lable ``name``, it means, regarding to previous
 lines, you can get the following ``ANTENNA/Boss`` parameters: ``rawAzimuth``,
 ``rawElevation``, ``observedAzimuth``, ``observedElevation``.
 
-For instance, you can get the ``rawAzimuth``
-parameter by pointing a browser to
-``http://192.168.200.203:5000/attr/ANTENNA/Boss/rawAzimuth``.
+For instance, you can get the ``rawAzimuth`` parameter by pointing a
+browser to ``http://suricate_IP/attr/ANTENNA/Boss/rawAzimuth``, where
+``suricate_IP`` is the IP address of the machine where suricate is running.
 
 .. figure:: images/get_attribute.jpg
-   :alt: GET http://192.168.200.203:5000/attr/ANTENNA/Boss/rawAzimuth
+   :alt: GET http://127.0.0.1:5000/attr/ANTENNA/Boss/rawAzimuth
 
-.. note:: In this image you see the browser pointing to localhost. That is
-   because the control system was running locally, over a simulator.
-   The proper IP address, at the Sardinia Radio Telescope, is
-   ``192.168.200.203``.
+Of course, as exapained in the :ref:`quickstart` chapter, you
+can get the parameters programmatically trought a Redis client
+or a HTTP library.
 
-In all likelihood you want to get the parameters programmatically. Let's
-see how to do it by using Python:
+From now on, for the sake of simplicity, we do not write anymore
+the base URL. For instance, instead of writing
+``http://127.0.0.1:500/attr/ANTENNA/Mount/azimuth`` we just write
+``/attr/ANTENNA/Mount/azimuth``. Of course, while executing the code,
+you still need to write it in your the full URL.
 
-
-.. code-block:: python
-
-   >>> target = 'ANTENNA/Boss/rawAzimuth'
-   >>> import requests
-   >>> r = requests.get('http://192.168.200.203:5000/attr/%s' % target)
-   >>> r.json()
-   [
-     {
-       'description': 'commanded azimuth (encoder value),...',
-       'timestamp': '2020-07-10~13:28:57.842001',
-       'timer': 2.0,
-       'value': '1.3248',
-       'error': '',
-       'units': 'radians',
-       'id': 'ANTENNA/Boss/rawAzimuth @ 2020-07-10~13:28:57.842001',
-       'name': 'ANTENNA/Boss/rawAzimuth'
-     }
-     {
-       'description': 'commanded azimuth (encoder value),...',
-       'timestamp': '2020-07-10~13:28:56.428177',
-       'timer': 2.0,
-       'value': '1.3492',
-       'error': '',
-       'units': 'radians',
-       'id': 'ANTENNA/Boss/rawAzimuth @ 2020-07-10~13:28:56.428177',
-       'name': 'ANTENNA/Boss/rawAzimuth'
-     }
-    ...
-   ]
-
-From now on in this documentation we do not write anymore the base URL
-``http://192.168.200.203:5000``.
-That is just for the sake of simplicity, you still need to write it in your
-code. You can use the following URLs:
+Only the following targets are available:
 
 * ``/attr/SYSTEM/Component/name``: last ten data dictionaries for the
   attribute ``name``. Each dictionary has eight items (``description``,
@@ -99,19 +67,19 @@ For instance, in previous example we had ``ANTENNA/Boss/rawAzimuth``
 for ``SYSTEM/Component/name``. The system was ``ANTENNA``, che component was
 ``Boss`` and the attribute name was ``rawAzimuth``.
 
-The attributes information is retrieved from a persistent data base. If you want to
-build a client that requires real time data, the best way is to use a Redis
-client, as explained in chapter :ref:`monitor`.
+The attributes information is retrieved from a persistent data base.
+If you want to build a client that requires realtime data, the best
+way is to use a Redis client (see chapter :ref:`monitor`).
 
-Summarizing, ``http://192.168.200.203:5000`` as base URL, and:
+Summarizing:
 
-#. ``/attr/SYSTEM/Component/name``: last 10
+#. ``/attr/SYSTEM/Component/name``: get the last 10 items
 
-#. ``/attr/SYSTEM/Component/name/N``: last N
+#. ``/attr/SYSTEM/Component/name/N``: last N items
 
-#. ``/attr/SYSTEM/Component/name/from/x``: from timestamp x
+#. ``/attr/SYSTEM/Component/name/from/x``: items starting from timestamp x
 
-#. ``/attr/SYSTEM/Component/name/from/x/to/y``: from timestamp x to y.
+#. ``/attr/SYSTEM/Component/name/from/x/to/y``: items from timestamp x to y.
 
 
 
@@ -126,7 +94,7 @@ For instance, that is the case for ``getTpi`` command:
 .. code-block:: python
 
    >>> import requests
-   >>> r = requests.post('http://192.168.200.203:5000/cmd/getTpi')
+   >>> r = requests.post('http://127.0.0.1:5000/cmd/getTpi')
 
 The response is a json dictionary containing some information
 about the command:
@@ -175,7 +143,7 @@ When you execute a command, the response gives you the command ``id``:
 .. code-block:: python
 
    >>> import requests
-   >>> r = requests.post('http://192.168.200.203:5000/cmd/getTpi')
+   >>> r = requests.post('http://127.0.0.1:5000/cmd/getTpi')
    >>> response = r.json()
    >>> response
    {
@@ -191,7 +159,7 @@ You have to perform a GET request instead of a POST one:
 .. code-block:: python
 
    >>> id = response['id']
-   >>> r = requests.get('http://192.168.200.203:5000/cmd/%s' % id)
+   >>> r = requests.get('http://127.0.0.1:5000/cmd/%s' % id)
    >>> r.json()
    {
      'delivered': True,
