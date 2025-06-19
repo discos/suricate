@@ -19,22 +19,27 @@ if [ ! -d master-srt ]; then
   make all install
 fi
 
-# Go back to home
+# Install redis 7.0.15, only if it's not already installed
 cd ~
+REDIS_VERSION=$(redis-server --version 2>/dev/null \
+  | awk '{for(i=1;i<=NF;i++) if($i ~ /^v=/) print substr($i,3)}')
 
-# Download Redis only if the archive doesn't already exist
-if [ ! -f redis-7.0.15.tar.gz ]; then
-  wget https://download.redis.io/releases/redis-7.0.15.tar.gz
+if [[ "$REDIS_VERSION" != "7.0.15" ]]; then
+  # Download Redis only if the archive doesn't already exist
+  if [ ! -f redis-7.0.15.tar.gz ]; then
+    wget https://download.redis.io/releases/redis-7.0.15.tar.gz
+  fi
+  
+  # Extract and build Redis
+  tar xzf redis-7.0.15.tar.gz
+  cd redis-7.0.15/
+  make clean
+  make BUILD_WITH_LTO=no
+  sudo make install
 fi
 
-# Extract and build Redis
-tar xzf redis-7.0.15.tar.gz
-cd redis-7.0.15/
-make clean
-make BUILD_WITH_LTO=no
-sudo make install
-
 # Create the redis system user if it doesn't exist
+
 if ! id "redis" &>/dev/null; then
   sudo adduser --system --no-create-home redis
 else
@@ -56,6 +61,10 @@ sudo cp startup/redis.service /etc/systemd/system/redis.service
 sudo systemctl daemon-reload
 sudo systemctl enable redis.service
 sudo service redis start
+
+# Make logging working also with older Python versions
+FILE="$PYENV_ROOT/versions/3.9.4/lib/python3.9/logging/__init__.py"
+sed -i 's/^#    _srcfile = None/_srcfile = None/' "$FILE" || true
 
 # Install and configure Suricate
 cd ~/suricate
@@ -79,9 +88,11 @@ sudo systemctl enable suricate.service
 
 # Install DISCOS simulators
 cd ~
-git clone https://github.com/discos/simulators.git
-cd simulators
-pip install .
+if [ ! -d simulators ]; then
+  git clone https://github.com/discos/simulators.git
+  cd simulators
+  pip install .
+fi
 
 kill $SUDO_KEEP_ALIVE_PID
 sudo reboot
