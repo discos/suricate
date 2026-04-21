@@ -10,5 +10,5 @@ Flask-SQLAlchemy==3.1.1
 Flask-Migrate==4.1.0
 pyyaml==6.0.2
 rq==1.16.2
-python-dotenv==1.1.0
+python-dotenv==1.2.2
 requests==2.26.0
